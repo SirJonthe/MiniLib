@@ -102,7 +102,7 @@ bool SDL_Engine::InitSystems(int, char**, unsigned int flags)
 {
 	SystemLog("SDL init...");
 	if (SDL_Init(SDL_INIT_VIDEO|flags)) {
-		m_error.CopyPtr(SDL_GetError());
+		m_error.Copy(mtlChars::Dynamic(SDL_GetError()));
 		SystemLog(m_error.GetChars());
 		SystemLog("\n");
 		return false;
@@ -129,7 +129,7 @@ bool SDL_Engine::SetVideo(int p_width, int p_height, bool p_fullscreen, unsigned
 	SystemLog("SDL video init...");
 	SDL_Surface *surf = SDL_SetVideoMode(p_width, p_height, 32, (p_fullscreen ? SDL_FULLSCREEN : 0)|SDL_HWSURFACE|SDL_DOUBLEBUF|flags);
 	if (surf == NULL) {
-		m_error.CopyPtr(SDL_GetError());
+		m_error.Copy(mtlChars::Dynamic(SDL_GetError()));
 		SystemLog(m_error.GetChars());
 		SystemLog("\n");
 		return false;

@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-#include "MGL/mglFramebuffer.h"
-#include "MGL/mglEngine.h"
+#include "../MGL/mglFramebuffer.h"
+#include "../MGL/mglEngine.h"
 
 std::ostream &operator<<(std::ostream &out, const mtlString &p_str);
 std::ostream &operator<<(std::ostream &out, const mtlSubstring &p_str);
