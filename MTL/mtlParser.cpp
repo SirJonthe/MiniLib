@@ -238,7 +238,7 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 void mtlParser::UndoRead( void )
 {
 	if (UndoCount() > 0) {
-		m_reader = m_undo.GetBack()->value;
+		m_reader = m_undo.GetBack()->GetItem();
 		m_undo.PopBack();
 	}
 }

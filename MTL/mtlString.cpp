@@ -4,7 +4,7 @@
 
 bool mtlChars::SameAsAny(char a, const char *b, int num)
 {
-	if (num < 0) { num = mtlChars::GetSizePtr(b); }
+	if (num < 0) { num = mtlChars::GetSizeDynamic(b); }
 	for (int i = 0; i < num; ++i) {
 		if (a == b[i]) {
 			return true;
@@ -23,7 +23,7 @@ bool mtlChars::SameAsAll(const char *a, const char *b, int num)
 	return true;
 }
 
-int mtlChars::GetSizePtr(const char *str)
+int mtlChars::GetSizeDynamic(const char *str)
 {
 	if (str == NULL) { return 0; }
 	const char *s = str;
@@ -33,7 +33,7 @@ int mtlChars::GetSizePtr(const char *str)
 
 void mtlChars::ToLower(char *str, int num)
 {
-	if (num < 0) { num = mtlChars::GetSizePtr(str); }
+	if (num < 0) { num = mtlChars::GetSizeDynamic(str); }
 	for (int i = 0; i < num; ++i) {
 		if (str[i] >= 'A' && str[i] <= 'Z') {
 			str[i] += 'a' - 'A';
@@ -340,24 +340,6 @@ void mtlString::Copy(const mtlChars &p_str)
 		m_size = p_num;
 		for (int i = 0; i < m_size; ++i) {
 			m_str[i] = p_str.GetChars()[i];
-		}
-		m_str[m_size] = '\0';
-	}
-}
-
-void mtlString::CopyPtr(const char *p_str)
-{
-	if (p_str == NULL) {
-		if (m_str != NULL && m_size > 0) {
-			m_str[0] = '\0';
-			m_size = 0;
-		}
-	} else {
-		const int p_num = mtlChars::GetSizePtr(p_str);
-		NewPoolDelete(p_num);
-		m_size = p_num;
-		for (int i = 0; i < m_size; ++i) {
-			m_str[i] = p_str[i];
 		}
 		m_str[m_size] = '\0';
 	}

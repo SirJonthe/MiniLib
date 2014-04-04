@@ -17,6 +17,11 @@
 #include "mglPlane.h"
 
 class mglObject;
+class mglBoxCollider;
+class mglSphereCollider;
+class mglPlaneCollider;
+class mglMeshCollider;
+class mglStaticMeshCollider;
 
 class mglCollider
 {
@@ -35,7 +40,13 @@ private:
 	mtlDuplex<mglCollider, mglObject>	m_parentObject;
 	const ColliderType					m_colliderType;
 protected:
-	mglRay GetRayInObjectSpace(const mglRay &p_ray) const;
+	mglRay		GetRayInObjectSpace(const mglRay &p_ray) const;
+	static bool	BoxBox(const mglBoxCollider *c1, const mglBoxCollider *c2);
+	static bool	BoxSphere(const mglBoxCollider *c1, const mglSphereCollider *c2);
+	static bool	BoxPlane(const mglBoxCollider *c1, const mglPlaneCollider *c2);
+	static bool	SphereSphere(const mglSphereCollider *c1, const mglSphereCollider *c2);
+	static bool	SpeherePlane(const mglSphereCollider *c1, const mglPlaneCollider *c2);
+	static bool	PlanePlane(const mglPlaneCollider *c1, const mglPlaneCollider *c2);
 public:
 					mglCollider(mglCollider::ColliderType p_colliderType) : m_parentObject(this), m_colliderType(p_colliderType)  {}
 	virtual			~mglCollider( void ) { m_parentObject.Disconnect(); }
@@ -48,11 +59,12 @@ public:
 class mglBoxCollider : public mglCollider
 {
 public:
-			mglBoxCollider( void ) : mglCollider(mglCollider::Box) {}
-	bool	GetCollision(mglRay p_ray, mglRayCollision &p_info)
-	{
-		return false;
-	}
+	mmlVector<3> min;
+	mmlVector<3> max;
+public:
+			mglBoxCollider( void );
+			mglBoxCollider(const mmlVector<3> &p_min, const mmlVector<3> &p_max);
+	bool	GetCollision(mglRay p_ray, mglRayCollision &p_info);
 };
 
 class mglSphereCollider : public mglCollider
@@ -65,6 +77,17 @@ public:
 	{
 		return false;
 	}
+};
+
+class mglPlaneCollider : public mglCollider
+{
+public:
+	mglPlane plane;
+public:
+				mglPlaneCollider(const mmlVector<3> &p_position, const mmlVector<3> &p_normal);
+				mglPlaneCollider(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c);
+	explicit	mglPlaneCollider(const mglPlane &p_plane);
+	bool		GetCollision(mglRay p_ray, mglRayCollision &p_info);
 };
 
 class mglMeshCollider : public mglCollider
@@ -88,16 +111,6 @@ public:
 	{
 		return false;
 	}
-};
-
-class mglPlaneCollider : public mglCollider
-{
-public:
-	mglPlane plane;
-public:
-			mglPlaneCollider(const mmlVector<3> &p_position, const mmlVector<3> &p_normal);
-			mglPlaneCollider(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c);
-	bool	GetCollision(mglRay p_ray, mglRayCollision &p_info);
 };
 
 #endif

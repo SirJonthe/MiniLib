@@ -20,18 +20,19 @@ static const union
 
 #define MTL_ENDIAN (mtlEndian.bits32)
 
-#define MTL_CPLUSPLUS_XX 0
-#define MTL_CPLUSPLUS_98 1
-#define MTL_CPLUSPLUS_11 2
+#define MTL_CPP_XX 0
+#define MTL_CPP_98 1
+#define MTL_CPP_11 2
 
 #if __cplusplus == 199711L
-#define MTL_CPLUSPLUS_VER MTL_CPLUSPLUS_98
+// Common, even for compilers with C++11 features
+#define MTL_CPP_VER MTL_CPP_98
 #else if __cplusplus == 201103L
-#define MTL_CPLUSPLUS_VER MTL_CPLUSPLUS_11
+// I think this is very rare (only compilers with 100% support will have it, others might never implement it due to compatibility)
+#define MTL_CPP_VER MTL_CPP_11
 #else
-// we need a fallback, the programmer must find out the C++ version some other way
-#define MTL_CPLUSPLUS_VER MTL_CPLUSPLUS_XX
+// We need a fallback, the programmer must find out the C++ version some other way
+#define MTL_CPP_VER MTL_CPP_XX
 #endif
-
 
 #endif

@@ -83,7 +83,8 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	if (fin.fail()) {
 		m_error.Copy("Reading TGA header failed");
 		return false;
-	} else if (header[COLOR_MAP_TYPE] != NO_COLOR_MAP) {
+	}
+	if (header[COLOR_MAP_TYPE] != NO_COLOR_MAP) {
 		m_error.Copy("TGA contains color map");
 		return false;
 	}
@@ -92,17 +93,19 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		m_error.Copy("Unsupported pixel depth");
 		return false;
 	}
+	
+	int w = (int)(*(unsigned short*)(header+IMAGE_WIDTH));
+	int h = (int)(*(unsigned short*)(header+IMAGE_HEIGHT));
+	if (w != h) {
+		m_error.Copy("Dimensions are not equal");
+		return false;
+	}
+	if (!Create(w)) {
+		return false;
+	}
 
 	if (header[IMAGE_TYPE] == UNCOMPRESSED_TRUECOLOR_IMAGE) {
-		int w = (int)(*(unsigned short*)(header+IMAGE_WIDTH));
-		int h = (int)(*(unsigned short*)(header+IMAGE_HEIGHT));
-		if (w != h) {
-			m_error.Copy("Dimensions are not equal");
-			return false;
-		}
-		if (!Create(w)) {
-			return false;
-		}
+		
 		const int SIZE = GetArea();
 		// allocate one byte extra, since we will need to read one garbage byte when
 		// converting a pointer to 3 bytes to a pointer 4 (unsigned int)
@@ -113,83 +116,138 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 			delete [] image;
 			return false;
 		}
+		
 		unsigned char *imageData = image;
 		if (bpp == 3) {
-			for (int y = 0; y < m_dimension; ++y) {
-				for (int x = 0; x < m_dimension; ++x) {
-					unsigned int color = (*(unsigned int*)(imageData));
-					unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
-					unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
-					unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
-					m_pixels[GetMortonIndex(x, y)] =
-						(r << nativeFormat.RShift) |
-						(g << nativeFormat.GShift) |
-						(b << nativeFormat.BShift) |
-						nativeFormat.AMask;
-					imageData += bpp;
-				}
+			
+			const int Area = GetArea();
+			for (int i = 0; i < Area; ++i) {
+				const unsigned int color = (*(unsigned int*)(imageData));
+				const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
+				const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
+				const unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
+				m_pixels[i] =
+				(r << nativeFormat.RShift) |
+				(g << nativeFormat.GShift) |
+				(b << nativeFormat.BShift) |
+				nativeFormat.AMask;
+				imageData += bpp;
 			}
 		} else {
-			for (int y = 0; y < m_dimension; ++y) {
-				for (int x = 0; x < m_dimension; ++x) {
-					unsigned int color = *(unsigned int*)(imageData);
-					unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
-					unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
-					unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
-					unsigned int a = (color & TargaFormat.AMask) >> TargaFormat.AShift;
-					m_pixels[GetMortonIndex(x, y)] =
-						(r << nativeFormat.RShift) |
-						(g << nativeFormat.GShift) |
-						(b << nativeFormat.BShift) |
-						((a << nativeFormat.AShift) & nativeFormat.AMask); // masks out alpha if it does not exist
-					imageData += bpp;
-				}
+			
+			const int Area = GetArea();
+			for (int i = 0; i < Area; ++i) {
+				const unsigned int color = *(unsigned int*)(imageData);
+				const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
+				const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
+				const unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
+				const unsigned int a = (color & TargaFormat.AMask) >> TargaFormat.AShift;
+				m_pixels[i] =
+				(r << nativeFormat.RShift) |
+				(g << nativeFormat.GShift) |
+				(b << nativeFormat.BShift) |
+				(a << nativeFormat.AShift);
+				imageData += bpp;
 			}
 		}
 
 		delete [] image;
 
 	} else if (header[IMAGE_TYPE] == COMPRESSED_TRUECOLOR_IMAGE) {
-
-		/*if (*(unsigned short*)(header+IMAGE_HEIGHT) != *(unsigned short*)(header+IMAGE_WIDTH) || !Create((int)(*(unsigned short*)(header+IMAGE_WIDTH)), (int)(*(unsigned short*)(header+IMAGE_HEIGHT)))) {
-			return false;
-		}
-		const int NUM_BYTES = GetArea()*bpp;
+		
+		unsigned char chunk[128*4];
+		const int PixelCount = GetArea();
 		unsigned char chunkSize;
-		int currentByte = 0;
-		while (currentByte < NUM_BYTES) {
-			fin.read((char*)&chunkSize, 1);
+		int currentIndex = 0;
+		while (currentIndex < PixelCount) {
+			
+			fin.read((char*)&chunkSize, 1); // reads the chunk header (chunk size)
+			
 			if (chunkSize < 128) {
+				
 				++chunkSize;
-				for (int c = 0; c < (int)chunkSize; ++c) {
-					fin.read((char*)(m_pixels+currentByte), bpp);
-					if (fin.fail()) { return false; }
-					Swap((m_pixels+currentByte)[0], (m_pixels+currentByte)[2]); // to RGB(A)
-					currentByte += bytesPerPixel;
-				}
-			} else {
-				chunkSize -= 127;
-				fin.read((char*)(m_pixels+currentByte), bpp);
+				const int ChunkBytes = chunkSize * bpp;
+				
+				fin.read((char*)(chunk), ChunkBytes);
 				if (fin.fail()) { return false; }
-				GLubyte *copyPixel = m_pixels+currentByte;
-				Swap(copyPixel[0], copyPixel[2]);
-				currentByte += bytesPerPixel;
+				
+				if (bpp == 4) {
+					for (int i = 0; i < chunkSize; ++i) {
+						const unsigned int color = *(unsigned int*)(chunk+i);
+						const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
+						const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
+						const unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
+						const unsigned int a = (color & TargaFormat.AMask) >> TargaFormat.AShift;
+						m_pixels[i] =
+						(r << nativeFormat.RShift) |
+						(g << nativeFormat.GShift) |
+						(b << nativeFormat.BShift) |
+						(a << nativeFormat.AShift);
+						++currentIndex;
+					}
+				} else {
+					for (int i = 0; i < chunkSize; ++i) {
+						const unsigned int color = *(unsigned int*)(chunk+i);
+						const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
+						const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
+						const unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
+						m_pixels[i] =
+						(r << nativeFormat.RShift) |
+						(g << nativeFormat.GShift) |
+						(b << nativeFormat.BShift) |
+						nativeFormat.AMask;
+						++currentIndex;
+					}
+				}
+				
+			} else { // compressed chunk
+				
+				chunkSize -= 127;
+				unsigned int color = 0xffffffff;
+				fin.read((char*)(&color), bpp);
+				if (fin.fail()) { return false; }
+				
+				if (bpp == 4) {
+					unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
+					unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
+					unsigned int r = (color & TargaFormat.RMask) >> TargaFormat.RShift;
+					unsigned int a = (color & TargaFormat.AMask) >> TargaFormat.AShift;
+					color =
+					(r << nativeFormat.RShift) |
+					(g << nativeFormat.GShift) |
+					(b << nativeFormat.BShift) |
+					(a << nativeFormat.AShift);
+				} else {
+					color |= (nativeFormat.AMask);
+				}
 
 				for (int i = 0; i < chunkSize-1; ++i) {
-					for (int j = 0; j < bpp; ++j) {
-						m_pixels[currentByte+j] = copyPixel[j];
-					}
-					currentByte += bpp;
+					m_pixels[currentIndex] = color;
+					++currentIndex;
 				}
 			}
-		}*/
-		m_error.Copy("Compressed TGA not supported yet");
-		return false;
+		}
 	} else {
 		m_error.Copy("Unknown image type");
 		return false;
 	}
 	return true;
+}
+
+void mglTexture::OrderAsMorton( void )
+{
+	const int Area = GetArea();
+	const int Dim = GetDimension();
+	unsigned int *mortonPixels = new unsigned int[Area];
+	unsigned int *pixels = m_pixels;
+	for (int y = 0; y < Dim; ++y) {
+		for (int x = 0; x < Dim; ++x) {
+			mortonPixels[GetMortonIndex(x, y)] = *pixels;
+			++pixels;
+		}
+	}
+	delete [] m_pixels;
+	m_pixels = mortonPixels;
 }
 
 mglTexture::mglTexture( void ) : m_pixels(NULL), m_dimension(0), m_dimensionShift(0), m_dimensionMask(0), m_blocksPerDimShift(0), m_blockTileRatioShift(0)
@@ -208,9 +266,14 @@ mglTexture::~mglTexture( void )
 bool mglTexture::Load(const mtlDirectory &p_filename)
 {
 	if (p_filename.GetExtension().Compare("tga")) { // targa
+		bool retval = LoadTGA(p_filename);
+		OrderAsMorton();
+		return retval;
+	} else if (p_filename.GetExtension().Compare("tgam")) { // Morton ordered targa
 		return LoadTGA(p_filename);
 	}
-	m_error.Copy(p_filename.GetExtension());
+	m_error.Copy("Cannot load format: ");
+	m_error.Append(p_filename.GetExtension());
 	return false;
 }
 

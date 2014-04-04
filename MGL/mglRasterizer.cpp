@@ -12,7 +12,7 @@
 #include "mglRasterizer.h"
 #include "mglObject.h"
 
-const mglTexture mglSWUVRasterizer::defaultMaterial(16, 0xFF00FFFF);
+const mglTexture mglTexturedRasterizer::defaultMaterial(16, 0xFF00FFFF);
 
 /*template < int n >
 class iVec
@@ -56,7 +56,7 @@ public:
 	const mmlFixed &operator[](int i) const { return e[i]; }
 };*/
 
-/*void mglSWMonoRasterizer::RenderScanlineAffine(int x1, int x2, int, float, float, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+/*void mglTexturedRasterizer::RenderScanlineAffine(int x1, int x2, int, float, float, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	const int width = framebuffer->GetWidth();
 	if (x1 >= width || x2 < 0 || x1 == x2) { return; }
@@ -82,16 +82,22 @@ void mglRasterizer::SetCameraTransform(const mglTransform &p_camTransform)
 		cameraTransformMatrix[1][3],
 		cameraTransformMatrix[2][3]
 	);
+	UpdateAPIProjectionMatrix();
 }
 
 void mglRasterizer::SetProjectionMatrix(float p_vFov, float p_near, float p_far)
 {
 	const float scale = 1.0f / tan(mmlDegToRad(p_vFov * 0.5f));
-	m_projection[0][0] = scale;		m_projection[0][1] =  0.0f;		m_projection[0][2] =  0.0f;									m_projection[0][3] = 0.0f;
-	m_projection[1][0] = 0.0f;		m_projection[1][1] = -scale;	m_projection[1][2] =  0.0f;									m_projection[1][3] = 0.0f;
-	m_projection[2][0] = 0.0f;		m_projection[2][1] =  0.0f;		m_projection[2][2] =  p_far / (p_far - p_near);				m_projection[2][3] = 1.0f;
-	m_projection[3][0] = 0.0f;		m_projection[3][1] =  0.0f;		m_projection[3][2] = -p_far * p_near / (p_far - p_near);	m_projection[3][3] = 0.0f;
+	m_projection[0][0] = scale;	m_projection[0][1] =  0.0f;		m_projection[0][2] =  0.0f;									m_projection[0][3] = 0.0f;
+	m_projection[1][0] = 0.0f;	m_projection[1][1] = -scale;	m_projection[1][2] =  0.0f;									m_projection[1][3] = 0.0f;
+	m_projection[2][0] = 0.0f;	m_projection[2][1] =  0.0f;		m_projection[2][2] =  p_far / (p_far - p_near);				m_projection[2][3] = 1.0f;
+	m_projection[3][0] = 0.0f;	m_projection[3][1] =  0.0f;		m_projection[3][2] = -p_far * p_near / (p_far - p_near);	m_projection[3][3] = 0.0f;
 
+	m_infProj[0][0] = scale;	m_infProj[0][1] =  0.0f;	m_infProj[0][2] =  0.0f;	m_infProj[0][3] = 0.0f;
+	m_infProj[1][0] = 0.0f;		m_infProj[1][1] = -scale;	m_infProj[1][2] =  0.0f;	m_infProj[1][3] = 0.0f;
+	m_infProj[2][0] = 0.0f;		m_infProj[2][1] =  0.0f;	m_infProj[2][2] =  1.0f;	m_infProj[2][3] = 1.0f;
+	m_infProj[3][0] = 0.0f;		m_infProj[3][1] =  0.0f;	m_infProj[3][2] = -p_near;	m_infProj[3][3] = 0.0f;
+	
 	m_nearPlane = mglPlane(mmlVector<3>(0.0f, 0.0f, p_near), mglTransform::globalAxis.forward);
 	m_farPlane = mglPlane(mmlVector<3>(0.0f, 0.0f, p_far), -mglTransform::globalAxis.forward);
 
@@ -100,7 +106,7 @@ void mglRasterizer::SetProjectionMatrix(float p_vFov, float p_near, float p_far)
 	m_farDepth = p_far;
 }
 
-void mglSWUVRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+void mglTexturedRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	const int width = framebuffer->GetWidth();
 	if (x1 >= width || x2 < 0 || x1 == x2) { return; }
@@ -134,7 +140,7 @@ void mglSWUVRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w1, f
 	}
 }
 
-void mglSWUVRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+void mglTexturedRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	const int width = framebuffer->GetWidth();
 	if (x1 >= width || x2 < 0 || x1 == x2) { return; }
@@ -154,7 +160,7 @@ void mglSWUVRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1, flo
 	}
 }
 
-/*void mglSWUVRasterizer::RenderScanlineDitherAffine(int x1, int x2, int y, float, float, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+/*void mglTexturedRasterizer::RenderScanlineDitherAffine(int x1, int x2, int y, float, float, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	static const mmlVector<2> dither[2][2] = {
 		{ mmlVector<2>(0.25f, 0.00f), mmlVector<2>(0.50f, 0.75f) },
@@ -179,7 +185,7 @@ void mglSWUVRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1, flo
 	}
 }*/
 
-void mglSWUVRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+void mglTexturedRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	static const mmlVector<2> dither[2][2] = {
 		{ mmlVector<2>(0.25f, 0.00f), mmlVector<2>(0.50f, 0.75f) },
@@ -221,7 +227,7 @@ void mglSWUVRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y, flo
 	}
 }
 
-void mglSWUVRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+void mglTexturedRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	static const mmlVector<2> dither[2][2] = {
 		{ mmlVector<2>(0.25f, 0.00f), mmlVector<2>(0.50f, 0.75f) },
@@ -250,7 +256,7 @@ void mglSWUVRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, float
 	}
 }
 
-/*void mglSWUVRasterizer::RenderScanlineDitherFixed(int x1, int x2, int y, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
+/*void mglTexturedRasterizer::RenderScanlineDitherFixed(int x1, int x2, int y, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels)
 {
 	static const iVec<2> dither[2][2] = {
 		{ iVec<2>(mmlVector<2>(0.25f, 0.00f)), iVec<2>(mmlVector<2>(0.50f, 0.75f)) },
@@ -279,7 +285,7 @@ void mglSWUVRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, float
 	}
 }*/
 
-void mglSWUVRasterizer::RenderTriangle(mmlVector<5> va, mmlVector<5> vb, mmlVector<5> vc)
+void mglTexturedRasterizer::RenderTriangle(mmlVector<5> va, mmlVector<5> vb, mmlVector<5> vc)
 {
 	mmlVector<5> *a = &va, *b = &vb, *c = &vc;
 	if ((*a)[1] > (*b)[1]) { mmlSwap(a, b); }
@@ -353,19 +359,19 @@ void mglSWUVRasterizer::RenderTriangle(mmlVector<5> va, mmlVector<5> vb, mmlVect
 	}
 }
 
-void mglSWUVRasterizer::DrawBranch(const mglStaticModel::Node *p_node, const mmlVector<3> &p_view, const mmlMatrix<4,4> &p_finalMatrix)
+void mglTexturedRasterizer::DrawBranch(const mglStaticModel::Node *p_node, const mmlVector<3> &p_view, const mmlMatrix<4,4> &p_finalMatrix)
 {
 	if (p_node != NULL) {
 		mglClip clip = p_node->plane.DetermineSide(p_view);
 		switch (clip) {
 		case mglInFront:
 			DrawBranch(p_node->back, p_view, p_finalMatrix);
-			DrawTriangleList(p_node->polys, p_finalMatrix);
+			DrawTriangleList(p_node->triangles, p_finalMatrix);
 			DrawBranch(p_node->front, p_view, p_finalMatrix);
 			break;
 		case mglBehind:
 			DrawBranch(p_node->front, p_view, p_finalMatrix);
-			DrawTriangleList(p_node->polys, p_finalMatrix);
+			DrawTriangleList(p_node->triangles, p_finalMatrix);
 			DrawBranch(p_node->back, p_view, p_finalMatrix);
 			break;
 		default:
@@ -376,23 +382,23 @@ void mglSWUVRasterizer::DrawBranch(const mglStaticModel::Node *p_node, const mml
 	}
 }
 
-void mglSWUVRasterizer::DrawTriangleList(const mtlList< mglStaticModel::Poly > &p_list, const mmlMatrix<4,4> &p_finalMatrix)
+void mglTexturedRasterizer::DrawTriangleList(const mtlList< mglStaticModel::Triangle > &p_list, const mmlMatrix<4,4> &p_finalMatrix)
 {
 	const int centerX = framebuffer->GetWidth() >> 1;
 	const int centerY = framebuffer->GetHeight() >> 1;
 
 	mmlVector<5> tri[3];
 	mmlVector<5> clipped[4];
-	const mtlNode<mglStaticModel::Poly> *node = p_list.GetFront();
+	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFront();
 	while (node != NULL) {
-		tri[0] = node->value.a;
-		tri[1] = node->value.b;
-		tri[2] = node->value.c;
+		tri[0] = node->GetItem().a;
+		tri[1] = node->GetItem().b;
+		tri[2] = node->GetItem().c;
 		mmlVector<3>::Cast(&tri[0]) *= p_finalMatrix;
 		mmlVector<3>::Cast(&tri[1]) *= p_finalMatrix;
 		mmlVector<3>::Cast(&tri[2]) *= p_finalMatrix;
 
-		m_currentTexture = node->value.material->GetTexture();
+		m_currentTexture = node->GetItem().material->GetDiffuseMap();
 		if (m_currentTexture == NULL) {
 			m_currentTexture = &defaultMaterial;
 		}
@@ -445,7 +451,7 @@ void mglSWUVRasterizer::DrawTriangleList(const mtlList< mglStaticModel::Poly > &
 	}
 }
 
-void mglSWUVRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4> &p_objToWorld)
+void mglTexturedRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4> &p_objToWorld)
 {
 	mmlVector<5> tri[3];
 	mmlVector<5> clipped[4];
@@ -462,15 +468,15 @@ void mglSWUVRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4> &p_
 	const mmlMatrix<4,4> final = mmlScaleMatrix(FramebufferScale, FramebufferScale, 1.0f) * m_projection * objToCam; // scale might be applied wrong, scaling should affect movement speed
 
 	for (int m = 0; m < p_model.GetMaterialCount(); ++m) {
-		m_currentTexture = p_model.GetMaterial(m).GetTexture();
+		m_currentTexture = p_model.GetMaterial(m).GetProperties().GetDiffuseMap();
 		if (m_currentTexture == NULL) {
 			m_currentTexture = &defaultMaterial;
 		}
 		const mtlNode<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
 		while (face != NULL) {
-			mmlVector<3>::Cast(tri) = p_model.GetVertex(face->value.v1);
-			mmlVector<3>::Cast(tri+1) = p_model.GetVertex(face->value.v2);
-			mmlVector<3>::Cast(tri+2) = p_model.GetVertex(face->value.v3);
+			mmlVector<3>::Cast(tri) = p_model.GetVertex(face->GetItem().v1);
+			mmlVector<3>::Cast(tri+1) = p_model.GetVertex(face->GetItem().v2);
+			mmlVector<3>::Cast(tri+2) = p_model.GetVertex(face->GetItem().v3);
 
 			// broken
 			// NOTE: it's broken because the camera position isn't changing as the model rotates...
@@ -488,9 +494,9 @@ void mglSWUVRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4> &p_
 			mmlVector<3>::Cast(tri+1) *= final;
 			mmlVector<3>::Cast(tri+2) *= final;
 
-			mmlVector<2>::Cast(&tri[0][3]) = p_model.GetTexCoord(face->value.t1);
-			mmlVector<2>::Cast(&tri[1][3]) = p_model.GetTexCoord(face->value.t2);
-			mmlVector<2>::Cast(&tri[2][3]) = p_model.GetTexCoord(face->value.t3);
+			mmlVector<2>::Cast(&tri[0][3]) = p_model.GetTexCoord(face->GetItem().t1);
+			mmlVector<2>::Cast(&tri[1][3]) = p_model.GetTexCoord(face->GetItem().t2);
+			mmlVector<2>::Cast(&tri[2][3]) = p_model.GetTexCoord(face->GetItem().t3);
 			int numclip = 0;
 			for (int i = 0; i < 3; ++i) {
 				if (tri[i][2] < m_nearDepth) { ++numclip; }
@@ -539,7 +545,7 @@ void mglSWUVRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4> &p_
 	}
 }
 
-void mglSWUVRasterizer::Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld)
+void mglTexturedRasterizer::Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld)
 {
 	const float FramebufferScale = (float)mmlMin2(framebuffer->GetWidth(), framebuffer->GetHeight());
 	const mmlMatrix<4,4> objToCam = m_worldToCamera * p_objToWorld;
@@ -550,7 +556,7 @@ void mglSWUVRasterizer::Render(const mglStaticModel &p_model, const mmlMatrix<4,
 	DrawBranch(node, cameraInObjectSpace, final);
 }
 
-void mglSWUVRasterizer::Debug_RenderTriangle(const mmlVector<4> &a, const mmlVector<4> &b, const mmlVector<4> &c, const mglTexture *texture)
+void mglTexturedRasterizer::Debug_RenderTriangle(const mmlVector<4> &a, const mmlVector<4> &b, const mmlVector<4> &c, const mglTexture *texture)
 {
 	if (texture != NULL) {
 		m_currentTexture = texture;
@@ -650,12 +656,12 @@ void mglFlatRasterizer::RenderBranch(const mglStaticModel::Node *p_node, const m
 		switch (clip) {
 		case mglInFront:
 			RenderBranch(p_node->back, p_view, p_viewDirection, p_finalMatrix);
-			RenderTriangleList(p_node->polys, p_viewDirection, p_finalMatrix);
+			RenderTriangleList(p_node->triangles, p_viewDirection, p_finalMatrix);
 			RenderBranch(p_node->front, p_view, p_viewDirection, p_finalMatrix);
 			break;
 		case mglBehind:
 			RenderBranch(p_node->front, p_view, p_viewDirection, p_finalMatrix);
-			RenderTriangleList(p_node->polys, p_viewDirection, p_finalMatrix);
+			RenderTriangleList(p_node->triangles, p_viewDirection, p_finalMatrix);
 			RenderBranch(p_node->back, p_view, p_viewDirection, p_finalMatrix);
 			break;
 		default:
@@ -666,18 +672,18 @@ void mglFlatRasterizer::RenderBranch(const mglStaticModel::Node *p_node, const m
 	}
 }
 
-void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Poly> &p_list, const mmlVector<3> &p_viewDirection, const mmlMatrix<4, 4> &p_finalMatrix)
+void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangle> &p_list, const mmlVector<3> &p_viewDirection, const mmlMatrix<4, 4> &p_finalMatrix)
 {
 	const int centerX = framebuffer->GetWidth() >> 1;
 	const int centerY = framebuffer->GetHeight() >> 1;
 
 	mmlVector<3> tri[3];
 	mmlVector<3> clipped[4];
-	const mtlNode<mglStaticModel::Poly> *node = p_list.GetFront();
+	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFront();
 	while (node != NULL) {
-		tri[0] = mmlVector<3>::Cast(&node->value.a);
-		tri[1] = mmlVector<3>::Cast(&node->value.b);
-		tri[2] = mmlVector<3>::Cast(&node->value.c);
+		tri[0] = mmlVector<3>::Cast(&node->GetItem().a);
+		tri[1] = mmlVector<3>::Cast(&node->GetItem().b);
+		tri[2] = mmlVector<3>::Cast(&node->GetItem().c);
 
 		const mmlVector<3> facetDirection = mmlSurfaceNormal(tri[0], tri[1], tri[2]);
 		float dot = -mmlDot(facetDirection, p_viewDirection); // p_view is not a direction vector for fuck's sake!
@@ -686,7 +692,7 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Poly> &
 			continue;
 		}
 
-		const mmlVector<3> diffuseColor = node->value.material->GetDiffuseColor();
+		const mmlVector<3> diffuseColor = node->GetItem().material->GetDiffuseColor();
 		unsigned int iDiffuseColor =
 			((unsigned char)(diffuseColor[0] * 255.0f * dot) << mglTexture::nativeFormat.RShift) |
 			((unsigned char)(diffuseColor[1] * 255.0f * dot) << mglTexture::nativeFormat.GShift) |
@@ -747,14 +753,14 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 	const mmlMatrix<4,4> camToObj = mmlInv(objToCam);
 	const mmlMatrix<4,4> final = mmlScaleMatrix(FramebufferScale, FramebufferScale, 1.0f) * m_projection * objToCam; // scale might be applied wrong, scaling should affect movement speed
 	const mmlVector<3> cameraDirection = mglTransform::globalAxis.forward * mmlMatrix<3,3>(camToObj);
-
+	
 	for (int m = 0; m < p_model.GetMaterialCount(); ++m) {
 		const mtlNode<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
-		const mmlVector<3> diffuseColor = p_model.GetMaterial(m).GetDiffuseColor();
+		const mmlVector<3> diffuseColor = p_model.GetMaterial(m).GetProperties().GetDiffuseColor();
 		while (face != NULL) {
-			tri[0] = p_model.GetVertex(face->value.v1);
-			tri[1] = p_model.GetVertex(face->value.v2);
-			tri[2] = p_model.GetVertex(face->value.v3);
+			tri[0] = p_model.GetVertex(face->GetItem().v1);
+			tri[1] = p_model.GetVertex(face->GetItem().v2);
+			tri[2] = p_model.GetVertex(face->GetItem().v3);
 
 			const mmlVector<3> facetDirection = mmlSurfaceNormal(tri[0], tri[1], tri[2]);
 			float dot = -mmlDot(facetDirection, cameraDirection);

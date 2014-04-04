@@ -84,15 +84,15 @@ bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
 	mtlHash hash = mtlHash(dir.GetDirectory()); // should really forcibly convert filename to path relative to working directory
 	mtlNode<Ref> *node = assets.GetFront();
 	while (node != NULL) {
-		if (node->value.hash.value == hash.value) { break; } // REMEMBER: must also compare filename to account for hash collision
+		if (node->GetItem().hash.value == hash.value) { break; } // REMEMBER: must also compare filename to account for hash collision
 		node = node->GetNext();
 	}
 	if (node != NULL) {
-		m_ref = &node->value;
+		m_ref = &node->GetItem();
 		++m_ref->count;
 	} else {
 		assets.PushBack(Ref());
-		m_ref = &assets.GetBack()->value;
+		m_ref = &assets.GetBack()->GetItem();
 		m_ref->asset = new type_t;
 		if (m_ref->asset->Load(p_filename)) {
 			m_ref->count = 1;
@@ -116,8 +116,8 @@ void mtlAsset<type_t>::Purge( void )
 {
 	mtlNode<Ref> *node = assets.GetFront();
 	while (node != NULL) {
-		if (node->value.count <= 0) {
-			delete node->value.asset;
+		if (node->GetItem().count <= 0) {
+			delete node->GetItem().asset;
 			node = assets.Remove(node);
 		} else {
 			node = node->GetNext();

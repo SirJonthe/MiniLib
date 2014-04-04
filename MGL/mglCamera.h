@@ -11,6 +11,8 @@ class mglCamera : public mglObject
 {
 private:
 	mglRasterizer *m_rasterizer;
+protected:
+	mglRasterizer *GetRasterizer( void ) { return m_rasterizer; }
 private:
 	void OnFinish( void ) { RenderView(); }
 public:

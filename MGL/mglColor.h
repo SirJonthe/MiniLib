@@ -43,11 +43,12 @@ public:
 		b = B;
 	}
 	
-	void Clamp( void )
+	mglColor &Clamp( void )
 	{
 		r = mmlClamp(0.f, r, 1.f);
 		g = mmlClamp(0.f, g, 1.f);
 		b = mmlClamp(0.f, b, 1.f);
+		return *this;
 	}
 };
 

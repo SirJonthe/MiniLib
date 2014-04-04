@@ -124,12 +124,17 @@ public:
 	}
 	mmlVector<n> &operator*=(const mmlVector<n> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] *= r;
+		for (int j = 0; j < n; ++j) e[j] *= r.e[j];
 		return *this;
 	}
 	mmlVector<n> &operator*=(float r)
 	{
 		for (int j = 0; j < n; ++j) e[j] *= r;
+		return *this;
+	}
+	mmlVector<n> &operator/=(const mmlVector<n> &r)
+	{
+		for (int j = 0; j < n; ++j) e[j] /= r.e[j];
 		return *this;
 	}
 public:
@@ -144,11 +149,12 @@ public:
 	void Clamp(const mmlVector<n> &min, const mmlVector<n> &max)
 	{
 		for (int i = 0; i < n; ++i) {
-			if (e[i] > max[i]) {
+			/*if (e[i] > max[i]) {
 				e[i] = max[i];
 			} else if (e[i] < min[i]) {
 				e[i] = min[i];
-			}
+			}*/
+			e[i] = mmlClamp(min[i], e[i], max[i]);
 		}
 	}
 	void Round( void )
@@ -175,6 +181,18 @@ public:
 		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
 		return sqrt(l);
 	}
+	/*float InvLenFast( void ) const
+	{
+		// pure voodoo
+		float l = 0.f;
+		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
+		float xhalf = 0.5f*l;
+		int i = *(int*)&l;
+		i = 0x5f375a86 - (i>>1);
+		float x = *(float*)&i;
+		x = x*(1.5f-xhalf*x*x);
+		return x;
+	}
 	float LenFast( void ) const
 	{
 		// pure voodoo
@@ -186,6 +204,16 @@ public:
 		float x = *(float*)&i;
 		x = x*(1.5f-xhalf*x*x);
 		return l*x;
+	}*/
+	float InvLenFast( void ) const
+	{
+		float l = 0.f;
+		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
+		return mmlFastInvSqrt(l);
+	}
+	float LenFast( void ) const
+	{
+		return 1.0f / InvLenFast();
 	}
 	void Normalize( void )
 	{
@@ -229,8 +257,10 @@ public:
 //
 template < int n > inline mmlVector<n> operator+(mmlVector<n> l, const mmlVector<n> &r) { return (l+=r); }
 template < int n > inline mmlVector<n> operator-(mmlVector<n> l, const mmlVector<n> &r) { return (l-=r); }
+template < int n > inline mmlVector<n> operator*(mmlVector<n> l, const mmlVector<n> &r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(mmlVector<n> l, float r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(float l, mmlVector<n> r) { return (r*=l); }
+template < int n > inline mmlVector<n> operator/(mmlVector<n> l, const mmlVector<n> &r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 	for (int j = 0; j < n; ++j) { v[j] = -v[j]; }
 	return v;
@@ -319,12 +349,34 @@ mmlVector<n> mmlSlerp(const mmlVector<n> &u, mmlVector<n> v, float d)
 }
 
 //
+// mmlSlerpFast
+//
+template < int n >
+mmlVector<n> mmlSlerpFast(const mmlVector<n> &u, mmlVector<n> v, float d)
+{
+	float dot = mmlClamp(-1.0f, mmlDot(u, v), 1.0f); // clamp to remove floating point imprecision issues
+	float theta = acos(dot) * d;
+	v = v - u * dot;
+	v.NormalizeFast();
+	return ((u * cos(theta)) + (v * sin(theta)));
+}
+
+//
 // mmlNlerp
 //
 template < int n >
 mmlVector<n> mmlNlerp(const mmlVector<n> &u, const mmlVector<n> &v, float d)
 {
 	return mmlNormalize(mmlLerp(u, v, d));
+}
+
+//
+// mmlNlerpFast
+//
+template < int n >
+mmlVector<n> mmlNlerpFast(const mmlVector<n> &u, const mmlVector<n> &v, float d)
+{
+	return mmlNormalizeFast(mmlLerp(u, v, d));
 }
 
 //

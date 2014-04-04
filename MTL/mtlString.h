@@ -11,22 +11,23 @@ class mtlChars
 {
 private:
 	const char	*m_str;
-	mutable int	m_size;
+	int			m_size;
 public:
-	static bool	SameAsAny(char a, const char *b, int num = -1);
-	static bool	SameAsAll(const char *a, const char *b, int num);
-	static int	GetSizePtr(const char *str);
+	static bool				SameAsAny(char a, const char *b, int num = -1);
+	static bool				SameAsAll(const char *a, const char *b, int num);
+	static int				GetSizeDynamic(const char *str);
 	template < int size >
-	static int GetSizeArr(const char (&str)[size]) { return size - 1; }
-	static void	ToLower(char *str, int num = -1);
+	static int				GetSizeStatic(const char (&str)[size]) { return size - 1; }
+	static void				ToLower(char *str, int num = -1);
+	inline static mtlChars	Dynamic(const char *p_str, int p_size = -1);
 public:
-	inline				mtlChars( void );
+	inline					mtlChars( void );
 	template < int p_size >
-	inline				mtlChars(const char (&p_str)[p_size]);
-	inline				mtlChars(const mtlSubstring &p_str);
-	inline				mtlChars(const mtlString &p_str);
-	inline const char	*GetChars( void ) const;
-	inline int			GetSize( void ) const;
+	inline					mtlChars(const char (&p_str)[p_size]);
+	inline					mtlChars(const mtlSubstring &p_str);
+	inline					mtlChars(const mtlString &p_str);
+	inline const char		*GetChars( void ) const;
+	inline int				GetSize( void ) const;
 };
 
 class mtlSubstring
@@ -80,7 +81,6 @@ public:
 	void					Remove(int p_begin, int p_num);
 	void					Free( void );
 	void					Copy(const mtlChars &p_str);
-	void					CopyPtr(const char *p_str);
 	bool					Compare(const mtlChars &p_str) const;
 	inline void				ToLower( void );
 	inline mtlSubstring		GetSubstring(int p_start, int p_end = -1) const;
@@ -142,8 +142,15 @@ const char *mtlChars::GetChars( void ) const
 
 int mtlChars::GetSize( void ) const
 {
-	//if (m_size < 0) { m_size = mtlChars::GetSize(m_str); } // lazy eval
 	return m_size;
+}
+
+mtlChars mtlChars::Dynamic(const char *p_str, int p_size)
+{
+	mtlChars ch;
+	ch.m_str = p_str;
+	ch.m_size = (p_size > -1) ? p_size : GetSizeDynamic(p_str);
+	return ch;
 }
 
 mtlSubstring::mtlSubstring( void ) :

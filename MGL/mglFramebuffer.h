@@ -21,10 +21,9 @@ public:
 	int				GetWidth( void ) const { return m_width; }
 	int				GetHeight( void ) const { return m_height; }
 	int				GetArea( void ) const { return m_width*m_height; }
-	type_t			*GetPixels( void ) { return m_pixels; }
 	type_t			*GetPixels( void ) const { return m_pixels; }
-	type_t			*GetPixels(int y) { return m_pixels + y*m_width; }
 	type_t			*GetPixels(int y) const { return m_pixels + y*m_width; }
+	void			Fill(type_t value) const;
 };
 
 template < typename type_t >
@@ -53,6 +52,16 @@ void mglFramebuffer<type_t>::Copy(const mglFramebuffer<type_t> &p_buffer)
 	Create(p_buffer.m_width, p_buffer.m_height);
 	for (int i = 0; i < GetArea(); ++i) {
 		m_pixels[i] = p_buffer.m_pixels[i];
+	}
+}
+
+template < typename type_t >
+void mglFramebuffer<type_t>::Fill(type_t value) const
+{
+	const int area = GetArea();
+	type_t *pixels = GetPixels();
+	for (int i = 0; i < area; ++i) {
+		pixels[i] = value;
 	}
 }
 

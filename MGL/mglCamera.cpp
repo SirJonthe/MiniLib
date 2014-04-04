@@ -26,8 +26,8 @@ void mglCamera::RenderView( void )
 	m_rasterizer->SetCameraTransform(transform);
 	const mtlNode<mglObject*> *obj = GetEngine()->GetObjects().GetFront();
 	while (obj != NULL) {
-		if (obj->value->IsEnabled() && obj->value->visible && obj->value->model.GetAsset() != NULL && (layerMask & obj->value->layerMask) == layerMask) {
-			m_rasterizer->Render(*obj->value->model.GetAsset(), obj->value->transform.GetWorldTransformMatrix());
+		if (obj->GetItem()->IsEnabled() && obj->GetItem()->visible && obj->GetItem()->model.GetAsset() != NULL && (mask & obj->GetItem()->mask) == mask) {
+			m_rasterizer->Render(*obj->GetItem()->model.GetAsset(), obj->GetItem()->transform.GetWorldTransformMatrix());
 		}
 		obj = obj->GetNext();
 	}

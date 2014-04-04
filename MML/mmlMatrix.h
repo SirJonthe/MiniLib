@@ -105,6 +105,20 @@ public:
 	{
 		return *(mmlMatrix<rows, columns>*)ptr;
 	}
+	/*//
+	// Trace
+	//
+	float Trace( void ) const
+	{
+		return mmlTrace(*this);
+	}
+	//
+	// Det
+	//
+	float Det( void ) const
+	{
+		return mmlDet(*this);
+	}*/
 	//
 	// Stack
 	//
@@ -426,21 +440,37 @@ inline mmlMatrix<3,3> mmlNormalTransformMatrix(const mmlMatrix<4,4> &mat)
 }
 
 //
-// mmlTBNMatrix
+// mmlTextureSpaceMatrix
+// Input: 3 vertices making up a triangle in the format [X Y Z U V] (where U and V are texture coordinates)
+// Output: a matrix that rotates a 3D vertex lying in the same space as the input vertices to texture space.
 //
-inline mmlMatrix<4,4> mmlTBNMatrix(const mmlVector<3> &t, const mmlVector<3> &b, const mmlVector<3> &n)
+inline mmlMatrix<3,3> mmlTextureSpaceMatrix(const mmlVector<5> &va, const mmlVector<5> &vb, const mmlVector<5> &vc)
 {
-	// the previous version ordered it differently
-	// tx, ty, tz
-	// bx, by, bz
-	// nx, ny, nz
-	// was this wrong, or was the choise conscious?
-	return mmlMatrix<4,4>(
-		t[0], b[0], n[0], 0.f,
-		t[1], b[1], n[1], 0.f,
-		t[2], b[2], n[2], 0.f,
-		0.f,  0.f,  0.f,  1.f
-		);
+	mmlVector<3> t, b, n;
+
+	// tangent
+	const float eu21 = vb[3] - va[3];
+	if (eu21 != 0.0f) {
+		const mmlVector<3> exyz21 = mmlVector<3>::Cast(&(vb[0])) - mmlVector<3>::Cast(&(va[0]));
+		t = mmlNormalize(exyz21 * (1.0f / eu21));
+	} else {
+		const float eu31 = vc[3] - va[3];
+		const mmlVector<3> exyz31 = mmlVector<3>::Cast(&(vc[0])) - mmlVector<3>::Cast(&(va[0]));
+		t = mmlNormalize(exyz31 * (1.0f / eu31));
+	}
+
+	// normal
+	n = mmlSurfaceNormal(mmlVector<3>::Cast(&(va[0])), mmlVector<3>::Cast(&(vb[0])), mmlVector<3>::Cast(&(vc[0])));
+
+	// binormal
+	b = mmlCross(t, n);
+
+	// TBN matrix that transforms directly to tangent space from world space
+	return mmlMatrix<3,3>(
+		t[0], t[1], t[2],
+		b[0], b[1], b[2],
+		n[0], n[1], n[2]
+	);
 }
 
 //
@@ -510,7 +540,7 @@ inline mmlMatrix<4,4> mmlEulerRotationMatrix(float head, float pitch, float roll
 
 // http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/the-theory-of-stencil-shadow-volumes-r1873
 // Should apparently be used for stencil shadows using z-fail method
-inline mmlMatrix<4,4> mmlInfPerspectiveMatrix(float fovh, float fovv, float near, float far)
+/*inline mmlMatrix<4,4> mmlInfPerspectiveMatrix(float fovh, float fovv, float near, float far)
 {
 	return mmlMatrix<4,4>(
 		1.f/tan(fovh/2.f), 0.f, 0.f, 0.f,
@@ -518,7 +548,7 @@ inline mmlMatrix<4,4> mmlInfPerspectiveMatrix(float fovh, float fovv, float near
 		0.f, 0.f, far/(far-near), 1.f,
 		0.f, 0.f, (-far*near)/(far-near), 0.f
 		);
-}
+}*/
 
 inline mmlMatrix<4,4> mmlAxisRotationMatrix(const mmlVector<3> &p_axis, float p_rot)
 {
@@ -552,6 +582,22 @@ inline mmlMatrix<4,4> mmlViewMatrix(const mmlVector<3> &p_up, const mmlVector<3>
 	const mmlVector<3> xaxis = mmlNormalize(mmlCross(p_up, zaxis));
 	const mmlVector<3> yaxis = mmlCross(zaxis, xaxis);
 	return mmlViewMatrix(xaxis, yaxis, zaxis, p_viewPos);
+}
+
+// Do not use this for perspective transform matrices
+inline mmlMatrix<4,4> mmlToOpenGLTransform(const mmlMatrix<4,4> &p_transform)
+{
+	return mmlMatrix<4,4>(
+		p_transform[0][0], p_transform[0][1], p_transform[0][2], 0.0f,
+		p_transform[1][0], p_transform[1][1], p_transform[1][2], 0.0f,
+		p_transform[2][0], p_transform[2][1], p_transform[2][2], 0.0f,
+		p_transform[0][3], p_transform[1][3], p_transform[2][3], 1.0f
+	);
+}
+
+inline mmlMatrix<3,3> mmlBasis(const mmlMatrix<4,4> &p_matrix)
+{
+	return mmlMatrix<3,3>(p_matrix);
 }
 
 #endif

@@ -12,30 +12,9 @@ class mglRay
 public:
 	mmlVector<3>	position;
 	mmlVector<3>	direction;
-	float			length;
 	unsigned int	mask;
 public:
-	void Set(const mmlVector<3> &p_pos, const mmlVector<3> &p_dir, float p_len, unsigned int p_mask = 0xffffffff)
-	{
-		position = p_pos;
-		direction = mmlNormalize(p_dir);
-		length = p_len;
-		mask = p_mask;
-	}
-	void Transform(const mglTransform &p_transform)
-	{
-		const mmlMatrix<4,4> m4 = p_transform.GetWorldTransformMatrix();
-		const mmlMatrix<3,3> m3 = mmlMatrix<3,3>(m4);
-		position *= m4;
-		direction *= m3;
-	}
-	void ReverseTransform(const mglTransform &p_transform)
-	{
-		const mmlMatrix<4,4> m4 = mmlInv(p_transform.GetWorldTransformMatrix());
-		const mmlMatrix<3,3> m3 = mmlMatrix<3,3>(m4);
-		position *= m4;
-		direction *= m3;
-	}
+	mglRay( void ) : position(), direction(), mask(0xffffffff) {}
 };
 
 struct mglRayCollision
@@ -45,6 +24,29 @@ struct mglRayCollision
 	mmlVector<3>		point;
 	mmlVector<3>		reflection;
 	mmlVector<3>		normal;
+};
+
+// generizise this for 2/3 dimensions
+// ability to set size of discrete steps
+class mglDifferentialAnalyzer
+{
+private:
+	mmlVector<3>	m_position;
+	mmlVector<3>	m_direction;
+	mmlVector<3>	m_delta;
+	int				m_xyz[3];
+	int				m_step[3];
+	int				m_side;
+public:
+						mglDifferentialAnalyzer( void ) : m_side(-1) {}
+	explicit			mglDifferentialAnalyzer(const mglRay &p_ray) { SetInitialState(p_ray); }
+	void				SetInitialState(const mglRay &p_ray);
+	void				Step( void );
+	int					GetX( void ) const { return m_xyz[0]; }
+	int					GetY( void ) const { return m_xyz[1]; }
+	int					GetZ( void ) const { return m_xyz[2]; }
+	int					GetSide( void ) const { return m_side; }
+	const mmlVector<3>	&GetPosition( void ) const { return m_position; }
 };
 
 #endif

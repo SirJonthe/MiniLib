@@ -5,17 +5,30 @@
 #include "../MTL/mtlString.h"
 #include "../MML/mmlVector.h"
 #include "mglFramebuffer.h"
-#include "mglObject.h"
 #include "mglInput.h"
+#include "mglObject.h"
+
+// THINK:
+// - How do you re-enable disabled objects?
+// - Disabled object's functions are never called, so it can't re-enable itself.
+// - Disabled objects are not returned from GetObject functions (except GetObjects()).
+// - Right now, m_enabled is synonomous with m_markedForDestruction with the exception
+//   of them being removed from object list.
+
+// TODO: GetRandomInt using own randomization function (better control over what happens in program)
+// TODO: GetRandomFloat (0 - 1)
+// TODO: GetRandomFloat (x - y)
 
 class mglEngine
 {
 private:
 	mtlList<mglObject*>	m_objects;
+	//mtlList<mglLight*>	m_lights;
 	double				m_timeDelta;
 	double				m_time;
 	unsigned int		m_frameLimit;
 	bool				m_done;
+	bool				m_updating;
 	bool				m_clearScreen;
 	unsigned int		m_clearColor;
 protected:
@@ -43,6 +56,7 @@ public:
 	virtual void					SetCursorPosition(int x, int y) = 0;												/* Set cursor position */
 	virtual void					SetWindowCaption(const char *caption) = 0;											/* Set a window caption */
 private:
+	void UpdateTime( void );
 	void UpdateObjects( void );
 	void CollideObjects( void );
 	void PreRenderObjects( void );
@@ -65,9 +79,15 @@ public:
 	//void						GetObjectsByRay(const mglRay &p_ray, float p_length, mtlList<mglObject*> &p_out);
 	//void						GetObjectsByCone(const mglRay &p_ray, float p_dotRange, mtlList<mglObject*> &p_out);
 	//void						GetObjectsByCone(const mglRay &p_ray, float p_length, float p_dotRange, mtlList<mglObject*> &p_out);
-	void						GetObjectsByName(const mtlString &p_name, mtlList<mglObject*> &p_out);
+	void						GetObjectsByName(const mtlChars &p_name, mtlList<mglObject*> &p_out);
+	mglObject					*GetFirstObjectByName(const mtlChars &p_name);
+	mglObject					*GetLastObjectByName(const mtlChars &p_name);
 	template < typename type_t >
 	void						GetObjectsByType(mtlList<type_t*> &p_out);
+	template < typename type_t >
+	void						GetFirstObjectByType(type_t *p_type);
+	template < typename type_t >
+	void						GetLastObjectByType(type_t *p_type);
 	int							GetRandomInt(int min, int max) const;
 	void						SetFrameLimit(unsigned int p_frameLimit) { m_frameLimit = p_frameLimit; }
 	void						DisableFrameLimit( void ) { SetFrameLimit(0); }
@@ -75,7 +95,8 @@ public:
 	void						Break( void ) { m_done = true; }
 	void						Kill(int state = 1);
 	const mtlList<mglObject*>	&GetObjects( void ) const { return m_objects; }
-	const mtlList<mglInput>		&GetInput( void ) const { return m_inputs; }
+	const mtlNode<mglInput>		*GetInput( void ) const { return m_inputs.GetFront(); }
+	int							GetInputQueueSize( void ) const { return m_inputs.GetSize(); }
 	void						DisableScreenClear( void ) { m_clearScreen = false; }
 	void						SetScreenClearColor(unsigned int color) { m_clearScreen = true; m_clearColor = color; }
 };
@@ -94,10 +115,30 @@ void mglEngine::GetObjectsByType(mtlList<type_t*> &p_out)
 	mtlNode<mglObject*> *node = m_objects.GetFront();
 	while (node != NULL) {
 		type_t *t;
-		if (node->value->IsType(t)) {
+		if (node->GetItem()->m_enabled && node->GetItem()->IsType(t)) {
 			p_out.PushBack(t);
 		}
 		node = node->GetNext();
+	}
+}
+
+template < typename type_t >
+void mglEngine::GetFirstObjectByType(type_t *p_type)
+{
+	mtlNode<mglObject*> *node = m_objects.GetFront();
+	while (node != NULL) {
+		if (node->GetItem()->m_enabled && node->GetItem()->IsType(p_type)) { return; }
+		node = node->GetNext();
+	}
+}
+
+template < typename type_t >
+void mglEngine::GetLastObjectByType(type_t *p_type)
+{
+	mtlNode<mglObject*> *node = m_objects.GetBack();
+	while (node != NULL) {
+		if (node->GetItem()->m_enabled && node->GetItem()->IsType(p_type)) { return; }
+		node = node->GetPrev();
 	}
 }
 

@@ -9,24 +9,27 @@
 #include <iostream>
 #include <fstream>
 
-#include "SDL_Engine.h"
+#include "Aux/SDL_Engine.h"
+#include "Aux/OGL_Engine.h"
+#include "Aux/OGL_Rasterizer.h"
 
 class ControllableObject : public mglObject
 {
 private:
 	bool			m_mouseDown;
+	bool			m_shiftDown;
 	mmlVector<3>	m_moveInc;
 protected:
 	void OnUpdate( void );
 public:
-	ControllableObject(const mtlChars &p_name) : mglObject(p_name), m_mouseDown(false), m_moveInc(0.0f, 0.0f, 0.0f) { transform.position += mglTransform::globalAxis.forward * 20.0f; }
+	ControllableObject(const mtlChars &p_name) : mglObject(p_name), m_mouseDown(false), m_shiftDown(false), m_moveInc(0.0f, 0.0f, 0.0f) { transform.position += mglTransform::globalAxis.forward * 20.0f; }
 };
 
 void ControllableObject::OnUpdate( void )
 {
-	const mtlNode<mglInput> *inputNode = GetEngine()->GetInput().GetFront();
+	const mtlNode<mglInput> *inputNode = GetEngine()->GetInput();
 	while (inputNode != NULL) {
-		mglInput input = inputNode->value;
+		mglInput input = inputNode->GetItem();
 		switch (input.type) {
 		case mglButtonInput:
 			if (input.button.device == mglMouse && input.button.button == SDL_BUTTON_LEFT) {
@@ -47,14 +50,19 @@ void ControllableObject::OnUpdate( void )
 						m_moveInc[2] = mglTransform::globalAxis.forward[2] * speed;
 					} else if (input.button.button == SDLK_DOWN) {
 						m_moveInc[2] = mglTransform::globalAxis.forward[2] * -speed;
+					} else if (input.button.button == SDLK_LSHIFT) {
+						m_shiftDown = (input.button.state == mglButtonDown) ? true : false;
 					}
 				}
 			}
 			break;
 		case mglMotionInput:
 			if (m_mouseDown) {
-				transform.RotateLocal(mglTransform::globalAxis.up, float(input.motion.relX) * 0.01f);
-				transform.RotateLocal(mglTransform::globalAxis.right, float(input.motion.relY) * 0.01f);
+				if (!m_shiftDown) {
+					transform.RotateGlobal(mglTransform::globalAxis.up, float(input.motion.relX) * 0.01f);
+				} else {
+					transform.RotateGlobal(mglTransform::globalAxis.right, float(input.motion.relY) * 0.01f);
+				}
 			}
 			break;
 		default:
@@ -64,6 +72,88 @@ void ControllableObject::OnUpdate( void )
 		inputNode = inputNode->GetNext();
 	}
 	transform.MoveGlobal(m_moveInc * GetEngine()->GetDeltaTime());
+}
+
+class TransformController : public mglObject
+{
+private:
+	mglTransform	*m_transform;
+	bool			m_connected;
+protected:
+	void OnUpdate( void );
+public:
+	TransformController(const mtlChars &p_name, mglTransform &p_transform) : mglObject(p_name), m_transform(&p_transform), m_connected(false) {}
+};
+
+void TransformController::OnUpdate( void )
+{
+	const mtlNode<mglInput> *input = GetEngine()->GetInput();
+	while (input != NULL) {
+		mglInput i = input->GetItem();
+		if (i.type == mglButtonInput && i.button.device == mglKeyboard && i.button.state == mglButtonDown && i.button.button == SDLK_SPACE) {
+				if (!m_connected) {
+					m_transform->SetParentTransform(&transform, true);
+				} else {
+					m_transform->SetParentTransform(NULL, true);
+				}
+				m_connected = !m_connected;
+		}
+		input = input->GetNext();
+	}
+}
+
+void Unit_StringAppend( void );
+void Unit_StringOverwrite( void );
+void Unit_Clipping( void );
+void Unit_Directory( void );
+void Unit_QuatToMatrix( void );
+void SimpleScene(int argc, char **argv);
+void SimpleSceneOGL(int argc, char **argv);
+void TexturedTriangle(int argc, char **argv);
+void DrawLine(int argc, char **argv);
+
+// NOTES
+// Overwrite and Insert in mtlString are new, TEST!
+	// Insert does not work when appending, does it work for other cases?
+	// Overwrite fails to write a larger string than is already available
+// Multiple materials in a material file crashes model loader (maybe even multiple materials regardless of separate files?)
+// Trailing newline may prevent or cause a failed read in model/material loader
+
+// TODO: Implement SIMD parallel rasterizer, render in blocks of X pixels
+// TODO: Implement CPU parallel rasterizer, one CPU per SIMD block scanline (local cache coherency)
+	// std::thread or OpenMP?
+	// http://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
+// TODO: Implement division free perspective correct rasterizer
+// TODO: Implement fixed point rasterizer (fstp seems expensive), may not be compatible with SIMD
+// TODO: group together the least important lights into a directional light
+// TODO: transform lights to object space, light model (prevents having to transform model normals)
+// TODO: stop splitting BSP when we get a fully convex subspace
+// TODO: speed up floating point to fixed point conversion
+	// http://forums.codeguru.com/showthread.php?352169-__int16-__int32-Always-consistant&p=1208845#post1208845
+	// http://stackoverflow.com/questions/429632/how-to-speed-up-floating-point-to-integer-number-conversion
+
+// BUG: BSP models are sometimes missing polygons
+	// could these polygons be the splitting polygons?
+// BUG: BSP does not always work when very close to geometry or viewed from very oblique angles
+// BUG: rotating by global axis might actually be rotating by local axis
+// BUG: mouse down event generates uninitialized value somewhere
+
+// http://devmaster.net/posts/11968/cracks-in-geometry-in-software-rasterizer
+// http://chrishecker.com/Miscellaneous_Technical_Articles
+
+int main(int argc, char **argv)
+{
+	std::cout << "Unit tests:" << std::endl;
+	Unit_Clipping();
+	Unit_StringAppend();
+	Unit_StringOverwrite();
+	Unit_Directory();
+	Unit_QuatToMatrix();
+	std::cout << "completed" << std::endl;
+
+	SimpleSceneOGL(argc, argv);
+
+	return 0;
 }
 
 void Unit_StringAppend( void )
@@ -129,12 +219,12 @@ void Unit_Clipping( void )
 {
 	mglTexture texture;
 	texture.Create(512);
-
+ 
 	mmlVector<4> a(400.0f, 0.0f, 0.0f, 0.0f);
 	mmlVector<4> b(800.0f, 300.0f, 1.0f, 0.0f);
 	mmlVector<4> c(400.0f, 600.0f, 1.0f, 1.0f);
 	mmlVector<4> d(0.0f, 300.0f, 0.0f, 1.0f);
-
+ 
 	const int numFrames = 100;
 	const float angleInc = mmlPI / numFrames;
 	const float COS = cos(angleInc);
@@ -145,32 +235,32 @@ void Unit_Clipping( void )
 	mmlVector<2> t;
 	t[0] = 400.0f;
 	t[1] = 300.0f;
-
+ 
 	mglSWMonoRasterizer raster(platform.GetVideo());
-
-
+ 
+ 
 	for (int i = 0; i < numFrames; ++i) {
-
+		
 		raster.Debug_RenderTriangle(a, b, c, &texture);
 		raster.Debug_RenderTriangle(a, c, d, &texture);
-
+ 
 		mmlVector<2>::Cast(&a) -= t;
 		mmlVector<2>::Cast(&a) *= m;
 		mmlVector<2>::Cast(&a) += t;
-
+		
 		mmlVector<2>::Cast(&b) -= t;
 		mmlVector<2>::Cast(&b) *= m;
 		mmlVector<2>::Cast(&b) += t;
-
+		
 		mmlVector<2>::Cast(&c) -= t;
 		mmlVector<2>::Cast(&c) *= m;
 		mmlVector<2>::Cast(&c) += t;
-
+		
 		mmlVector<2>::Cast(&d) -= t;
 		mmlVector<2>::Cast(&d) *= m;
 		mmlVector<2>::Cast(&d) += t;
 	}
-
+ 
 	platform.UpdateVideo();
 }*/
 
@@ -186,9 +276,9 @@ void Unit_Directory( void )
 	mtlDirectory dir8("/MiniLib.app");
 	mtlDirectory dir9(".config");
 	mtlDirectory dir10(".config.ini");
-
+	
 	std::cout << "\tTesting mtlDirectory..." << std::endl;
-
+	
 	if (!dir1.GetFolders().Compare("~/Applications/") || !dir1.GetFilename().Compare("MiniLib") || !dir1.GetExtension().Compare("app")) {
 		std::cout << "\t\t" << dir1.GetDirectory() << ": failed 1" << std::endl;
 		std::cout << "\t\t\t" << dir1.GetFolders() << " | " << dir1.GetFilename() << " | " << dir1.GetExtension() << std::endl;
@@ -229,77 +319,204 @@ void Unit_Directory( void )
 		std::cout << "\t\t" << dir10.GetDirectory() << ": failed 10" << std::endl;
 		std::cout << "\t\t\t" << dir10.GetFolders() << " | " << dir10.GetFilename() << " | " << dir10.GetExtension() << std::endl;
 	}
-
+	
 	std::cout << "\tdone" << std::endl;
 }
 
-// NOTES
-// Overwrite and Insert in mtlString are new, TEST!
-	// Insert does not work when appending, does it work for other cases?
-	// Overwrite fails to write a larger string than is already available
-// Multiple materials in a material file crashes model loader (maybe even multiple materials regardless of separate files?)
-// Trailing newline may prevent or cause a failed read in model/material loader
-
-// TODO: Implement SIMD parallel rasterizer, render in blocks of X pixels
-// TODO: Implement CPU parallel rasterizer, one CPU per SIMD block scanline (local cache coherency)
-	// std::thread or OpenMP?
-	// http://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
-// TODO: Implement division free perspective correct rasterizer
-// TODO: Implement fixed point rasterizer (fstp seems expensive), may not be compatible with SIMD
-// TODO: Binary space partitioning for 3d models
-// TODO: group together the least important lights into a directional light
-// TODO: dot between camera look direction in object space and triangle centroid could determine whether a triangle is behind camera
-// TODO: transform lights to object space, light model (prevents having to transform model normals)
-// TODO: perspective divide, need 4d vector
-// TODO: stop splitting BSP when we get a fully convex subspace
-
-// BUG: BSP models are sometimes missing polygons
-	// could these polygons be the splitting polygons?
-// BUG: BSP does not always work when very close to geometry or viewed from very oblique angles
-// BUG: rotating by global axis might actually be rotating by local axis
-// BUG: mouse down event generates uninitialized value somewhere
-
-int main(int argc, char **argv)
+void Unit_QuatToMatrix( void )
 {
-	std::cout << "Unit tests:" << std::endl;
-	Unit_Clipping();
-	Unit_StringAppend();
-	Unit_StringOverwrite();
-	Unit_Directory();
-	std::cout << "completed" << std::endl;
+	mglTransform transform;
+	transform.position = mmlVector<3>(40.0f, 14.0f, 73.0f);
+	transform.rotation.RotateByAxisAngle(mglTransform::globalAxis.up, 14.3f);
+	transform.rotation.RotateByAxisAngle(mglTransform::globalAxis.right, 29.2f);
+	transform.rotation.RotateByAxisAngle(mglTransform::globalAxis.forward, 1.7f);
+	mmlMatrix<4,4> matrix = transform.GetWorldTransformMatrix();
+	
+	mmlVector<3> pointT = transform.position;
+	mmlVector<3> pointM = mmlVector<3>(0.0f, 0.0f, 0.0f) * matrix;
+	
+	std::cout << "t(" << pointT[0] << ";" << pointT[1] << ";" << pointT[2] << ") : m(" << pointM[0] << ";" << pointM[1] << ";" << pointM[2] << ")" << std::endl;
+}
 
-
-
+void SimpleScene(int argc, char **argv)
+{
 	SDL_Engine engine;
-	if (!engine.InitSystems(argc, argv) || !engine.SetVideo(800, 600, false)) { return EXIT_FAILURE; }
-	//mglSWUVRasterizer *raster = new mglSWUVRasterizer(engine.GetVideo());
-	mglFlatRasterizer *raster = new mglFlatRasterizer(engine.GetVideo());
+	if (!engine.InitSystems(argc, argv) || !engine.SetVideo(800, 600, false)) {
+		std::cout << "Failed to init engine" << std::endl;
+		return;
+	}
+	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
+	//mglFlatRasterizer *raster = new mglFlatRasterizer(engine.GetVideo());
 	engine.AddObject(new mglCamera("game_camera", raster));
 	mglObject *obj = new ControllableObject("game_object");
 	engine.AddObject(obj);
 	std::cout << "Loading model...";
-	if (!obj->model.Load("../Models/Human/mod.obj")) {
+	if (!obj->model.Load("../Models/Ship/mod.obj")) {
 		std::cout << "failed: " << obj->model.GetError() << std::endl;
 		engine.CloseSystems();
-		std::cin.get();
-		return 1;
+		return;
 	}
 	std::cout << "done" << std::endl;
-
+	
 	engine.SetWindowCaption(argv[0]);
-
+	
 	engine.SetScreenClearColor(0);
-
+	
 	engine.Run();
-
+	
 	// MGL actually allows trailing memory to leak, since the OS will handle it anyway
 	// do this to avoid memory checkers from detecting leaked memory (in order):
 	engine.DestroyAllObjects(); // frees all engine-registered objects and unlocks references to models
 	mtlAsset<mglModel>::Purge(); // frees all models and unlocks references to textures
 	mtlAsset<mglStaticModel>::Purge(); // frees all BSP models and unlocks references to textures
 	mtlAsset<mglTexture>::Purge(); // frees all textures
-
+	
 	engine.CloseSystems();
+}
 
-	return 0;
+void SimpleSceneOGL(int argc, char **argv)
+{
+	OGL_Engine engine;
+	if (!engine.InitSystems(argc, argv)) {
+		std::cout << "Failed to init engine" << std::endl;
+		return;
+	}
+	std::cout << "Video init...";
+	if (!engine.SetVideo(800, 600, false)) {
+		std::cout << "Failed to init video" << std::endl;
+		return;
+	}
+	std::cout << "done" << std::endl;
+	OGL_Rasterizer *raster = new OGL_Rasterizer(engine.GetVideo());
+	engine.AddObject(new mglCamera("game_camera", raster));
+	mglObject *obj = new ControllableObject("game_object");
+	engine.AddObject(obj);
+	std::cout << "Loading model...";
+	if (!obj->model.Load("../Models/Ship/mod.obj")) {
+		std::cout << "failed: " << obj->model.GetError() << std::endl;
+		engine.CloseSystems();
+		return;
+	}
+	std::cout << "done" << std::endl;
+	
+	TransformController transformController("game_transform", obj->transform);
+	engine.AddObject(&transformController);
+	transformController.transform.position = mmlVector<3>(15.0f, 17.0f, 20.0f);
+	transformController.transform.RotateGlobal(mglTransform::globalAxis.up, 100.0f);
+	transformController.transform.RotateGlobal(mglTransform::globalAxis.right, 20.0f);
+	transformController.transform.RotateGlobal(mglTransform::globalAxis.forward, 1.0f);
+	
+	engine.SetWindowCaption(argv[0]);
+	
+	engine.SetScreenClearColor(0);
+	
+	engine.Run();
+	
+	// MGL actually allows trailing memory to leak, since the OS will handle it anyway
+	// do this to avoid memory checkers from detecting leaked memory (in order):
+	engine.DestroyAllObjects(); // frees all engine-registered objects and unlocks references to models
+	mtlAsset<mglModel>::Purge(); // frees all models and unlocks references to textures
+	mtlAsset<mglStaticModel>::Purge(); // frees all BSP models and unlocks references to textures
+	mtlAsset<mglTexture>::Purge(); // frees all textures
+	
+	engine.CloseSystems();
+}
+
+void TexturedTriangle(int argc, char **argv)
+{
+	SDL_Engine engine;
+	if (!engine.InitSystems(argc, argv) || !engine.SetVideo(800, 600, false)) {
+		std::cout << "Failed to init engine" << std::endl;
+		return;
+	}
+	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
+	mtlAsset<mglTexture> texture;
+	std::cout << "Loading texture...";
+	if (!texture.Load("../Models/Ship/tex.tga")) {
+		std::cout << "failed: " << texture.GetError() << std::endl;
+		engine.CloseSystems();
+		return;
+	}
+	std::cout << "done" << std::endl;
+	
+	engine.SetWindowCaption(argv[0]);
+	
+	const mmlVector<4> a(  0.0f,   0.0f, 0.0f, 1.0f);
+	const mmlVector<4> b(200.0f,   0.0f, 1.0f, 1.0f);
+	const mmlVector<4> c(200.0f, 200.0f, 1.0f, 0.0f);
+	const mmlVector<4> d(  0.0f, 200.0f, 0.0f, 0.0f);
+	
+	raster->Debug_RenderTriangle(a, b, c, texture.GetAsset());
+	raster->Debug_RenderTriangle(a, c, d, texture.GetAsset());
+	
+	SDL_Flip(SDL_GetVideoSurface());
+	
+	SDL_Event event;
+	bool quit = false;
+	while (!quit && SDL_WaitEvent(&event)) {
+		switch (event.type) {
+			case SDL_QUIT:
+			case SDL_KEYDOWN:
+				quit = true;
+				break;
+		}
+	}
+	
+	engine.CloseSystems();
+}
+
+void DrawLine(int argc, char **argv)
+{
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		std::cout << "Failed to init SDL" << std::endl;
+		return;
+	}
+	if (SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE|SDL_DOUBLEBUF) == NULL) {
+		std::cout << "Failed to init video" << std::endl;
+		return;
+	}
+	
+	bool quit = false;
+	bool update = true;
+	int x = 0, y = 0;
+	SDL_Event event;
+	while (!quit) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_KEYDOWN:
+				case SDL_QUIT:
+					quit = true;
+					break;
+				case SDL_MOUSEMOTION:
+					x = event.motion.x;
+					y = event.motion.y;
+					update = true;
+					break;
+			}
+		}
+		if (update) {
+			Uint32 *pixels = (Uint32*)SDL_GetVideoSurface()->pixels;
+			int area = SDL_GetVideoSurface()->w*SDL_GetVideoSurface()->h;
+			for (int i = 0; i < area; ++i) {
+				pixels[i] = 0;
+			}
+			
+			mglRay line;
+			line.position = mmlVector<3>(0.0f, 0.0f, 0.0f);
+			line.direction = mmlNormalize(mmlVector<3>((float)x, (float)y, 0.0f));
+			mglDifferentialAnalyzer dda(line);
+			
+			do {
+				int xn = dda.GetX(), yn = dda.GetY();
+				pixels[yn * SDL_GetVideoSurface()->w + xn] = 0xff00ffff;
+				dda.Step();
+			} while (dda.GetX() != x && dda.GetY() != y);
+			
+			SDL_Flip(SDL_GetVideoSurface());
+			update = false;
+		}
+	}
+	
+	SDL_FreeSurface(SDL_GetVideoSurface());
+	SDL_Quit();
 }

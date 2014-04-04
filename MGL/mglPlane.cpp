@@ -38,18 +38,6 @@ m_position(a), m_normal(mmlSurfaceNormal(a, b, c))
 
 mglClip mglPlane::DetermineClipping(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c) const
 {
-	/*const float adist = mmlDot(a - m_position, m_normal);
-	const float bdist = mmlDot(b - m_position, m_normal);
-	const float cdist = mmlDot(c - m_position, m_normal);
-	if (adist == 0.0f && bdist == 0.0f && cdist == 0.0f) {
-		return mglCoinciding;
-	} else if (adist <= 0.0f && bdist <= 0.0f && cdist <= 0.0f) {
-		return mglBehind;
-	} else if (adist >= 0.0f && bdist >= 0.0f && cdist >= 0.0f) {
-		return mglInFront;
-	}
-	return mglClipping;*/
-
 	const mglClip side[3] = { DetermineSide(a), DetermineSide(b), DetermineSide(c) };
 	int behind = 0, inFront = 0, coinciding = 0;
 	for (int i = 0; i < 3; ++i) {
@@ -73,14 +61,6 @@ mglClip mglPlane::DetermineClipping(const mmlVector<3> &a, const mmlVector<3> &b
 
 mglClip mglPlane::DetermineSide(const mmlVector<3> &point) const
 {
-	/*const float dist = GetSignedDistance(point);
-	if (dist < 0.0f) {
-		return mglBehind;
-	} else if (dist > 0.0f) {
-		return mglInFront;
-	}
-	return mglCoinciding;*/
-
 	return DetermineSide(GetSignedDistance(point));
 }
 

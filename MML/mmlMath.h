@@ -32,14 +32,14 @@ inline float mmlUnitToDeg(float pUnit)	{ return pUnit * mmlDEG_MAX; }
 inline float mmlDegToUnit(float pDeg)	{ return pDeg / mmlDEG_MAX; }
 template < typename T > inline const T &mmlMin2(const T &pA, const T &pB) { return (pA < pB) ? (pA) : (pB); }
 template < typename T > inline const T &mmlMax2(const T &pA, const T &pB) { return (pA > pB) ? (pA) : (pB); }
-template < typename T > inline const T &mmlMin3(const T &pA, const T &pB, const T &pC) { return mmlMin2(Min2(pA,pB),pC); }
-template < typename T > inline const T &mmlMax3(const T &pA, const T &pB, const T &pC) { return mmlMax2(Max2(pA,pB),pC); }
+template < typename T > inline const T &mmlMin3(const T &pA, const T &pB, const T &pC) { return mmlMin2(mmlMin2(pA,pB),pC); }
+template < typename T > inline const T &mmlMax3(const T &pA, const T &pB, const T &pC) { return mmlMax2(mmlMax2(pA,pB),pC); }
 template < typename T > inline T &mmlMin2(T &pA, T &pB) { return (pA < pB) ? (pA) : (pB); }
 template < typename T > inline T &mmlMax2(T &pA, T &pB) { return (pA > pB) ? (pA) : (pB); }
 template < typename T > inline T &mmlMin3(T &pA, T &pB, T &pC) { return mmlMin2(Min2(pA,pB),pC); }
 template < typename T > inline T &mmlMax3(T &pA, T &pB, T &pC) { return mmlMax2(Max2(pA,pB),pC); }
 template < typename T > inline void mmlSwap(T &pA, T&pB) { T temp = pA; pA = pB; pB = temp; }
-template < typename T > inline T mmlClamp(float min, float value, float max) { return value < min ? min : (value > max ? max : value); }
+template < typename T > inline T mmlClamp(T min, T value, T max) { return value < min ? min : (value > max ? max : value); }
 inline float mmlFastInvSqrt(float pX)
 {
 	float xhalf = 0.5f*pX;

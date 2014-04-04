@@ -32,6 +32,14 @@ public:
 	{
 		FromEulerAngles(p_head, p_pitch, p_roll);
 	}
+	explicit mmlQuaternion(const mmlMatrix<3,3> &p_matrix)
+	{
+		FromEulerMatrix(p_matrix);
+	}
+	explicit mmlQuaternion(const mmlMatrix<4,4> &p_matrix)
+	{
+		FromEulerMatrix(p_matrix);
+	}
 	explicit mmlQuaternion(const float * const p_vec)
 	{
 		x = p_vec[0];
@@ -78,9 +86,56 @@ public:
 
 		Normalize();
 	}
-	mmlMatrix<4,4> GetEulerMatrix( void ) const
+	void FromEulerMatrix(const mmlMatrix<3,3> &p_matrix)
 	{
-		const float x2 = x * x;
+		//  0  1  2  3
+		//  4  5  6  7
+		//  8  9 10 11
+		// 12 13 14 15
+		
+		const float trace = mmlTrace(p_matrix) + 1.0f;
+		
+		if (trace > 0.0f) {
+			const float scale = sqrt(trace) * 2.0f;
+			x = (p_matrix[1][2] - p_matrix[2][1]) / scale;
+			y = (p_matrix[2][0] - p_matrix[0][2]) / scale;
+			z = (p_matrix[0][1] - p_matrix[1][0]) / scale;
+			w = 0.25f * scale;
+		} else {
+			if (p_matrix[0][0] > p_matrix[1][1] && p_matrix[0][0] > p_matrix[2][2]) {
+				const float scale = sqrt(1.0f + p_matrix[0][0] - p_matrix[1][1] - p_matrix[2][2]) * 2.0f;
+				x = 0.25f * scale;
+				y = (p_matrix[1][0] + p_matrix[0][1]) / scale;
+				z = (p_matrix[0][2] + p_matrix[2][0]) / scale;
+				w = (p_matrix[1][2] - p_matrix[2][1]) / scale;
+			} else if (p_matrix[1][1] > p_matrix[2][2]) {
+				const float scale = sqrt(1.0f + p_matrix[1][1] - p_matrix[0][0] - p_matrix[2][2]) * 2.0f;
+				x = (p_matrix[1][0] + p_matrix[0][1]) / scale;
+				y = 0.25f * scale;
+				z = (p_matrix[2][1] + p_matrix[1][2]) / scale;
+				w = (p_matrix[2][0] - p_matrix[0][2]) / scale;
+			} else {
+				const float scale = sqrt(1.0f + p_matrix[2][2] - p_matrix[0][0] - p_matrix[1][1]) * 2.0f;
+				x = (p_matrix[2][0] + p_matrix[0][2]) / scale;
+				y = (p_matrix[2][1] + p_matrix[1][2]) / scale;
+				z = 0.25f * scale;
+				w = (p_matrix[0][1] - p_matrix[1][0]) / scale;
+			}
+		}
+		
+		Normalize();
+	}
+	void FromEulerMatrix(const mmlMatrix<4,4> &p_matrix)
+	{
+		FromEulerMatrix(mmlMatrix<3,3>(p_matrix));
+	}
+	mmlMatrix<4,4> GetEulerMatrix4( void ) const
+	{
+		mmlMatrix<4,4> matrix = mmlMatrix<4,4>(GetEulerMatrix3());
+		matrix[3][3] = 1.0f;
+		return matrix;
+		
+		/*const float x2 = x * x;
 		const float y2 = y * y;
 		const float z2 = z * z;
 		const float xy = x * y;
@@ -95,6 +150,24 @@ public:
 			2.f * (xy + wz),       1.f - 2.f * (x2 + z2), 2.f * (yz - wx),       0.f,
 			2.f * (xz - wy),       2.f * (yz + wx),       1.f - 2.f * (x2 + y2), 0.f,
 			0.f,                   0.f,                   0.f,                   1.f
+		);*/
+	}
+	mmlMatrix<3,3> GetEulerMatrix3( void ) const
+	{
+		const float x2 = x * x;
+		const float y2 = y * y;
+		const float z2 = z * z;
+		const float xy = x * y;
+		const float xz = x * z;
+		const float yz = y * z;
+		const float wx = w * x;
+		const float wy = w * y;
+		const float wz = w * z;
+		
+		return mmlMatrix<3,3>(
+			1.f - 2.f * (y2 + z2), 2.f * (xy - wz),       2.f * (xz + wy),
+			2.f * (xy + wz),       1.f - 2.f * (x2 + z2), 2.f * (yz - wx),
+			2.f * (xz - wy),       2.f * (yz + wx),       1.f - 2.f * (x2 + y2)
 		);
 	}
 public:

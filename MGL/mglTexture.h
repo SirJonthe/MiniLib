@@ -3,18 +3,7 @@
 
 #include "../MTL/mtlDirectory.h"
 #include "../MTL/mtlAsset.h"
-
-struct mglPixelFormat
-{
-	unsigned int RMask;
-	unsigned int GMask;
-	unsigned int BMask;
-	unsigned int AMask;
-	unsigned int RShift;
-	unsigned int GShift;
-	unsigned int BShift;
-	unsigned int AShift;
-};
+#include "mglPixel.h"
 
 #define mglTILE 4
 #define mglTILE_AREA 16
@@ -43,6 +32,7 @@ private:
 	inline int		GetTiledIndex(int x, int y) const;
 	inline int		GetMortonIndex(int x, int y) const;
 	bool			LoadTGA(const mtlDirectory &p_filename);
+	void			OrderAsMorton( void );
 public:
 							mglTexture( void );
 							mglTexture(int p_dimension, unsigned int p_color);

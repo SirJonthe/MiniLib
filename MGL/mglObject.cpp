@@ -1,9 +1,8 @@
 #include "mglObject.h"
-#include "mglEngine.h"
 
 mglObject::mglObject(const mtlChars &p_name) :
-model(), transform(), name(p_name), layerMask(0xffffffff),
-/*m_collider(NULL),*/ m_collider(this), m_engine(NULL),
+model(), transform(), name(p_name), mask(0xffffffff),
+m_collider(this), m_engine(NULL),
 m_enabled(true), m_markedForDestruction(false), visible(true)
 {
 	OnEnable();
@@ -15,7 +14,6 @@ mglObject::~mglObject( void )
 	if (m_collider.IsValid()) {
 		delete m_collider.GetOther();
 	}
-	//delete m_collider;
 }
 
 void mglObject::Destroy( void )
@@ -47,8 +45,6 @@ void mglObject::SetCollider(mglCollider *p_collider)
 		delete m_collider.GetOther(); // automatically disconnects
 	}
 	m_collider.Connect(p_collider->m_parentObject);
-	//delete m_collider;
-	//m_collider = p_collider;
 }
 
 void mglObject::Reset( void )

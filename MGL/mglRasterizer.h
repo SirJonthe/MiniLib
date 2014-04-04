@@ -25,10 +25,12 @@ class mglRasterizer
 public:
 	const mglFramebuffer<> *framebuffer;
 protected:
-	mmlMatrix<4,4>	m_worldToCamera, m_projection;
-	mmlVector<3>	m_cameraPosition;
-	mglPlane		m_nearPlane, m_farPlane;
-	float			m_nearDepth, m_farDepth, m_vFov;
+	mmlMatrix<4,4>		m_worldToCamera, m_projection, m_infProj;
+	mmlVector<3>		m_cameraPosition;
+	mglPlane			m_nearPlane, m_farPlane;
+	float				m_nearDepth, m_farDepth, m_vFov;
+protected:
+	virtual void	UpdateAPIProjectionMatrix( void ) = 0;
 public:
 	explicit		mglRasterizer(const mglFramebuffer<> *p_framebuffer) : framebuffer(p_framebuffer) {}
 	virtual			~mglRasterizer( void ) {}
@@ -38,13 +40,16 @@ public:
 	virtual void	Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld) = 0;
 };
 
-class mglSWUVRasterizer : public mglRasterizer
+class mglTexturedRasterizer : public mglRasterizer
 {
 private:
-	static const mglTexture		defaultMaterial;
+	static const mglTexture defaultMaterial;
 private:
-	const mglTexture			*m_currentTexture;
+	const mglTexture *m_currentTexture;
 	//mtlArray< mmlVector<4> >	m_vertexCache; // transformed xyzw components, store locally to promote multi-core rendering
+	
+protected:
+	void UpdateAPIProjectionMatrix( void ) {}
 private:
 	//void RenderScanlineAffine(int x1, int x2, int, float, float, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels);
 	void RenderScanlineSubAffine(int x1, int x2, int, float w1, float w2, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels);
@@ -55,9 +60,9 @@ private:
 	//void RenderScanlineDitherFixed(int x1, int x2, int y, mmlVector<2> t1, mmlVector<2> t2, unsigned int *pixels);
 	void RenderTriangle(mmlVector<5> va, mmlVector<5> vb, mmlVector<5> vc);
 	void DrawBranch(const mglStaticModel::Node *p_node, const mmlVector<3> &p_view, const mmlMatrix<4,4> &p_finalMatrix);
-	void DrawTriangleList(const mtlList< mglStaticModel::Poly > &p_list, const mmlMatrix<4,4> &p_finalMatrix);
+	void DrawTriangleList(const mtlList< mglStaticModel::Triangle > &p_list, const mmlMatrix<4,4> &p_finalMatrix);
 public:
-	explicit	mglSWUVRasterizer(const mglFramebuffer<> *p_framebuffer) : mglRasterizer(p_framebuffer) { /* m_vertexCache.poolMemory = true; */ }
+	explicit	mglTexturedRasterizer(const mglFramebuffer<> *p_framebuffer) : mglRasterizer(p_framebuffer) { /* m_vertexCache.poolMemory = true; */ }
 	void		Render(const mglModel &p_model, const mmlMatrix<4,4> &p_objToWorld);
 	void		Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld);
 	void		Debug_RenderTriangle(const mmlVector<4> &a, const mmlVector<4> &b, const mmlVector<4> &c, const mglTexture *texture);
@@ -65,11 +70,13 @@ public:
 
 class mglFlatRasterizer : public mglRasterizer
 {
+protected:
+	void UpdateAPIProjectionMatrix( void ) {}
 private:
 	void RenderScanline(int x1, int x2, unsigned int color, unsigned int *pixels);
 	void RenderTriangle(mmlVector<2> va, mmlVector<2> vb, mmlVector<2> vc, unsigned int color);
 	void RenderBranch(const mglStaticModel::Node *p_node, const mmlVector<3> &p_view, const mmlVector<3> &p_viewDirection, const mmlMatrix<4,4> &p_finalMatrix);
-	void RenderTriangleList(const mtlList< mglStaticModel::Poly > &p_list, const mmlVector<3> &p_viewDirection, const mmlMatrix<4,4> &p_finalMatrix);
+	void RenderTriangleList(const mtlList< mglStaticModel::Triangle > &p_list, const mmlVector<3> &p_viewDirection, const mmlMatrix<4,4> &p_finalMatrix);
 public:
 	explicit	mglFlatRasterizer(const mglFramebuffer<> *p_framebuffer) : mglRasterizer(p_framebuffer) {}
 	void		Render(const mglModel &p_model, const mmlMatrix<4, 4> &p_objToWorld);

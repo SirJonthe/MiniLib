@@ -34,7 +34,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 			missingDefaultMaterial = false;
 			mtlNode<mtlString> *node = materials.GetFront();
 			while (node != NULL) {
-				if (node->value.Compare(line)) {
+				if (node->GetItem().Compare(line)) {
 					break;
 				}
 				node = node->GetNext();
@@ -81,7 +81,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 	mtlParser parser;
 	parser.SetBuffer(p_fileContents);
 	mtlSubstring param;
-	mglMaterial *currentMaterial = NULL;
+	mglMaterialIndex *currentMaterial = NULL;
 	int currentV = 0, currentT = 1, currentN = 1, currentM = -1;
 	m_texCoords[0] = mmlVector<2>(0.0f, 0.0f); // default tex coord (for models that don't contain tex coords)
 	m_normals[0] = mmlVector<3>(0.0f, 0.0f, 0.0f); // default normal (for models that don't contain normals)
@@ -102,7 +102,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 				FacetIndex facetIndex = { -1, 0, 0 };
 				switch (facetPoint.GetSize()) {
 					case 3:
-						if (!facetIndexStr->value.ToInt(facetIndex.n)) {
+						if (!facetIndexStr->GetItem().ToInt(facetIndex.n)) {
 							m_error.Copy("Failed to convert to int");
 							return false;
 						}
@@ -115,8 +115,8 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						}
 						facetIndexStr = facetIndexStr->GetPrev();
 					case 2:
-						if (facetIndexStr->value.GetSize() > 0) { // texture index *can* be empty in order to specify [vertex]//[normal]
-							if (!facetIndexStr->value.ToInt(facetIndex.t)) {
+						if (facetIndexStr->GetItem().GetSize() > 0) { // texture index *can* be empty in order to specify [vertex]//[normal]
+							if (!facetIndexStr->GetItem().ToInt(facetIndex.t)) {
 								m_error.Copy("Failed to convert to int");
 								return false;
 							}
@@ -130,7 +130,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						}
 						facetIndexStr = facetIndexStr->GetPrev();
 					case 1:
-						if (!facetIndexStr->value.ToInt(facetIndex.v)) {
+						if (!facetIndexStr->GetItem().ToInt(facetIndex.v)) {
 							m_error.Copy("Failed to convert to int");
 							return false;
 						}
@@ -160,15 +160,15 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 				mtlNode<FacetIndex> *j = i->GetNext();
 				while (j != NULL) {
 					mglFacet f;
-					f.v1 = facet.GetFront()->value.v;
-					f.t1 = facet.GetFront()->value.t;
-					f.n1 = facet.GetFront()->value.n;
-					f.v2 = i->value.v;
-					f.t2 = i->value.t;
-					f.n2 = i->value.n;
-					f.v3 = j->value.v;
-					f.t3 = j->value.t;
-					f.n3 = j->value.n;
+					f.v1 = facet.GetFront()->GetItem().v;
+					f.t1 = facet.GetFront()->GetItem().t;
+					f.n1 = facet.GetFront()->GetItem().n;
+					f.v2 = i->GetItem().v;
+					f.t2 = i->GetItem().t;
+					f.n2 = i->GetItem().n;
+					f.v3 = j->GetItem().v;
+					f.t3 = j->GetItem().t;
+					f.n3 = j->GetItem().n;
 					currentMaterial->m_facets.PushBack(f);
 					i = i->GetNext();
 					j = j->GetNext();
@@ -241,7 +241,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			param = line.ReadLine();
 			int m = 0;
 			for (; m < m_materials.GetSize(); ++m) {
-				if (m_materials[m].m_name.Compare(param)) {
+				if (m_materials[m].m_properties.m_name.Compare(param)) {
 					currentMaterial = &m_materials[m];
 					break;
 				}
@@ -265,7 +265,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 					param = mtlLine.ReadWord();
 					if (param.Compare("newmtl")) {
 						param = mtlLine.ReadLine();
-						m_materials[++currentM].m_name.Copy(param);
+						m_materials[++currentM].m_properties.m_name.Copy(param);
 						++newmtl;
 					} else if (param.Compare("Kd")) {
 						int n = 0;
@@ -275,7 +275,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 								m_error.Copy("Too many arguments in Kd");
 								return false;
 							} else if (n < 3) {
-								if (!param.ToFloat(m_materials[currentM].m_diffuseColor[n])) {
+								if (!param.ToFloat(m_materials[currentM].m_properties.m_diffuseColor[n])) {
 									m_error.Copy("Failed to convert to float");
 									return false;
 								}
@@ -291,10 +291,21 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 							m_error.Copy("Missing material name");
 							return false;
 						}
-						mtlChars path = mtlLine.ReadLine();
-						if (!m_materials[currentM].m_texture.Load(path)) {
-							m_error.Copy("Texture load failed: ");
-							m_error.Append(m_materials[currentM].m_texture.GetError());
+						mtlSubstring path = mtlLine.ReadLine();
+						if (!m_materials[currentM].m_properties.m_diffuseMap.Load(path)) {
+							m_error.Copy("Diffuse map load failed: ");
+							m_error.Append(m_materials[currentM].m_properties.m_diffuseMap.GetError());
+							return false;
+						}
+					} else if (param.Compare("bump")) {
+						if (newmtl < 0) {
+							m_error.Copy("Missing material name");
+							return false;
+						}
+						mtlSubstring path = mtlLine.ReadLine();
+						if (!m_materials[currentM].m_properties.m_normalMap.Load(path)) {
+							m_error.Copy("Normal map load failed: ");
+							m_error.Append(m_materials[currentM].m_properties.m_normalMap.GetError());
 							return false;
 						}
 					} else {
@@ -302,8 +313,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 							param.Compare("Tf") || param.Compare("illum") || param.Compare("d") ||
 							param.Compare("Ns") || param.Compare("sharpness") || param.Compare("Ni") ||
 							param.Compare("map_Ka") || param.Compare("map_Ks") || param.Compare("map_Ns") ||
-							param.Compare("map_d") || param.Compare("disp") || param.Compare("decal") ||
-							param.Compare("bump")) {
+							param.Compare("map_d") || param.Compare("disp") || param.Compare("decal")) {
 							m_error.Copy("Unsupported .mtl param: ");
 						} else {
 							m_error.Copy("Unknown .mtl param: ");
@@ -321,44 +331,77 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 	return true;
 }
 
-void mglModel::CountFacets( void )
+void mglModel::CalculateBounds( void )
 {
-	m_facets = 0;
-	for (int i = 0; i < m_materials.GetSize(); ++i) {
-		m_facets += m_materials[i].GetFacetCount();
+	if (m_vertices.GetSize() == 0 || m_materials.GetSize() == 0) {
+		m_maxBounds = m_minBounds = mmlVector<3>(0.0f, 0.0f, 0.0f);
+	} else {
+		m_maxBounds = m_minBounds = m_vertices[0];
+		for (int i = 1; i < m_vertices.GetSize(); ++i) {
+			m_maxBounds = mmlMax(m_maxBounds, m_vertices[i]);
+			m_minBounds = mmlMin(m_minBounds, m_vertices[i]);
+		}
 	}
 }
 
-void mglModel::CreateEdgeList( void )
+void mglModel::CalculateFacetNormals( void )
 {
-	m_edges.Create(m_facets * 3);
-	int e = 0;
 	for (int i = 0; i < m_materials.GetSize(); ++i) {
-		const mtlNode<mglFacet> *f = m_materials[i].GetFacets();
-		while (f != NULL) {
-			m_edges[e].v1 = f->value.v1;
-			m_edges[e].v2 = f->value.v3;
-			m_edges[e].t1 = f->value.t1;
-			m_edges[e].t2 = f->value.t3;
-			m_edges[e].n1 = f->value.n1;
-			m_edges[e].n2 = f->value.n3;
-			
-			m_edges[e+1].v1 = f->value.v2;
-			m_edges[e+1].v2 = f->value.v1;
-			m_edges[e+1].t1 = f->value.t2;
-			m_edges[e+1].t2 = f->value.t1;
-			m_edges[e+1].n1 = f->value.n2;
-			m_edges[e+1].n2 = f->value.n1;
-			
-			m_edges[e+2].v1 = f->value.v3;
-			m_edges[e+2].v2 = f->value.v2;
-			m_edges[e+2].t1 = f->value.t3;
-			m_edges[e+2].t2 = f->value.t2;
-			m_edges[e+2].n1 = f->value.n3;
-			m_edges[e+2].n2 = f->value.n2;
-			
-			f = f->GetNext();
+		mtlNode<mglFacet> *facet = m_materials[i].m_facets.GetFront();
+		while (facet != NULL) {
+			facet->GetItem().normal = mmlSurfaceNormal(m_vertices[facet->GetItem().v1], m_vertices[facet->GetItem().v2], m_vertices[facet->GetItem().v3]);
+			facet = facet->GetNext();
+		}
+	}
+}
+
+
+void mglModel::CreateEdgeListAndMainFacetList( void )
+{
+	int facets = 0;
+	for (int i = 0; i < m_materials.GetSize(); ++i) {
+		facets += m_materials[i].GetFacetCount();
+	}
+	
+	m_facets.Create(facets);
+	m_edges.Create(facets * 3);
+
+	int f = 0;
+	int e = 0;
+	for (int m = 0; m < m_materials.GetSize(); ++m) {
+		mtlNode<mglFacet> *facet = m_materials[m].m_facets.GetFront();
+		while (facet != NULL) {
+
+			facet->GetItem().e1 = e;
+			facet->GetItem().e2 = e+1;
+			facet->GetItem().e3 = e+2;
+
+			m_facets[f] = facet->GetItem();
+
+			m_edges[e].v1 = m_facets[f].v1;
+			m_edges[e].v2 = m_facets[f].v3;
+			m_edges[e].t1 = m_facets[f].t1;
+			m_edges[e].t2 = m_facets[f].t3;
+			m_edges[e].n1 = m_facets[f].n1;
+			m_edges[e].n2 = m_facets[f].n3;
+
+			m_edges[e+1].v1 = m_facets[f].v2;
+			m_edges[e+1].v2 = m_facets[f].v1;
+			m_edges[e+1].t1 = m_facets[f].t2;
+			m_edges[e+1].t2 = m_facets[f].t1;
+			m_edges[e+1].n1 = m_facets[f].n2;
+			m_edges[e+1].n2 = m_facets[f].n1;
+
+			m_edges[e+2].v1 = m_facets[f].v3;
+			m_edges[e+2].v2 = m_facets[f].v2;
+			m_edges[e+2].t1 = m_facets[f].t3;
+			m_edges[e+2].t2 = m_facets[f].t2;
+			m_edges[e+2].n1 = m_facets[f].n3;
+			m_edges[e+2].n2 = m_facets[f].n2;
+
+			++f;
 			e += 3;
+			facet = facet->GetNext();
 		}
 	}
 }
@@ -368,27 +411,25 @@ void mglModel::CheckIfClosed( void )
 	// Every edge in every face must equal some other edge in some other face
 	// If not then that means that the edge is just 'dangling' free without a connected face
 	
-	mtlList<Edge> edgeList;
+	mtlList<mglFacetEdge> edgeList;
 	for (int i = 0; i < m_edges.GetSize(); ++i) {
 		edgeList.PushBack(m_edges[i]);
 	}
 	while (edgeList.GetSize() > 0) {
-		mtlNode<Edge> *front = edgeList.GetFront();
-		mtlNode<Edge> *cmp = front->GetNext();
-		bool matchFound = false;
+		mtlNode<mglFacetEdge> *front = edgeList.GetFront();
+		mtlNode<mglFacetEdge> *cmp = front->GetNext();
 		while (cmp != NULL) {
 			// does not treat the following situations properly
 			// 1) edges that are shared between 3 or more facets
 			// 2) facets that are specified multiple times with different materials
 			// 3) facets that are connected to reverse facing facets
-			if (cmp->value.v1 == front->value.v2 && cmp->value.v2 == front->value.v1) {
-				cmp = cmp->Remove();
-				matchFound = true;
-			} else {
-				cmp = cmp->GetNext();
+			if (cmp->GetItem().v1 == front->GetItem().v2 && cmp->GetItem().v2 == front->GetItem().v1) {
+				cmp->Remove();
+				break;
 			}
+			cmp = cmp->GetNext();
 		}
-		if (matchFound) {
+		if (cmp != NULL) {
 			front->Remove();
 		} else {
 			break;
@@ -400,12 +441,8 @@ void mglModel::CheckIfClosed( void )
 void mglModel::CalculateArea( void )
 {
 	m_area = 0.0f;
-	for (int m = 0; m < m_materials.GetSize(); ++m) {
-		const mtlNode<mglFacet> *facet = m_materials[m].GetFacets();
-		while (facet != NULL) {
-			m_area += GetFacetArea(facet->value.v1, facet->value.v2, facet->value.v3);
-			facet = facet->GetNext();
-		}
+	for (int i = 0; i < GetFacetCount(); ++i) {
+		m_area += GetFacetArea(m_facets[i].v1, m_facets[i].v2, m_facets[i].v3);
 	}
 }
 
@@ -427,40 +464,22 @@ void mglModel::CalculateVolume( void )
 {
 	if (m_closed) {
 		m_volume = 0.0f;
-		for (int m = 0; m < m_materials.GetSize(); ++m) {
-			const mtlNode<mglFacet> *facet = m_materials[m].GetFacets();
-			while (facet != NULL) {
-				m_volume += CalculateVolume(facet->value.v1, facet->value.v2, facet->value.v3);
-				facet = facet->GetNext();
-			}
+		for (int i = 0; i < GetFacetCount(); ++i) {
+			m_volume += CalculateVolume(m_facets[i].v1, m_facets[i].v2, m_facets[i].v3);
 		}
 	} else {
 		m_volume = -1.0f;
 	}
 }
 
-void mglModel::CalculateFacetNormals( void )
+void mglModel::CalculateMetadata( void )
 {
-	for (int i = 0; i < m_materials.GetSize(); ++i) {
-		mtlNode<mglFacet> *facet = m_materials[i].m_facets.GetFront();
-		while (facet != NULL) {
-			facet->value.normal = mmlSurfaceNormal(m_vertices[facet->value.v1], m_vertices[facet->value.v2], m_vertices[facet->value.v3]);
-			facet = facet->GetNext();
-		}
-	}
-}
-
-void mglModel::CalculateBounds( void )
-{
-	if (m_vertices.GetSize() == 0 || m_materials.GetSize() == 0) {
-		m_maxBounds = m_minBounds = mmlVector<3>(0.0f, 0.0f, 0.0f);
-	} else {
-		m_maxBounds = m_minBounds = m_vertices[0];
-		for (int i = 1; i < m_vertices.GetSize(); ++i) {
-			m_maxBounds = mmlMax(m_maxBounds, m_vertices[i]);
-			m_minBounds = mmlMin(m_minBounds, m_vertices[i]);
-		}
-	}
+	CalculateBounds();
+	CalculateFacetNormals();
+	CreateEdgeListAndMainFacetList();
+	CheckIfClosed();
+	CalculateArea();
+	CalculateVolume();
 }
 
 void mglModel::Free( void )
@@ -473,7 +492,7 @@ void mglModel::Free( void )
 	m_edges.Free();
 	m_area = 0.0f;
 	m_volume = -1.0f;
-	m_facets = 0;
+	m_facets.Free();
 	m_closed = false;
 	m_error.Copy("");
 }
@@ -497,14 +516,8 @@ bool mglModel::Load(const mtlDirectory &p_filename)
 	if (!PreParseFile(fileContents) || !ParseFile(fileContents)) {
 		return false;
 	}
-
-	CountFacets();
-	CreateEdgeList();
-	CheckIfClosed();
-	CalculateArea();
-	CalculateVolume();
-	CalculateFacetNormals();
-	CalculateBounds();
+	
+	CalculateMetadata();
 	return true;
 }
 
@@ -515,10 +528,10 @@ mmlVector<3> mglModel::GetFacetNormal(int v1, int v2, int v3) const
 
 float mglModel::GetFacetArea(int v1, int v2, int v3) const
 {
-	float a = (m_vertices[v2] - m_vertices[v1]).Len();
-	float b = (m_vertices[v3] - m_vertices[v2]).Len();
-	float c = (m_vertices[v3] - m_vertices[v1]).Len();
-	float s = (a + b + c) * 0.5f;
+	const float a = (m_vertices[v2] - m_vertices[v1]).Len();
+	const float b = (m_vertices[v3] - m_vertices[v2]).Len();
+	const float c = (m_vertices[v3] - m_vertices[v1]).Len();
+	const float s = (a + b + c) * 0.5f;
 	return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
@@ -529,114 +542,72 @@ float mglModel::GetFacetArea(int v1, int v2, int v3) const
 	// allows model to make some quality settings (texture samling, lighting model) that only affect the model currently rendered
 }*/
 
-mtlNode<mglStaticModel::Poly> *mglStaticModel::FindBestSplittingPolygon(mglStaticModel::Node *node)
+mtlNode<mglStaticModel::Triangle> *mglStaticModel::FindBestSplittingTriangle(mglStaticModel::Node *node)
 {
-	/*mtlNode<Poly> *splitPoly = node->polys.GetFront();
-	mtlNode<Poly> *best = NULL;
-	int bestFront = 0;
-	int bestBack = 0;
-	int bestTotal = 0;
-	while (splitPoly != NULL) {
-		mglPlane plane(mmlVector<3>::Cast(&splitPoly->value.a), splitPoly->value.normal);
-		int numFront = 0;
-		int numBack = 0;
-		int numTotal = 0;
-		mtlNode<Poly> *poly = node->polys.GetFront();
-		while (poly != NULL) {
-			if (poly != splitPoly) {
-				switch (plane.DetermineClipping(mmlVector<3>::Cast(&poly->value.a), mmlVector<3>::Cast(&poly->value.b), mmlVector<3>::Cast(&poly->value.c))) {
-				case mglCoinciding:
-					break;
-				case mglBehind:
-					++numBack;
-					++numTotal;
-					break;
-				case mglInFront:
-					++numFront;
-					++numTotal;
-					break;
-				case mglClipping:
-					++numBack;
-					++numFront;
-					numTotal += 3;
-					break;
-				}
-			}
-			poly = poly->GetNext();
-		}
-		
-		if (best == NULL || abs(numFront - numBack) < abs(bestFront - bestBack)) {
-			best = splitPoly;
-			bestFront = numFront;
-			bestBack = numBack;
-		}
-		splitPoly = splitPoly->GetNext();
-	}
-	return best;*/
-	return node->polys.GetFront();
+	return node->triangles.GetFront();
 }
 
 void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int depth)
 {
-	if (node->polys.GetSize() <= 1) { return; } // end of the line
+	if (node->triangles.GetSize() <= 1) { return; } // end of the line
 	m_depth = mmlMax2(m_depth, depth);
 	node->front = new Node(node);
 	node->back = new Node(node);
-	mtlNode<Poly> *splitPoly = FindBestSplittingPolygon(node);
-	node->plane = mglPlane(mmlVector<3>::Cast(&splitPoly->value.a), splitPoly->value.normal);
+	mtlNode<Triangle> *splitTri = FindBestSplittingTriangle(node);
+	node->plane = mglPlane(mmlVector<3>::Cast(&splitTri->GetItem().a), splitTri->GetItem().normal);
 	const mglPlane backPlane(node->plane.GetPosition(), -node->plane.GetNormal());
-	mtlNode<Poly> *poly = node->polys.GetFront();
-	while (poly != NULL) {
-		switch (node->plane.DetermineClipping(mmlVector<3>::Cast(&poly->value.a), mmlVector<3>::Cast(&poly->value.b), mmlVector<3>::Cast(&poly->value.c)))
+	mtlNode<Triangle> *tri = node->triangles.GetFront();
+	while (tri != NULL) {
+		switch (node->plane.DetermineClipping(mmlVector<3>::Cast(&tri->GetItem().a), mmlVector<3>::Cast(&tri->GetItem().b), mmlVector<3>::Cast(&tri->GetItem().c)))
 		{
 		case mglCoinciding:
-			poly = poly->GetNext();
+			tri = tri->GetNext();
 			break;
 		case mglBehind:
-			node->back->polys.PushBack(poly->value);
-			poly = node->polys.Remove(poly);
+			node->back->triangles.PushBack(tri->GetItem());
+			tri = node->triangles.Remove(tri);
 			break;
 		case mglInFront:
-			node->front->polys.PushBack(poly->value);
-			poly = node->polys.Remove(poly);
+			node->front->triangles.PushBack(tri->GetItem());
+			tri = node->triangles.Remove(tri);
 			break;
 		case mglClipping:
 			mmlVector<5> out[4];
 			// get front section
-			switch (node->plane.Clip(poly->value.a, poly->value.b, poly->value.c, out)) {
+			switch (node->plane.Clip(tri->GetItem().a, tri->GetItem().b, tri->GetItem().c, out)) {
 			case 4: {
-				Poly p = { out[0], out[2], out[3], poly->value.normal, poly->value.material };
-				node->front->polys.PushBack(p);
+				Triangle t = { out[0], out[2], out[3], tri->GetItem().normal, tri->GetItem().material };
+				node->front->triangles.PushBack(t);
 			}
 			case 3: {
-				Poly p = { out[0], out[1], out[2], poly->value.normal, poly->value.material };
-				node->front->polys.PushBack(p);
+				Triangle t = { out[0], out[1], out[2], tri->GetItem().normal, tri->GetItem().material };
+				node->front->triangles.PushBack(t);
 			}
 			}
 
 			// get back section
-			switch (backPlane.Clip(poly->value.a, poly->value.b, poly->value.c, out)) {
+			switch (backPlane.Clip(tri->GetItem().a, tri->GetItem().b, tri->GetItem().c, out)) {
 			case 4: {
-				Poly p = { out[0], out[2], out[3], poly->value.normal, poly->value.material };
-				node->back->polys.PushBack(p);
+				Triangle t = { out[0], out[2], out[3], tri->GetItem().normal, tri->GetItem().material };
+				node->back->triangles.PushBack(t);
 			}
 			case 3: {
-				Poly p = { out[0], out[1], out[2], poly->value.normal, poly->value.material };
-				node->back->polys.PushBack(p);
+				Triangle t = { out[0], out[1], out[2], tri->GetItem().normal, tri->GetItem().material };
+				node->back->triangles.PushBack(t);
 			}
 			}
 
-			poly = node->polys.Remove(poly);
+			tri = node->triangles.Remove(tri);
 			break;
 		}
 	}
-	if (node->front->polys.GetSize() > 0) {
+	if (node->front->triangles.GetSize() > 0) {
 		SplitGeometryRecursively(node->front, depth+1);
 	} else {
 		delete node->front;
 		node->front = NULL;
 	}
-	if (node->back->polys.GetSize() > 0) {
+	if (node->back->triangles.GetSize() > 0) {
 		SplitGeometryRecursively(node->back, depth+1);
 	} else {
 		delete node->back;
@@ -657,7 +628,7 @@ void mglStaticModel::GenerateBSP( void )
 		// determine if a polygon is in front of a hyperplane
 			// split polygon by the hyperplane
 			// now you have one or two polygons
-			// dot(hyperplane.normal, splitPoly[n].centroid)
+			// dot(hyperplane.normal, splitTri[n].centroid)
 			// if dot < 0, then behind, dot > 0 then in front
 	// traverse recursively to next node, pick a random polygon to split by, and split all other polygons by that splitter, sort "behind" and "front"
 	// continue until you are satisfied or until there is only one polygon in a node
@@ -670,24 +641,24 @@ void mglStaticModel::GenerateBSP( void )
 	for (int i = 0; i < GetMaterialCount(); ++i) {
 		const mtlNode<mglFacet> *facet = GetMaterial(i).GetFacets();
 		while (facet != NULL) {
-			const mmlVector<3> av = GetVertex(facet->value.v1);
-			const mmlVector<3> bv = GetVertex(facet->value.v2);
-			const mmlVector<3> cv = GetVertex(facet->value.v3);
-			const mmlVector<2> at = GetTexCoord(facet->value.t1);
-			const mmlVector<2> bt = GetTexCoord(facet->value.t2);
-			const mmlVector<2> ct = GetTexCoord(facet->value.t3);
-			Poly poly = {
+			const mmlVector<3> av = GetVertex(facet->GetItem().v1);
+			const mmlVector<3> bv = GetVertex(facet->GetItem().v2);
+			const mmlVector<3> cv = GetVertex(facet->GetItem().v3);
+			const mmlVector<2> at = GetTexCoord(facet->GetItem().t1);
+			const mmlVector<2> bt = GetTexCoord(facet->GetItem().t2);
+			const mmlVector<2> ct = GetTexCoord(facet->GetItem().t3);
+			Triangle tri = {
 				mmlVector<5>(av[0], av[1], av[2], at[0], at[1]),
 				mmlVector<5>(bv[0], bv[1], bv[2], bt[0], bt[1]),
 				mmlVector<5>(cv[0], cv[1], cv[2], ct[0], ct[1]),
-				facet->value.normal,
-				&GetMaterial(i)
+				facet->GetItem().normal,
+				&GetMaterial(i).GetProperties()
 			};
-			m_root->polys.PushBack(poly);
+			m_root->triangles.PushBack(tri);
 			facet = facet->GetNext();
 		}
 	}
-	if (m_root->polys.GetSize() > 0) {
+	if (m_root->triangles.GetSize() > 0) {
 		SplitGeometryRecursively(m_root, 1);
 	} else {
 		delete m_root;

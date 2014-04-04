@@ -15,9 +15,41 @@ mglRay mglCollider::GetRayInObjectSpace(const mglRay &p_ray) const
 {
 	mglRay ray = p_ray;
 	if (m_parentObject.IsValid()) {
-		ray.ReverseTransform(m_parentObject->transform.GetWorldTransform());
+		const mmlMatrix<4,4> toObj = mmlInv(m_parentObject->transform.GetWorldTransformMatrix());
+		ray.position *= toObj;
+		ray.direction *= mmlMatrix<3,3>(toObj);
 	}
 	return ray;
+}
+
+mglBoxCollider::mglBoxCollider( void ) : mglCollider(mglCollider::Box), min(0.0f, 0.0f, 0.0f), max(0.0f, 0.0f, 0.0f)
+{}
+
+mglBoxCollider::mglBoxCollider(const mmlVector<3> &p_min, const mmlVector<3> &p_max) : mglCollider(mglCollider::Box), min(p_min), max(p_max)
+{}
+
+bool mglBoxCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
+{
+	// POSSIBLE BUG: I'm pretty sure this gives false positives
+	
+	p_ray = GetRayInObjectSpace(p_ray);
+	
+	const mmlVector<3> tmin = (min - p_ray.position) / p_ray.direction;
+	const mmlVector<3> tmax = (max - p_ray.position) / p_ray.direction;
+	const mmlVector<3> realMin = mmlMin(tmin, tmax);
+	const mmlVector<3> realMax = mmlMax(tmin, tmax);
+	
+	const float minmax = mmlMin3(realMax[0], realMax[1], realMax[2]);
+	const float maxmin = mmlMax3(realMin[0], realMin[1], realMin[2]);
+	
+	if (minmax >= maxmin) {
+		p_info.material = NULL;
+		p_info.point = p_ray.position + p_ray.direction * maxmin;
+		//p_info.normal = ;
+		//p_info.reflection = mmlReflect(p_ray.direction, p_info.normal);
+		return true;
+	}
+	return false;
 }
 
 bool mglMeshCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
@@ -25,12 +57,12 @@ bool mglMeshCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 	if (mesh.GetAsset() == NULL) { return false; }
 	p_ray = GetRayInObjectSpace(p_ray);
 	for (int m = 0; m < mesh.GetAsset()->GetMaterialCount(); ++m) {
-		const mglMaterial *material = &mesh.GetAsset()->GetMaterial(m);
+		const mglMaterialIndex *material = &mesh.GetAsset()->GetMaterial(m);
 		const mtlNode<mglFacet> *facet = material->GetFacets();
 		while (facet != NULL) {
-			const mmlVector<3> a = mesh.GetAsset()->GetVertex(facet->value.v1);
-			const mmlVector<3> b = mesh.GetAsset()->GetVertex(facet->value.v2);
-			const mmlVector<3> c = mesh.GetAsset()->GetVertex(facet->value.v3);
+			const mmlVector<3> a = mesh.GetAsset()->GetVertex(facet->GetItem().v1);
+			const mmlVector<3> b = mesh.GetAsset()->GetVertex(facet->GetItem().v2);
+			const mmlVector<3> c = mesh.GetAsset()->GetVertex(facet->GetItem().v3);
 			mglPlaneCollider pc(a, b, c); // no parent, object space is identity
 			if (pc.GetCollision(p_ray, p_info)) {
 				// Compute vectors
@@ -53,7 +85,7 @@ bool mglMeshCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 				// Check if point is in triangle
 				if ((u >= 0) && (v >= 0) && (u + v < 1)) {
 					p_info.object = GetParentObject();
-					p_info.material = material;
+					p_info.material = &material->GetProperties();
 					return true;
 				}
 			}
@@ -69,15 +101,15 @@ mglPlaneCollider::mglPlaneCollider(const mmlVector<3> &p_position, const mmlVect
 mglPlaneCollider::mglPlaneCollider(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c) : mglCollider(mglCollider::Plane), plane(a, b, c)
 {}
 
+mglPlaneCollider::mglPlaneCollider(const mglPlane &p_plane) : mglCollider(mglCollider::Plane), plane(p_plane)
+{}
+
 bool mglPlaneCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 {
 	p_ray = GetRayInObjectSpace(p_ray);
 	if (mmlDot(p_ray.direction, plane.GetNormal()) <= 0.0f) {
 		const float d = mmlDot(plane.GetPosition() - p_ray.position, plane.GetNormal()) / mmlDot(p_ray.direction, plane.GetNormal());
 		p_info.point = p_ray.position + p_ray.direction * d;
-		if ((p_info.point - p_ray.position).Len() > p_ray.length) {
-			return false;
-		}
 		p_info.normal = plane.GetNormal();
 		p_info.reflection = mmlReflect(p_ray.direction, p_info.normal);
 		return true;
