@@ -336,6 +336,15 @@ mmlVector<n> mmlLerp(const mmlVector<n> &u, const mmlVector<n> &v, const mmlVect
 }
 
 //
+// Bilerp
+//
+template < int n >
+mmlVector<n> mmlBilerp(const mmlVector<n> &xy00, const mmlVector<n> &xy10, const mmlVector<n> &xy01, const mmlVector<n> &xy11, float x, float y)
+{
+	return mmlLerp(mmlLerp(xy00, xy10, x), mmlLerp(xy01, xy11, x), y);
+}
+
+//
 // mmlSlerp
 //
 template < int n >

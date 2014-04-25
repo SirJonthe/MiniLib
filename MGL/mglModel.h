@@ -58,8 +58,12 @@ private:
 public:
 	const mglMaterial			&GetProperties( void ) const { return m_properties; }
 	int							GetFacetCount( void ) const { return m_facets.GetSize(); }
-	const mtlNode< mglFacet >	*GetFacets( void ) const { return m_facets.GetFront(); }
+	const mtlNode< mglFacet >	*GetFacets( void ) const { return m_facets.GetFirst(); }
 	const mglModel				*GetParentModel( void ) const { return m_parent; }
+};
+
+class mglAPIModelComponent
+{
 };
 
 class mglModel : public mtlAssetInterface
@@ -77,6 +81,7 @@ private:
 	float							m_area;
 	float							m_volume;
 	bool							m_closed;
+	mglAPIModelComponent			*m_APIComponent;
 private:
 				mglModel(const mglModel&) {}
 	mglModel	&operator=(const mglModel&) { return *this; }

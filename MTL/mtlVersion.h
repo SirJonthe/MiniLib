@@ -1,11 +1,11 @@
-#ifndef MTL_ENDIAN_H_INCLUDED__
-#define MTL_ENDIAN_H_INCLUDED__
+#ifndef MTL_VERSION_H_INCLUDED__
+#define MTL_VERSION_H_INCLUDED__
 
 #include <limits.h>
 #include <stdint.h>
 
 #if sizeof(unsigned int) != 4
-#error "Incorrect size of unsigned int."
+#error "sizeof(unsigned int) != 4"
 #endif
 
 static const union

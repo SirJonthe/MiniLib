@@ -1,3 +1,5 @@
+#include "MTL/mtlBinaryTree.h"
+
 #include "MGL/mglObject.h"
 #include "MGL/mglCamera.h"
 #include "MGL/mglEngine.h"
@@ -107,36 +109,36 @@ void Unit_StringOverwrite( void );
 void Unit_Clipping( void );
 void Unit_Directory( void );
 void Unit_QuatToMatrix( void );
+void Unit_MergeLists( void );
+void Unit_BinaryTree( void );
 void SimpleScene(int argc, char **argv);
 void SimpleSceneOGL(int argc, char **argv);
 void TexturedTriangle(int argc, char **argv);
 void DrawLine(int argc, char **argv);
 
-// NOTES
-// Overwrite and Insert in mtlString are new, TEST!
-	// Insert does not work when appending, does it work for other cases?
-	// Overwrite fails to write a larger string than is already available
-// Multiple materials in a material file crashes model loader (maybe even multiple materials regardless of separate files?)
-// Trailing newline may prevent or cause a failed read in model/material loader
-
 // TODO: Implement SIMD parallel rasterizer, render in blocks of X pixels
 // TODO: Implement CPU parallel rasterizer, one CPU per SIMD block scanline (local cache coherency)
 	// std::thread or OpenMP?
 	// http://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
-// TODO: Implement division free perspective correct rasterizer
 // TODO: Implement fixed point rasterizer (fstp seems expensive), may not be compatible with SIMD
 // TODO: group together the least important lights into a directional light
 // TODO: transform lights to object space, light model (prevents having to transform model normals)
-// TODO: stop splitting BSP when we get a fully convex subspace
-// TODO: speed up floating point to fixed point conversion
-	// http://forums.codeguru.com/showthread.php?352169-__int16-__int32-Always-consistant&p=1208845#post1208845
-	// http://stackoverflow.com/questions/429632/how-to-speed-up-floating-point-to-integer-number-conversion
+// TODO: stop splitting BSP when we get a fully convex subspace (possible within reasonable time consumption?)
+// TODO: Transform with constraints (e.g. can't move along Z, can't rotate around Y and so on)
+// TODO: Refactor renderer (completely generic rendering design), only provides interface for rendering primitives
+// TODO: Model renders itself, uses renderer interface - PROBLEM: how to render stencil shadows? Separate rendering function?
+// TODO: Texture and Model need virtual API interface functions
 
+// BUG: mtlString::Insert does not work when appending, does it work for other cases?
+// BUG: mtlString::Overwrite fails to write a larger string than is already available
+// BUG: Multiple materials in a material file crashes model loader (maybe even multiple materials regardless of separate files?)
+// BUG: Trailing newline may prevent or cause a failed read in model/material loader
 // BUG: BSP models are sometimes missing polygons
 	// could these polygons be the splitting polygons?
 // BUG: BSP does not always work when very close to geometry or viewed from very oblique angles
 // BUG: rotating by global axis might actually be rotating by local axis
 // BUG: mouse down event generates uninitialized value somewhere
+// BUG: preservation of transforms does not work
 
 // http://devmaster.net/posts/11968/cracks-in-geometry-in-software-rasterizer
 // http://chrishecker.com/Miscellaneous_Technical_Articles
@@ -149,10 +151,12 @@ int main(int argc, char **argv)
 	Unit_StringOverwrite();
 	Unit_Directory();
 	Unit_QuatToMatrix();
+	Unit_MergeLists();
+	Unit_BinaryTree();
 	std::cout << "completed" << std::endl;
 
-	SimpleSceneOGL(argc, argv);
-
+	//SimpleSceneOGL(argc, argv);
+	DrawLine(argc,argv);
 	return 0;
 }
 
@@ -338,6 +342,79 @@ void Unit_QuatToMatrix( void )
 	std::cout << "t(" << pointT[0] << ";" << pointT[1] << ";" << pointT[2] << ") : m(" << pointM[0] << ";" << pointM[1] << ";" << pointM[2] << ")" << std::endl;
 }
 
+void Unit_MergeLists( void )
+{
+	mtlList<int> l1;
+	l1.AddLast(3);
+	l1.AddLast(7);
+	l1.AddLast(9);
+	l1.AddLast(19);
+	l1.AddLast(67);
+	
+	mtlList<int> l2;
+	l2.AddLast(1);
+	l2.AddLast(2);
+	l2.AddLast(4);
+	l2.AddLast(8);
+	l2.AddLast(10);
+	l2.AddLast(77);
+	
+	mtlList<int> l3;
+	
+	mtlNode<int> *n1 = l1.GetFirst();
+	mtlNode<int> *n2 = l2.GetFirst();
+	
+	while (true) { // assumes neither lists return NULL for a start
+		
+		if (n1->GetItem() < n2->GetItem()) {
+			l3.AddFirst(n1->GetItem());
+			n1 = n1->GetNext();
+			if (n1 == NULL) {
+				while (n2 != NULL) {
+					l3.AddFirst(n2->GetItem());
+					n2 = n2->GetNext();
+				}
+				return;
+			}
+		} else {
+			l3.AddFirst(n2->GetItem());
+			n2 = n2->GetNext();
+			if (n2 == NULL) {
+				while (n1 != NULL) {
+					l3.AddFirst(n1->GetItem());
+					n1 = n1->GetNext();
+				}
+				return;
+			}
+		}
+	}
+	
+	mtlNode<int> *n3 = l3.GetFirst();
+	while (n3 != NULL) {
+		std::cout << n3->GetItem() << " ";
+		n3 = n3->GetNext();
+	}
+}
+
+void Unit_BinaryTree( void )
+{
+	std::cout << "Testing binary tree...";
+	
+	mtlBinaryTree<int> tree;
+	
+	for (int i = 0; i < 10; ++i) {
+		int item = rand()%10;
+		tree.Insert(item);
+		std::cout << item << " ";
+	}
+	
+	int find = rand()%10;
+	const mtlBranch<int> *n = tree.GetRoot()->Find(find);
+	if (n == NULL) { std::cout << ": (" << find << ")"; }
+	else { std::cout << ": [" << find << "]"; }
+	std::cout << std::endl;
+}
+
 void SimpleScene(int argc, char **argv)
 {
 	SDL_Engine engine;
@@ -351,7 +428,7 @@ void SimpleScene(int argc, char **argv)
 	mglObject *obj = new ControllableObject("game_object");
 	engine.AddObject(obj);
 	std::cout << "Loading model...";
-	if (!obj->model.Load("../Models/Ship/mod.obj")) {
+	if (!obj->model.Load<mglModel>("../Models/Ship/mod.obj")) {
 		std::cout << "failed: " << obj->model.GetError() << std::endl;
 		engine.CloseSystems();
 		return;
@@ -392,7 +469,7 @@ void SimpleSceneOGL(int argc, char **argv)
 	mglObject *obj = new ControllableObject("game_object");
 	engine.AddObject(obj);
 	std::cout << "Loading model...";
-	if (!obj->model.Load("../Models/Ship/mod.obj")) {
+	if (!obj->model.Load<mglModel>("../Models/Ship/mod.obj")) {
 		std::cout << "failed: " << obj->model.GetError() << std::endl;
 		engine.CloseSystems();
 		return;
@@ -432,7 +509,7 @@ void TexturedTriangle(int argc, char **argv)
 	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
 	mtlAsset<mglTexture> texture;
 	std::cout << "Loading texture...";
-	if (!texture.Load("../Models/Ship/tex.tga")) {
+	if (!texture.Load<mglModel>("../Models/Ship/tex.tga")) {
 		std::cout << "failed: " << texture.GetError() << std::endl;
 		engine.CloseSystems();
 		return;
@@ -502,15 +579,20 @@ void DrawLine(int argc, char **argv)
 			}
 			
 			mglRay line;
-			line.position = mmlVector<3>(0.0f, 0.0f, 0.0f);
-			line.direction = mmlNormalize(mmlVector<3>((float)x, (float)y, 0.0f));
+			line.origin = mmlVector<3>(float(SDL_GetVideoSurface()->w >> 1), float(SDL_GetVideoSurface()->h >> 1), 0.0f);
+			const mmlVector<3> mouse(float(x), float(y), 0.0f);
+			line.direction = mmlNormalize(mouse - line.origin);
 			mglDifferentialAnalyzer dda(line);
 			
+			int counter = 0;
 			do {
 				int xn = dda.GetX(), yn = dda.GetY();
-				pixels[yn * SDL_GetVideoSurface()->w + xn] = 0xff00ffff;
+				if (xn >= 0 && xn < SDL_GetVideoSurface()->w && yn >= 0 && yn < SDL_GetVideoSurface()->h) {
+					pixels[yn * SDL_GetVideoSurface()->w + xn] = 0xff00ffff;
+				}
 				dda.Step();
-			} while (dda.GetX() != x && dda.GetY() != y);
+				++counter;
+			} while (dda.GetX() != x && dda.GetY() != y && counter < 1000);
 			
 			SDL_Flip(SDL_GetVideoSurface());
 			update = false;

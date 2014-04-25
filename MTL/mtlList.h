@@ -3,6 +3,10 @@
 
 #include <cstddef>
 
+// put mtlNode inside mtlList
+// add Merge sort
+// Insert
+
 template < typename type_t > class mtlList;
 
 template < typename type_t >
@@ -19,8 +23,7 @@ private:
 					mtlNode(const mtlNode<type_t>&) {}
 	mtlNode<type_t>	&operator=(const mtlNode<type_t>&) { return *this; }
 					mtlNode(const type_t &p_item, mtlList<type_t> *p_parent, mtlNode<type_t> *p_next, mtlNode<type_t> *p_prev);
-public:
-
+					~mtlNode( void );
 public:
 	inline explicit					mtlNode(const type_t &p_item);
 	inline const mtlList<type_t>	*GetParent( void ) const;
@@ -32,14 +35,15 @@ public:
 	inline mtlNode<type_t>			*Remove( void );
 	inline const type_t				&GetItem( void ) const;
 	inline type_t					&GetItem( void );
+	inline void						Insert(const type_t *p_item) { m_parent->Insert(p_item); }
 };
 
 template < typename type_t >
 class mtlList
 {
 private:
-	mtlNode<type_t>	*m_front;
-	mtlNode<type_t>	*m_back;
+	mtlNode<type_t>	*m_first;
+	mtlNode<type_t>	*m_last;
 	int				m_size;
 private:
 					mtlList(const mtlList<type_t>&) {}
@@ -47,10 +51,10 @@ private:
 public:
 	inline							mtlList( void );
 	inline							~mtlList( void );
-	void							PushBack(const type_t &p_value);
-	void							PushFront(const type_t &p_value);
-	void							PopBack( void );
-	void							PopFront( void );
+	void							AddLast(const type_t &p_value);
+	void							AddFirst(const type_t &p_value);
+	void							RemoveLast( void );
+	void							RemoveFirst( void );
 	mtlNode<type_t>					*Insert(const type_t &p_value, mtlNode<type_t> *p_node);
 	mtlNode<type_t>					*Insert(mtlList<type_t> &p_list, mtlNode<type_t> *p_node);
 	mtlNode<type_t>					*Remove(mtlNode<type_t> *p_node);
@@ -59,13 +63,18 @@ public:
 	void							Promote(mtlNode<type_t> *p_node);
 	void							Demote(mtlNode<type_t> *p_node);
 	void							Copy(const mtlList<type_t> &p_list);
-	void							Free( void );
+	void							RemoveAll( void );
 	inline int						GetSize( void ) const;
-	inline mtlNode<type_t>			*GetBack( void );
-	inline const mtlNode<type_t>	*GetBack( void ) const;
-	inline mtlNode<type_t>			*GetFront( void );
-	inline const mtlNode<type_t>	*GetFront( void ) const;
+	inline mtlNode<type_t>			*GetLast( void );
+	inline const mtlNode<type_t>	*GetLast( void ) const;
+	inline mtlNode<type_t>			*GetFirst( void );
+	inline const mtlNode<type_t>	*GetFirst( void ) const;
 };
+
+template < typename type_t >
+mtlNode<type_t>::mtlNode( void ) :
+m_parent(NULL), m_next(NULL), m_prev(NULL)
+{}
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item, mtlList<type_t> *p_parent, mtlNode<type_t> *p_next, mtlNode<type_t> *p_prev) :
@@ -76,9 +85,9 @@ m_parent(p_parent), m_next(p_next), m_prev(p_prev), m_item(p_item)
 }
 
 template < typename type_t >
-mtlNode<type_t>::mtlNode( void ) :
-m_parent(NULL), m_next(NULL), m_prev(NULL)
-{}
+mtlNode<type_t>::~mtlNode( void )
+{
+}
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item) :
@@ -141,49 +150,49 @@ type_t &mtlNode<type_t>::GetItem( void )
 
 template < typename type_t >
 mtlList<type_t>::mtlList( void ) :
-m_front(NULL), m_back(NULL), m_size(0)
+m_first(NULL), m_last(NULL), m_size(0)
 {}
 
 template < typename type_t >
 mtlList<type_t>::~mtlList( void )
 {
-	Free();
+	RemoveAll();
 }
 
 template < typename type_t >
-void mtlList<type_t>::PushBack(const type_t &p_value)
+void mtlList<type_t>::AddLast(const type_t &p_value)
 {
-	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, NULL, m_back);
-	m_back = node;
-	if (m_front == NULL) { m_front = m_back; }
+	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, NULL, m_last);
+	m_last = node;
+	if (m_first == NULL) { m_first = m_last; }
 	++m_size;
 }
 
 template < typename type_t >
-void mtlList<type_t>::PushFront(const type_t &p_value)
+void mtlList<type_t>::AddFirst(const type_t &p_value)
 {
-	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, m_front, NULL);
-	m_front = node;
-	if (m_back == NULL) { m_back = m_front; }
+	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, m_first, NULL);
+	m_first = node;
+	if (m_last == NULL) { m_last = m_first; }
 	++m_size;
 }
 
 template < typename type_t >
-void mtlList<type_t>::PopBack( void )
+void mtlList<type_t>::RemoveLast( void )
 {
-	mtlNode<type_t> *node = m_back;
-	m_back = m_back->m_prev;
-	if (m_back == NULL) { m_front = NULL; }
+	mtlNode<type_t> *node = m_last;
+	m_last = m_last->m_prev;
+	if (m_last == NULL) { m_first = NULL; }
 	delete node;
 	--m_size;
 }
 
 template < typename type_t >
-void mtlList<type_t>::PopFront( void )
+void mtlList<type_t>::RemoveFirst( void )
 {
-	mtlNode<type_t> *node = m_front;
-	m_front = m_front->m_next;
-	if (m_front == NULL) { m_back = NULL; }
+	mtlNode<type_t> *node = m_first;
+	m_first = m_first->m_next;
+	if (m_first == NULL) { m_last = NULL; }
 	delete node;
 	--m_size;
 }
@@ -192,13 +201,13 @@ template < typename type_t >
 mtlNode<type_t> *mtlList<type_t>::Insert(const type_t &p_value, mtlNode<type_t> *p_node)
 {
 	if (p_node == NULL) {
-		PushBack(p_value);
-		return m_back;
+		AddLast(p_value);
+		return m_last;
 	} else if (p_node->m_parent != this) {
 		return NULL;
-	} else if (p_node == m_front) {
-		PushFront(p_value);
-		return m_front;
+	} else if (p_node == m_first) {
+		AddFirst(p_value);
+		return m_first;
 	}
 	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, p_node, p_node->m_prev);
 	++m_size;
@@ -208,28 +217,28 @@ mtlNode<type_t> *mtlList<type_t>::Insert(const type_t &p_value, mtlNode<type_t> 
 template < typename type_t >
 mtlNode<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlNode<type_t> *p_node)
 {
-	mtlNode<type_t> *retNode = p_list.m_front;
+	mtlNode<type_t> *retNode = p_list.m_first;
 	if (p_node == NULL) {
-		if (m_front == NULL) {
-			m_front = p_list->m_front;
-			m_back = p_list->m_back;
+		if (m_first == NULL) {
+			m_first = p_list->m_first;
+			m_last = p_list->m_last;
 		} else {
-			m_back->m_next = p_list.m_front;
-			m_back = p_list.m_back;
+			m_last->m_next = p_list.m_first;
+			m_last = p_list.m_last;
 		}
 	} else if (p_node->m_parent != this) {
 		return NULL;
-	} else if (p_node == m_front) {
-		m_front->m_prev = p_list.m_back;
-		p_list.m_back->m_next = m_front;
-		m_front = p_list.m_front;
+	} else if (p_node == m_first) {
+		m_first->m_prev = p_list.m_last;
+		p_list.m_last->m_next = m_first;
+		m_first = p_list.m_first;
 	} else {
-		p_node->m_next = p_list.m_front;
-		p_list.m_front->m_prev = p_node;
-		p_list.m_back->m_next = p_node->m_next;
+		p_node->m_next = p_list.m_first;
+		p_list.m_first->m_prev = p_node;
+		p_list.m_last->m_next = p_node->m_next;
 	}
 	m_size += p_list.m_size;
-	p_list.m_front = p_list->m_back = NULL;
+	p_list.m_first = p_list->m_last = NULL;
 	p_list.m_size = 0;
 	return retNode;
 }
@@ -239,8 +248,8 @@ mtlNode<type_t> *mtlList<type_t>::Remove(mtlNode<type_t> *p_node)
 {
 	if (p_node->m_parent != this) { return NULL; }
 	mtlNode<type_t> *next = p_node->m_next;
-	if (p_node == m_back) { m_back = m_back->m_prev; }
-	if (p_node == m_front) { m_front = m_front->m_next; }
+	if (p_node == m_last) { m_last = m_last->m_prev; }
+	if (p_node == m_first) { m_first = m_first->m_next; }
 	if (p_node->m_next != NULL) { p_node->m_next->m_prev = p_node->m_prev; }
 	if (p_node->m_prev != NULL) { p_node->m_prev->m_next = p_node->m_next; }
 	delete p_node;
@@ -262,10 +271,10 @@ void mtlList<type_t>::Split(mtlNode<type_t> *p_begin, int p_num, mtlList<type_t>
 	
 	p_out.Free();
 
-	p_out.m_front = p_begin;
-	p_out.m_back = end;
-	if (p_begin == m_front) { m_front = end->m_next; }
-	if (end == m_back) { m_back = p_begin->m_prev; }
+	p_out.m_first = p_begin;
+	p_out.m_last = end;
+	if (p_begin == m_first) { m_first = end->m_next; }
+	if (end == m_last) { m_last = p_begin->m_prev; }
 	
 	if (p_begin->m_prev != NULL) { p_begin->m_prev->m_next = end->m_next; }
 	p_begin->m_prev = NULL;
@@ -279,10 +288,10 @@ void mtlList<type_t>::Split(mtlNode<type_t> *p_begin, int p_num, mtlList<type_t>
 template < typename type_t >
 void mtlList<type_t>::Swap(mtlNode<type_t> *p_a, mtlNode<type_t> *p_b)
 {
-	if (p_a == p_a->m_parent->m_front) { p_a->m_parent->m_front = p_b; }
-	if (p_a == p_a->m_parent->m_back) { p_a->m_parent->m_back = p_b; }
-	if (p_b == p_b->m_parent->m_front) { p_b->m_parent->m_front = p_a; }
-	if (p_b == p_b->m_parent->m_back) { p_b->m_parent->m_back = p_a; }
+	if (p_a == p_a->m_parent->m_first) { p_a->m_parent->m_first = p_b; }
+	if (p_a == p_a->m_parent->m_last) { p_a->m_parent->m_last = p_b; }
+	if (p_b == p_b->m_parent->m_first) { p_b->m_parent->m_first = p_a; }
+	if (p_b == p_b->m_parent->m_last) { p_b->m_parent->m_last = p_a; }
 	if (p_a->m_next != NULL) { p_a->m_next->m_prev = p_b; }
 	if (p_a->m_prev != NULL) { p_a->m_prev->m_next = p_b; }
 	if (p_b->m_next != NULL) { p_b->m_next->m_prev = p_a; }
@@ -302,40 +311,40 @@ template < typename type_t >
 void mtlList<type_t>::Promote(mtlNode<type_t> *p_node)
 {
 	if (p_node->m_parent != this) { return; }
-	if (p_node == m_back)		{ m_back = p_node->m_prev; }
+	if (p_node == m_last)		{ m_last = p_node->m_prev; }
 	if (p_node->m_next != NULL)	{ p_node->m_next->m_prev = p_node->m_prev; }
 	if (p_node->m_prev != NULL)	{ p_node->m_prev->m_next = p_node->m_next; }
-	m_front->m_prev = p_node;
-	p_node->m_next = m_front;
+	m_first->m_prev = p_node;
+	p_node->m_next = m_first;
 	p_node->m_prev = NULL;
-	m_front = p_node;
+	m_first = p_node;
 }
 
 template < typename type_t >
 void mtlList<type_t>::Demote(mtlNode<type_t> *p_node)
 {
 	if (p_node->m_parent != this) { return; }
-	if (p_node == m_front)		{ m_front = m_front->m_next; }
+	if (p_node == m_first)		{ m_first = m_first->m_next; }
 	if (p_node->m_next != NULL)	{ p_node->m_next->m_prev = p_node->m_prev; }
 	if (p_node->m_prev != NULL)	{ p_node->m_prev->m_next = p_node->m_next; }
-	m_back->m_next = p_node;
+	m_last->m_next = p_node;
 	p_node->m_next = NULL;
-	p_node->m_prev = m_back;
-	m_back = p_node;
+	p_node->m_prev = m_last;
+	m_last = p_node;
 }
 
 template < typename type_t >
 void mtlList<type_t>::Copy(const mtlList<type_t> &p_list)
 {
 	if (this != &p_list) {
-		Free();
+		RemoveAll();
 		m_size = p_list.m_size;
-		mtlNode<type_t> *src = p_list.m_front;
+		mtlNode<type_t> *src = p_list.m_first;
 		if (src != NULL) {
-			m_back = m_front = new mtlNode<type_t>(src->value, this, NULL, NULL);
+			m_last = m_first = new mtlNode<type_t>(src->value, this, NULL, NULL);
 			src = src->m_next;
 			while (src != NULL) {
-				m_back = new mtlNode<type_t>(src->value, this, NULL, m_back);
+				m_last = new mtlNode<type_t>(src->value, this, NULL, m_last);
 				src = src->m_next;
 			}
 		}
@@ -343,15 +352,15 @@ void mtlList<type_t>::Copy(const mtlList<type_t> &p_list)
 }
 
 template < typename type_t >
-void mtlList<type_t>::Free( void )
+void mtlList<type_t>::RemoveAll( void )
 {
-	mtlNode<type_t> *node = m_front;
+	mtlNode<type_t> *node = m_first;
 	while (node != NULL) {
 		mtlNode<type_t> *next = node->GetNext();
 		delete node;
 		node = next;
 	}
-	m_front = m_back = NULL;
+	m_first = m_last = NULL;
 	m_size = 0;
 }
 
@@ -362,27 +371,27 @@ int mtlList<type_t>::GetSize( void ) const
 }
 
 template < typename type_t>
-mtlNode<type_t> *mtlList<type_t>::GetBack( void )
+mtlNode<type_t> *mtlList<type_t>::GetLast( void )
 {
-	return m_back;
+	return m_last;
 }
 
 template < typename type_t>
-const mtlNode<type_t> *mtlList<type_t>::GetBack( void ) const
+const mtlNode<type_t> *mtlList<type_t>::GetLast( void ) const
 {
-	return m_back;
+	return m_last;
 }
 
 template < typename type_t>
-mtlNode<type_t> *mtlList<type_t>::GetFront( void )
+mtlNode<type_t> *mtlList<type_t>::GetFirst( void )
 {
-	return m_front;
+	return m_first;
 }
 
 template < typename type_t>
-const mtlNode<type_t> *mtlList<type_t>::GetFront( void ) const
+const mtlNode<type_t> *mtlList<type_t>::GetFirst( void ) const
 {
-	return m_front;
+	return m_first;
 }
 
 #endif

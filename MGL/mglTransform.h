@@ -14,11 +14,7 @@ struct mglAxis
 	mmlMatrix<3,3>	GetRotationMatrix( void ) const;
 };
 
-// Note:
-// Maybe store a copy of the transform inside the transform
-// and apply new transforms to that copy based on the original
-// data rather than 'destroying' the original data. This might
-// prevent transforms from becoming distorted over time.
+// Introduce constraints
 
 class mglTransform
 {
@@ -69,6 +65,7 @@ public:
 	void				MoveLocal(const mmlVector<3> &p_vector) { position += rotation * p_vector; }
 	void				SetIdentityRotation( void ) { rotation.SetIdentity(); }
 	void				LookAt(const mmlVector<3> &p_point);
+	//void				Constrain(float x, float y, float z, float rx, float ry, float rz);
 };
 
 #endif

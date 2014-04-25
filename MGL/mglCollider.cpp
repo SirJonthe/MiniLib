@@ -16,7 +16,7 @@ mglRay mglCollider::GetRayInObjectSpace(const mglRay &p_ray) const
 	mglRay ray = p_ray;
 	if (m_parentObject.IsValid()) {
 		const mmlMatrix<4,4> toObj = mmlInv(m_parentObject->transform.GetWorldTransformMatrix());
-		ray.position *= toObj;
+		ray.origin *= toObj;
 		ray.direction *= mmlMatrix<3,3>(toObj);
 	}
 	return ray;
@@ -34,8 +34,8 @@ bool mglBoxCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 	
 	p_ray = GetRayInObjectSpace(p_ray);
 	
-	const mmlVector<3> tmin = (min - p_ray.position) / p_ray.direction;
-	const mmlVector<3> tmax = (max - p_ray.position) / p_ray.direction;
+	const mmlVector<3> tmin = (min - p_ray.origin) / p_ray.direction;
+	const mmlVector<3> tmax = (max - p_ray.origin) / p_ray.direction;
 	const mmlVector<3> realMin = mmlMin(tmin, tmax);
 	const mmlVector<3> realMax = mmlMax(tmin, tmax);
 	
@@ -44,7 +44,7 @@ bool mglBoxCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 	
 	if (minmax >= maxmin) {
 		p_info.material = NULL;
-		p_info.point = p_ray.position + p_ray.direction * maxmin;
+		p_info.point = p_ray.origin + p_ray.direction * maxmin;
 		//p_info.normal = ;
 		//p_info.reflection = mmlReflect(p_ray.direction, p_info.normal);
 		return true;
@@ -108,8 +108,8 @@ bool mglPlaneCollider::GetCollision(mglRay p_ray, mglRayCollision &p_info)
 {
 	p_ray = GetRayInObjectSpace(p_ray);
 	if (mmlDot(p_ray.direction, plane.GetNormal()) <= 0.0f) {
-		const float d = mmlDot(plane.GetPosition() - p_ray.position, plane.GetNormal()) / mmlDot(p_ray.direction, plane.GetNormal());
-		p_info.point = p_ray.position + p_ray.direction * d;
+		const float d = mmlDot(plane.GetPosition() - p_ray.origin, plane.GetNormal()) / mmlDot(p_ray.direction, plane.GetNormal());
+		p_info.point = p_ray.origin + p_ray.direction * d;
 		p_info.normal = plane.GetNormal();
 		p_info.reflection = mmlReflect(p_ray.direction, p_info.normal);
 		return true;

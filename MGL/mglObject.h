@@ -31,8 +31,8 @@ private:
 private:
 	bool GetCollision(const mglRay &p_ray, mglRayCollision &p_collision);
 protected:
-	mglEngine			*GetEngine( void ) { return m_engine; }
-	const mglEngine		*GetEngine( void ) const { return m_engine; }
+	mglEngine		*GetEngine( void ) { return m_engine; }
+	const mglEngine	*GetEngine( void ) const { return m_engine; }
 protected:
 	virtual void OnCreate( void )						{ /* Called when attached to engine */ }
 	virtual void OnDestroy( void )						{ /* Called when deleted from engine, not when called DestroyAllObjects */ }
@@ -64,7 +64,5 @@ public:
 	template < typename type_t >
 	bool				IsType(const type_t *&p_type) const { p_type = dynamic_cast<type_t*>(this); return p_type != NULL; }
 };
-
-//#include "mglEngine.h"
 
 #endif

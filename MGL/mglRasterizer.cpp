@@ -389,7 +389,7 @@ void mglTexturedRasterizer::DrawTriangleList(const mtlList< mglStaticModel::Tria
 
 	mmlVector<5> tri[3];
 	mmlVector<5> clipped[4];
-	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFront();
+	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFirst();
 	while (node != NULL) {
 		tri[0] = node->GetItem().a;
 		tri[1] = node->GetItem().b;
@@ -679,7 +679,7 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 
 	mmlVector<3> tri[3];
 	mmlVector<3> clipped[4];
-	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFront();
+	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFirst();
 	while (node != NULL) {
 		tri[0] = mmlVector<3>::Cast(&node->GetItem().a);
 		tri[1] = mmlVector<3>::Cast(&node->GetItem().b);

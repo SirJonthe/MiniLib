@@ -42,7 +42,17 @@ template < typename T > inline void mmlSwap(T &pA, T&pB) { T temp = pA; pA = pB;
 template < typename T > inline T mmlClamp(T min, T value, T max) { return value < min ? min : (value > max ? max : value); }
 inline float mmlFastInvSqrt(float pX)
 {
-	float xhalf = 0.5f*pX;
+	union bits32
+	{
+		int		i;
+		float	f;
+	};
+	volatile bits32 b;
+	b.f = pX;
+	b.i = 0x5f375a86 - (b.i >> 1);
+	return b.f * (1.5f - 0.5f * pX * b.f * b.f);
+	
+	/*float xhalf = 0.5f*pX;
 	int i = *(int*)&pX; // get bits for floating value
 	i = 0x5f375a86 - (i>>1); // gives initial guess y0
 	pX = *(float*)&i; // convert bits back to float
@@ -50,8 +60,30 @@ inline float mmlFastInvSqrt(float pX)
 
 	// Due to a very good initial guess, no iterations are needed to recieve a really accurate result.
 	// Initial guess: 0x5f375a86 (magic number)
-	return pX;
+	return pX;*/
 }
 inline float mmlFastSqrt(float pX) { return pX*mmlFastInvSqrt(pX); }
+inline int mmlX86RoundCast(double x)
+{
+	union bits64
+	{
+		long long	i;
+		double		f;
+	};
+	volatile bits64 b;
+	b.f = x + 6755399441055744.0;
+	return (int)b.i;
+}
+inline int mmlX86TruncCast(double x)
+{
+	union bits64
+	{
+		long long	i;
+		double		f;
+	};
+	volatile bits64 b;
+	b.f = x + 6755399441055743.5;
+	return (int)b.i;
+}
 
 #endif

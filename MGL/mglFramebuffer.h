@@ -23,6 +23,7 @@ public:
 	int				GetArea( void ) const { return m_width*m_height; }
 	type_t			*GetPixels( void ) const { return m_pixels; }
 	type_t			*GetPixels(int y) const { return m_pixels + y*m_width; }
+	type_t			*GetPixels(int x, int y) const { return m_pixels + x + y*m_width; }
 	void			Fill(type_t value) const;
 };
 

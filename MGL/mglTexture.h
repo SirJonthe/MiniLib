@@ -18,12 +18,12 @@ public:
 	static const mglPixelFormat TargaFormat;
 	static mglPixelFormat		nativeFormat;
 private:
-	unsigned int	*m_pixels;
-	int				m_dimension;
-	int				m_dimensionShift;
-	int				m_dimensionMask;
-	int				m_blocksPerDimShift;
-	int				m_blockTileRatioShift;
+	unsigned int			*m_pixels;
+	int						m_dimension;
+	int						m_dimensionShift;
+	int						m_dimensionMask;
+	int						m_blocksPerDimShift;
+	int						m_blockTileRatioShift;
 private:
 					mglTexture(const mglTexture&) {}
 	mglTexture		&operator=(const mglTexture&) { return *this; }
@@ -47,7 +47,13 @@ public:
 	bool					IsBad( void ) const	{ return this->m_pixels == NULL; }
 	const unsigned int		*GetPixelXY(int x, int y) const { return m_pixels + GetMortonIndex(x & m_dimensionMask, y & m_dimensionMask); }
 	const unsigned int		*GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
+	//unsigned int			GetPixelXY(float x, float y) const; // bilinear
 	const unsigned int		*GetPixelUV(float u, float v) const { return GetPixelXY((int)(u * m_dimension), (int)(v * m_dimension)); }
+	static unsigned char	GetRed(unsigned int color) { return (unsigned char)((color & nativeFormat.RMask) >> nativeFormat.RShift); }
+	static unsigned char	GetGreen(unsigned int color) { return (unsigned char)((color & nativeFormat.GMask) >> nativeFormat.GShift); }
+	static unsigned char	GetBlue(unsigned int color) { return (unsigned char)((color & nativeFormat.BMask) >> nativeFormat.BShift); }
+	static unsigned char	GetAlpha(unsigned int color) { return (unsigned char)((color & nativeFormat.AMask) >> nativeFormat.AShift); }
+	static unsigned int		GetColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) { return (((unsigned int)r) << nativeFormat.RShift) | (((unsigned int)g) << nativeFormat.GShift) | (((unsigned int)b) << nativeFormat.BShift) | (((unsigned int)a) << nativeFormat.AShift); }
 };
 
 int mglTexture::GetTiledIndex(int x, int y) const

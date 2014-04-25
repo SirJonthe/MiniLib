@@ -42,6 +42,7 @@ public:
 	explicit			mtlAsset(const mtlChars &p_filename) : m_ref(NULL) { Load(p_filename); }
 						~mtlAsset( void ) { DeleteReference(); }
 	mtlAsset<type_t>	&operator=(const mtlAsset<type_t> &p_asset) { CopyReference(p_asset); return *this; }
+	template < typename derived_t >
 	bool				Load(const mtlChars &p_filename);
 	void				Invalidate( void ) { DeleteReference(); }
 	const type_t		*GetAsset( void ) const { return IsValid() ? m_ref->asset : NULL; }
@@ -77,12 +78,13 @@ void mtlAsset<type_t>::DeleteReference( void )
 }
 
 template < typename type_t >
+template < typename derived_t >
 bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
 {
 	DeleteReference();
 	mtlDirectory dir = p_filename;
 	mtlHash hash = mtlHash(dir.GetDirectory()); // should really forcibly convert filename to path relative to working directory
-	mtlNode<Ref> *node = assets.GetFront();
+	mtlNode<Ref> *node = assets.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem().hash.value == hash.value) { break; } // REMEMBER: must also compare filename to account for hash collision
 		node = node->GetNext();
@@ -91,19 +93,19 @@ bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
 		m_ref = &node->GetItem();
 		++m_ref->count;
 	} else {
-		assets.PushBack(Ref());
-		m_ref = &assets.GetBack()->GetItem();
-		m_ref->asset = new type_t;
+		assets.AddLast(Ref());
+		m_ref = &assets.GetLast()->GetItem();
+		m_ref->asset = new derived_t;
 		if (m_ref->asset->Load(p_filename)) {
 			m_ref->count = 1;
 			m_ref->hash = hash;
-			m_ref->node = assets.GetBack();
+			m_ref->node = assets.GetLast();
 			m_ref->filename = dir;
 			m_error.Copy("");
 		} else {
 			m_error.Copy(m_ref->asset->GetError());
 			delete m_ref->asset;
-			assets.Remove(assets.GetBack());
+			assets.Remove(assets.GetLast());
 			m_ref = NULL;
 			return false;
 		}
@@ -114,7 +116,7 @@ bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
 template < typename type_t >
 void mtlAsset<type_t>::Purge( void )
 {
-	mtlNode<Ref> *node = assets.GetFront();
+	mtlNode<Ref> *node = assets.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem().count <= 0) {
 			delete node->GetItem().asset;

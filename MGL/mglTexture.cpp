@@ -70,10 +70,14 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	enum SupportedTextureType
 	{
 		UNCOMPRESSED_TRUECOLOR_IMAGE	= 2,
-		COMPRESSED_TRUECOLOR_IMAGE		= 10
+		UNCOMPRESSED_GRAYSCALE_IMAGE	= 3,
+		COMPRESSED_TRUECOLOR_IMAGE		= 10,
+		COMPRESSED_GRAYSCALE_IMAGE		= 11
 	};
 	enum SupportedPixelDepth
 	{
+		GRAY8		= 8,
+		BGRA5551	= 16,
 		BGR888		= 24,
 		BGRA8888	= 32
 	};
@@ -88,7 +92,24 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		m_error.Copy("TGA contains color map");
 		return false;
 	}
-	const int bpp = header[PIXEL_DEPTH] == BGRA8888 ? 4 : (header[PIXEL_DEPTH] == BGR888 ? 3 : -1);
+	
+	int bpp = header[PIXEL_DEPTH] == BGRA8888 ? 4 : (header[PIXEL_DEPTH] == BGR888 ? 3 : -1);
+	if (header[IMAGE_TYPE] == UNCOMPRESSED_TRUECOLOR_IMAGE || header[IMAGE_TYPE] == COMPRESSED_TRUECOLOR_IMAGE) {
+		if (header[PIXEL_DEPTH] == BGRA8888) {
+			bpp = 4;
+		} else if (header[PIXEL_DEPTH] == BGR888) {
+			bpp = 3;
+		} else {
+			bpp = -1;
+		}
+	} else if (header[IMAGE_TYPE] == UNCOMPRESSED_GRAYSCALE_IMAGE || header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE) {
+		if (header[PIXEL_DEPTH] == GRAY8) {
+			bpp = 1;
+		} else {
+			bpp = -1;
+		}
+	}
+	
 	if (bpp == -1) {
 		m_error.Copy("Unsupported pixel depth");
 		return false;
@@ -120,8 +141,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		unsigned char *imageData = image;
 		if (bpp == 3) {
 			
-			const int Area = GetArea();
-			for (int i = 0; i < Area; ++i) {
+			for (int i = 0; i < SIZE; ++i) {
 				const unsigned int color = (*(unsigned int*)(imageData));
 				const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
 				const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
@@ -135,8 +155,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 			}
 		} else {
 			
-			const int Area = GetArea();
-			for (int i = 0; i < Area; ++i) {
+			for (int i = 0; i < SIZE; ++i) {
 				const unsigned int color = *(unsigned int*)(imageData);
 				const unsigned int b = (color & TargaFormat.BMask) >> TargaFormat.BShift;
 				const unsigned int g = (color & TargaFormat.GMask) >> TargaFormat.GShift;
@@ -227,8 +246,81 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 				}
 			}
 		}
+	} else if (header[IMAGE_TYPE] == UNCOMPRESSED_GRAYSCALE_IMAGE) {
+		
+		const int SIZE = GetArea();
+		unsigned char *image = new unsigned char[SIZE];
+		
+		if (fin.read((char*)image, SIZE).bad()) {
+			m_error.Copy("Reading pixel data failed");
+			delete [] image;
+			return false;
+		}
+		
+		unsigned char *imageData = image;
+		
+		for (int i = 0; i < SIZE; ++i) {
+			const unsigned char color = *imageData;
+			m_pixels[i] =
+			((unsigned int)(color) << nativeFormat.RShift) |
+			((unsigned int)(color) << nativeFormat.GShift) |
+			((unsigned int)(color) << nativeFormat.BShift) |
+			nativeFormat.AMask;
+			++imageData;
+		}
+		
+		delete [] image;
+		
+	} else if (header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE) {
+		
+		unsigned char chunk[128*4];
+		const int PixelCount = GetArea();
+		unsigned char chunkSize;
+		int currentIndex = 0;
+		while (currentIndex < PixelCount) {
+			
+			fin.read((char*)&chunkSize, 1); // reads the chunk header (chunk size)
+			
+			if (chunkSize < 128) {
+				
+				++chunkSize;
+				const int ChunkBytes = chunkSize;
+				
+				fin.read((char*)(chunk), ChunkBytes);
+				if (fin.fail()) { return false; }
+				
+				for (int i = 0; i < chunkSize; ++i) {
+					const unsigned int color = *(chunk+i);
+					m_pixels[i] =
+					((unsigned int)(color) << nativeFormat.RShift) |
+					((unsigned int)(color) << nativeFormat.GShift) |
+					((unsigned int)(color) << nativeFormat.BShift) |
+					nativeFormat.AMask;
+					++currentIndex;
+				}
+				
+			} else { // compressed chunk
+				
+				chunkSize -= 127;
+				unsigned int color = 0xffffffff;
+				fin.read((char*)(&color), 1);
+				if (fin.fail()) { return false; }
+				
+				
+				for (int i = 0; i < chunkSize-1; ++i) {
+					m_pixels[currentIndex] =
+					((unsigned int)(color) << nativeFormat.RShift) |
+					((unsigned int)(color) << nativeFormat.GShift) |
+					((unsigned int)(color) << nativeFormat.BShift) |
+					nativeFormat.AMask;
+					++currentIndex;
+				}
+			}
+		}
+		
 	} else {
 		m_error.Copy("Unknown image type");
+		Free();
 		return false;
 	}
 	return true;
@@ -313,6 +405,42 @@ void mglTexture::Free( void )
 	m_blockTileRatioShift = 0;
 	m_error.Copy("");
 }
+
+/*#include "../MML/mmlMath.h"
+unsigned int mglTexture::GetPixelXY(float x, float y) const
+{
+	struct color {
+		unsigned int r, g, b, a;
+	};
+	
+	struct {
+		unsigned int operator()(unsigned int xy00, unsigned int xy10, unsigned int xy01, unsigned int xy11, int u, int v) const
+		{
+			struct {
+				unsigned int operator()(unsigned int x0, unsigned int x1, int u) const { return x0 + (((x1 - x0) * u) >> 8); }
+			} lerp;
+			return lerp(lerp(xy00, xy10, u), lerp(xy01, xy11, u), v);
+		}
+	} blerp;
+	
+	int ix = int(x);
+	int iy = int(y);
+	int u = (x - ix) * 256.0f;
+	int v = (y - iy) * 256.0f;
+	
+	unsigned int c00 = GetPixel(ix, iy);
+	unsigned int c10 = GetPixel(ix+1, iy);
+	unsigned int c01 = GetPixel(ix, iy+1);
+	unsigned int c11 = GetPixel(ix+1, iy+1);
+	
+	color u00 = { (unsigned int)(GetRed(c00)) << 8, (unsigned int)(GetGreen(c00)) << 8, (unsigned int)(GetBlue(c00)) << 8, (unsigned int)(GetAlpha(c00)) << 8 };
+	color u10 = { (unsigned int)(GetRed(c10)) << 8, (unsigned int)(GetGreen(c10)) << 8, (unsigned int)(GetBlue(c10)) << 8, (unsigned int)(GetAlpha(c10)) << 8 };
+	color u01 = { (unsigned int)(GetRed(c01)) << 8, (unsigned int)(GetGreen(c01)) << 8, (unsigned int)(GetBlue(c01)) << 8, (unsigned int)(GetAlpha(c01)) << 8 };
+	color u11 = { (unsigned int)(GetRed(c11)) << 8, (unsigned int)(GetGreen(c11)) << 8, (unsigned int)(GetBlue(c11)) << 8, (unsigned int)(GetAlpha(c11)) << 8 };
+	color uuv = { blerp(u00.r, u10.r, u01.r, u11.r, u, v) >> 8, blerp(u00.g, u10.g, u01.g, u11.g, u, v) >> 8, blerp(u00.b, u10.b, u01.b, u11.b, u, v) >> 8, blerp(u00.a, u10.a, u01.a, u11.a, u, v) >> 8 };
+	
+	return GetColor(uuv.r, uuv.g, uuv.b, uuv.a);
+}*/
 
 void mglTexture::Copy(const mglTexture &p_texture)
 {

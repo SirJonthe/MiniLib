@@ -11,7 +11,7 @@ void mglEngine::UpdateTime( void )
 
 void mglEngine::UpdateObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		mglObject *obj = node->GetItem();
 		node = node->GetNext();
@@ -23,7 +23,7 @@ void mglEngine::UpdateObjects( void )
 
 void mglEngine::CollideObjects( void )
 {
-	mtlNode<mglObject*> *aNode = m_objects.GetFront();
+	mtlNode<mglObject*> *aNode = m_objects.GetFirst();
 	while (aNode != NULL) {
 		mglObject *a = aNode->GetItem();
 		if (a->IsEnabled() && a->GetCollider() != NULL) {
@@ -42,7 +42,7 @@ void mglEngine::CollideObjects( void )
 
 void mglEngine::PreRenderObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		mglObject *obj = node->GetItem();
 		node = node->GetNext();
@@ -54,7 +54,7 @@ void mglEngine::PreRenderObjects( void )
 
 void mglEngine::FinishObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		mglObject *obj = node->GetItem();
 		node = node->GetNext();
@@ -66,7 +66,7 @@ void mglEngine::FinishObjects( void )
 
 void mglEngine::PostRenderObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		mglObject *obj = node->GetItem();
 		node = node->GetNext();
@@ -78,7 +78,7 @@ void mglEngine::PostRenderObjects( void )
 
 void mglEngine::RemoveDestroyedObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem()->m_markedForDestruction) {
 			node->GetItem()->OnDestroy();
@@ -105,7 +105,7 @@ void mglEngine::Update( void )
 {
 	m_updating = true;
 
-	m_inputs.Free();
+	m_inputs.RemoveAll();
 	UpdateInput();
 
 	PreRender();
@@ -140,20 +140,20 @@ void mglEngine::Update( void )
 void mglEngine::AddObject(mglObject *p_object)
 {
 	if (p_object->m_engine != NULL) { return; }
-	m_objects.PushBack(p_object);
+	m_objects.AddLast(p_object);
 	p_object->m_engine = this;
 	p_object->OnCreate();
 }
 
 void mglEngine::DestroyAllObjects( void )
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	if (!m_updating) {
 		while (node != NULL) {
 			delete node->GetItem();
 			node = node->GetNext();
 		}
-		m_objects.Free();
+		m_objects.RemoveAll();
 	} else {
 		while (node != NULL) {
 			node->GetItem()->Destroy();
@@ -164,11 +164,11 @@ void mglEngine::DestroyAllObjects( void )
 
 void mglEngine::GetObjectsByName(const mtlChars &p_name, mtlList<mglObject*> &p_out)
 {
-	p_out.Free();
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	p_out.RemoveAll();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem()->m_enabled && node->GetItem()->name.Compare(p_name)) {
-			p_out.PushBack(node->GetItem());
+			p_out.AddLast(node->GetItem());
 		}
 		node = node->GetNext();
 	}
@@ -176,7 +176,7 @@ void mglEngine::GetObjectsByName(const mtlChars &p_name, mtlList<mglObject*> &p_
 
 mglObject *mglEngine::GetFirstObjectByName(const mtlChars &p_name)
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem()->name.Compare(p_name)) {
 			return node->GetItem();
@@ -188,7 +188,7 @@ mglObject *mglEngine::GetFirstObjectByName(const mtlChars &p_name)
 
 mglObject *mglEngine::GetLastObjectByName(const mtlChars &p_name)
 {
-	mtlNode<mglObject*> *node = m_objects.GetBack();
+	mtlNode<mglObject*> *node = m_objects.GetLast();
 	while (node != NULL) {
 		if (node->GetItem()->name.Compare(p_name)) {
 			return node->GetItem();

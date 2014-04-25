@@ -32,7 +32,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 			++vn;
 		} else if (param.Compare("usemtl")) {
 			missingDefaultMaterial = false;
-			mtlNode<mtlString> *node = materials.GetFront();
+			mtlNode<mtlString> *node = materials.GetFirst();
 			while (node != NULL) {
 				if (node->GetItem().Compare(line)) {
 					break;
@@ -98,7 +98,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 				param = line.ReadWord();
 				mtlList<mtlSubstring> facetPoint;
 				param.SplitByChar(facetPoint, "/");
-				mtlNode<mtlSubstring> *facetIndexStr = facetPoint.GetBack();
+				mtlNode<mtlSubstring> *facetIndexStr = facetPoint.GetLast();
 				FacetIndex facetIndex = { -1, 0, 0 };
 				switch (facetPoint.GetSize()) {
 					case 3:
@@ -149,27 +149,27 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						m_error.Copy("Facet format error");
 						return false;
 				}
-				facet.PushBack(facetIndex);
+				facet.AddLast(facetIndex);
 			}
 			if (facet.GetSize() >= 3) {
 				if (currentMaterial == NULL) { // for models that start declaring facets before specifying material
 					++currentM;
 					currentMaterial = &m_materials[0];
 				}
-				mtlNode<FacetIndex> *i = facet.GetFront()->GetNext();
+				mtlNode<FacetIndex> *i = facet.GetFirst()->GetNext();
 				mtlNode<FacetIndex> *j = i->GetNext();
 				while (j != NULL) {
 					mglFacet f;
-					f.v1 = facet.GetFront()->GetItem().v;
-					f.t1 = facet.GetFront()->GetItem().t;
-					f.n1 = facet.GetFront()->GetItem().n;
+					f.v1 = facet.GetFirst()->GetItem().v;
+					f.t1 = facet.GetFirst()->GetItem().t;
+					f.n1 = facet.GetFirst()->GetItem().n;
 					f.v2 = i->GetItem().v;
 					f.t2 = i->GetItem().t;
 					f.n2 = i->GetItem().n;
 					f.v3 = j->GetItem().v;
 					f.t3 = j->GetItem().t;
 					f.n3 = j->GetItem().n;
-					currentMaterial->m_facets.PushBack(f);
+					currentMaterial->m_facets.AddLast(f);
 					i = i->GetNext();
 					j = j->GetNext();
 				}
@@ -347,7 +347,7 @@ void mglModel::CalculateBounds( void )
 void mglModel::CalculateFacetNormals( void )
 {
 	for (int i = 0; i < m_materials.GetSize(); ++i) {
-		mtlNode<mglFacet> *facet = m_materials[i].m_facets.GetFront();
+		mtlNode<mglFacet> *facet = m_materials[i].m_facets.GetFirst();
 		while (facet != NULL) {
 			facet->GetItem().normal = mmlSurfaceNormal(m_vertices[facet->GetItem().v1], m_vertices[facet->GetItem().v2], m_vertices[facet->GetItem().v3]);
 			facet = facet->GetNext();
@@ -369,7 +369,7 @@ void mglModel::CreateEdgeListAndMainFacetList( void )
 	int f = 0;
 	int e = 0;
 	for (int m = 0; m < m_materials.GetSize(); ++m) {
-		mtlNode<mglFacet> *facet = m_materials[m].m_facets.GetFront();
+		mtlNode<mglFacet> *facet = m_materials[m].m_facets.GetFirst();
 		while (facet != NULL) {
 
 			facet->GetItem().e1 = e;
@@ -413,10 +413,10 @@ void mglModel::CheckIfClosed( void )
 	
 	mtlList<mglFacetEdge> edgeList;
 	for (int i = 0; i < m_edges.GetSize(); ++i) {
-		edgeList.PushBack(m_edges[i]);
+		edgeList.AddLast(m_edges[i]);
 	}
 	while (edgeList.GetSize() > 0) {
-		mtlNode<mglFacetEdge> *front = edgeList.GetFront();
+		mtlNode<mglFacetEdge> *front = edgeList.GetFirst();
 		mtlNode<mglFacetEdge> *cmp = front->GetNext();
 		while (cmp != NULL) {
 			// does not treat the following situations properly
@@ -544,7 +544,7 @@ float mglModel::GetFacetArea(int v1, int v2, int v3) const
 
 mtlNode<mglStaticModel::Triangle> *mglStaticModel::FindBestSplittingTriangle(mglStaticModel::Node *node)
 {
-	return node->triangles.GetFront();
+	return node->triangles.GetFirst();
 }
 
 void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int depth)
@@ -556,7 +556,7 @@ void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int de
 	mtlNode<Triangle> *splitTri = FindBestSplittingTriangle(node);
 	node->plane = mglPlane(mmlVector<3>::Cast(&splitTri->GetItem().a), splitTri->GetItem().normal);
 	const mglPlane backPlane(node->plane.GetPosition(), -node->plane.GetNormal());
-	mtlNode<Triangle> *tri = node->triangles.GetFront();
+	mtlNode<Triangle> *tri = node->triangles.GetFirst();
 	while (tri != NULL) {
 		switch (node->plane.DetermineClipping(mmlVector<3>::Cast(&tri->GetItem().a), mmlVector<3>::Cast(&tri->GetItem().b), mmlVector<3>::Cast(&tri->GetItem().c)))
 		{
@@ -564,11 +564,11 @@ void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int de
 			tri = tri->GetNext();
 			break;
 		case mglBehind:
-			node->back->triangles.PushBack(tri->GetItem());
+			node->back->triangles.AddLast(tri->GetItem());
 			tri = node->triangles.Remove(tri);
 			break;
 		case mglInFront:
-			node->front->triangles.PushBack(tri->GetItem());
+			node->front->triangles.AddLast(tri->GetItem());
 			tri = node->triangles.Remove(tri);
 			break;
 		case mglClipping:
@@ -577,11 +577,11 @@ void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int de
 			switch (node->plane.Clip(tri->GetItem().a, tri->GetItem().b, tri->GetItem().c, out)) {
 			case 4: {
 				Triangle t = { out[0], out[2], out[3], tri->GetItem().normal, tri->GetItem().material };
-				node->front->triangles.PushBack(t);
+				node->front->triangles.AddLast(t);
 			}
 			case 3: {
 				Triangle t = { out[0], out[1], out[2], tri->GetItem().normal, tri->GetItem().material };
-				node->front->triangles.PushBack(t);
+				node->front->triangles.AddLast(t);
 			}
 			}
 
@@ -589,11 +589,11 @@ void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int de
 			switch (backPlane.Clip(tri->GetItem().a, tri->GetItem().b, tri->GetItem().c, out)) {
 			case 4: {
 				Triangle t = { out[0], out[2], out[3], tri->GetItem().normal, tri->GetItem().material };
-				node->back->triangles.PushBack(t);
+				node->back->triangles.AddLast(t);
 			}
 			case 3: {
 				Triangle t = { out[0], out[1], out[2], tri->GetItem().normal, tri->GetItem().material };
-				node->back->triangles.PushBack(t);
+				node->back->triangles.AddLast(t);
 			}
 			}
 
@@ -654,7 +654,7 @@ void mglStaticModel::GenerateBSP( void )
 				facet->GetItem().normal,
 				&GetMaterial(i).GetProperties()
 			};
-			m_root->triangles.PushBack(tri);
+			m_root->triangles.AddLast(tri);
 			facet = facet->GetNext();
 		}
 	}

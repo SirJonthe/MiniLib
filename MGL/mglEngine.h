@@ -95,7 +95,7 @@ public:
 	void						Break( void ) { m_done = true; }
 	void						Kill(int state = 1);
 	const mtlList<mglObject*>	&GetObjects( void ) const { return m_objects; }
-	const mtlNode<mglInput>		*GetInput( void ) const { return m_inputs.GetFront(); }
+	const mtlNode<mglInput>		*GetInput( void ) const { return m_inputs.GetFirst(); }
 	int							GetInputQueueSize( void ) const { return m_inputs.GetSize(); }
 	void						DisableScreenClear( void ) { m_clearScreen = false; }
 	void						SetScreenClearColor(unsigned int color) { m_clearScreen = true; m_clearColor = color; }
@@ -112,7 +112,7 @@ template < typename type_t >
 void mglEngine::GetObjectsByType(mtlList<type_t*> &p_out)
 {
 	p_out.Free();
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		type_t *t;
 		if (node->GetItem()->m_enabled && node->GetItem()->IsType(t)) {
@@ -125,7 +125,7 @@ void mglEngine::GetObjectsByType(mtlList<type_t*> &p_out)
 template < typename type_t >
 void mglEngine::GetFirstObjectByType(type_t *p_type)
 {
-	mtlNode<mglObject*> *node = m_objects.GetFront();
+	mtlNode<mglObject*> *node = m_objects.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem()->m_enabled && node->GetItem()->IsType(p_type)) { return; }
 		node = node->GetNext();
@@ -135,7 +135,7 @@ void mglEngine::GetFirstObjectByType(type_t *p_type)
 template < typename type_t >
 void mglEngine::GetLastObjectByType(type_t *p_type)
 {
-	mtlNode<mglObject*> *node = m_objects.GetBack();
+	mtlNode<mglObject*> *node = m_objects.GetLast();
 	while (node != NULL) {
 		if (node->GetItem()->m_enabled && node->GetItem()->IsType(p_type)) { return; }
 		node = node->GetPrev();
