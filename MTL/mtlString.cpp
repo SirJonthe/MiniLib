@@ -60,13 +60,13 @@ void mtlSubstring::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_s
 	for (int i = 0; i < m_size; ++i) {
 		if (mtlChars::SameAsAny(m_str[i], p_str.GetChars(), num)) {
 			//if (i - start > 0) {
-			p_out.PushBack(mtlSubstring(*this, start, i));
+			p_out.AddLast(mtlSubstring(*this, start, i));
 			//}
 			start = i + 1;
 		}
 	}
 	//if (GetSize() - start > 0) {
-	p_out.PushBack(mtlSubstring(*this, start, GetSize()));
+	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
 	//}
 }
 
@@ -77,13 +77,13 @@ void mtlSubstring::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p
 	for (int i = 0; i < GetSize() - num; ++i) {
 		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
 			//if (i - start > 0) {
-			p_out.PushBack(mtlSubstring(*this, start, i));
+			p_out.AddLast(mtlSubstring(*this, start, i));
 			//}
 			start = i + num;
 		}
 	}
 	//if (GetSize() - start > 0) {
-	p_out.PushBack(mtlSubstring(*this, start, GetSize()));
+	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
 	//}
 }
 

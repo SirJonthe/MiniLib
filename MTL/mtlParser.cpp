@@ -21,7 +21,7 @@ void mtlParser::SetBuffer(const mtlChars &p_buffer)
 	m_buffer = p_buffer;
 	m_size = p_buffer.GetSize();
 	m_reader = 0;
-	m_undo.Free();
+	m_undo.RemoveAll();
 	ClearTrailingWhitespaces();
 }
 
@@ -36,7 +36,7 @@ bool mtlParser::BufferFile(const mtlDirectory &p_file, mtlString &p_buffer)
 
 char mtlParser::ReadChar(bool skipWhite)
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	if (skipWhite) {
 		while (!IsEndOfFile(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
 			++m_reader;
@@ -58,7 +58,7 @@ char mtlParser::PeekChar(bool skipWhite) const
 
 void mtlParser::SkipChar(bool skipWhite)
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	if (skipWhite) {
 		while (!IsEndOfFile(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
 			++m_reader;
@@ -70,7 +70,7 @@ void mtlParser::SkipChar(bool skipWhite)
 
 void mtlParser::BackChar(bool skipWhite)
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	if (skipWhite) {
 		while (!IsEndOfFile(m_reader-1) && IsWhite(m_buffer.GetChars()[m_reader-1])) {
 			--m_reader;
@@ -81,7 +81,7 @@ void mtlParser::BackChar(bool skipWhite)
 
 mtlSubstring mtlParser::ReadWord( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
@@ -107,7 +107,7 @@ mtlSubstring mtlParser::PeekWord( void ) const
 
 void mtlParser::BackWord( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	int r = m_reader;
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
@@ -120,7 +120,7 @@ void mtlParser::BackWord( void )
 
 void mtlParser::SkipWord( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
@@ -131,7 +131,7 @@ void mtlParser::SkipWord( void )
 
 mtlSubstring mtlParser::ReadLine( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
@@ -164,7 +164,7 @@ mtlSubstring mtlParser::PeekLine( void ) const
 
 void mtlParser::BackLine( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	int r = m_reader;
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
@@ -177,7 +177,7 @@ void mtlParser::BackLine( void )
 
 void mtlParser::SkipLine( void )
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
@@ -202,7 +202,7 @@ void mtlParser::JumpToEndLine( void )
 
 bool mtlParser::JumpToChar(const mtlChars &p_chars)
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	const int count = p_chars.GetSize();
 	while (!IsEndOfFile()) {
 		char c = m_buffer.GetChars()[m_reader++];
@@ -217,7 +217,7 @@ bool mtlParser::JumpToChar(const mtlChars &p_chars)
 
 bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 {
-	m_undo.PushBack(m_reader);
+	m_undo.AddLast(m_reader);
 	const int count = p_chars.GetSize();
 	while (!IsEndOfFile()) {
 		char c = m_buffer.GetChars()[m_reader--];
@@ -238,7 +238,7 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 void mtlParser::UndoRead( void )
 {
 	if (UndoCount() > 0) {
-		m_reader = m_undo.GetBack()->GetItem();
-		m_undo.PopBack();
+		m_reader = m_undo.GetLast()->GetItem();
+		m_undo.RemoveLast();
 	}
 }
