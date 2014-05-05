@@ -32,7 +32,7 @@ About
 Compiling
 ---------
 * There should be nothing more than to include these files in
-  your current project and compiling with your compiler of choise.
+  your current project and compiling with your compiler of choice.
 * Tested with current versions of g++, msvc, and clang.
 
 NOTES
