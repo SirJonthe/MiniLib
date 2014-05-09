@@ -28,6 +28,7 @@ public:
 	inline					mtlChars(const mtlString &p_str);
 	inline const char		*GetChars( void ) const;
 	inline int				GetSize( void ) const;
+	inline bool				IsNullTerminated( void ) const;
 };
 
 class mtlSubstring
@@ -69,31 +70,33 @@ private:
 	void		NewPoolDelete(int p_size);
 	void		NewPoolPreserve(int p_size);
 public:
-	inline					mtlString( void );
-	inline					mtlString(const mtlChars &p_str);
-	inline					~mtlString( void );
-	inline int				GetSize( void ) const;
-	void					SetSize(int p_size);
-	inline void				SetPoolGrowth(int p_growth);
-	void					Insert(const mtlChars &p_str, int p_at);
-	inline void				Append(const mtlChars &p_str);
-	void					Overwrite(const mtlChars &p_str, int p_at);
-	void					Remove(int p_begin, int p_num);
-	void					Free( void );
-	void					Copy(const mtlChars &p_str);
-	bool					Compare(const mtlChars &p_str) const;
-	inline void				ToLower( void );
-	inline mtlSubstring		GetSubstring(int p_start, int p_end = -1) const;
-	inline const char		*GetChars( void ) const;
-	inline char				*GetChars( void );
-	inline void				SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
-	inline void				SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
-	inline int				FindFirstChar(const mtlChars &p_str) const;
-	inline int				FindLastChar(const mtlChars &p_str) const;
-	inline int				FindFirstString(const mtlChars &p_str) const;
-	inline int				FindLastString(const mtlChars &p_str) const;
-	inline bool				ToInt(int &p_out) const;
-	inline bool				ToFloat(float &p_out) const;
+	inline				mtlString( void );
+	inline				mtlString(const mtlChars &p_str);
+	inline				~mtlString( void );
+	inline int			GetSize( void ) const;
+	void				SetSize(int p_size);
+	inline void			SetPoolGrowth(int p_growth);
+	void				Insert(const mtlChars &p_str, int p_at);
+	mtlString			&Append(const mtlChars &p_str);
+	void				Overwrite(const mtlChars &p_str, int p_at);
+	void				Remove(int p_begin, int p_num);
+	void				Free( void );
+	void				Copy(const mtlChars &p_str);
+	bool				Compare(const mtlChars &p_str) const;
+	inline void			ToLower( void );
+	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
+	inline const char	*GetChars( void ) const;
+	inline char			*GetChars( void );
+	inline void			SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
+	inline void			SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
+	inline int			FindFirstChar(const mtlChars &p_str) const;
+	inline int			FindLastChar(const mtlChars &p_str) const;
+	inline int			FindFirstString(const mtlChars &p_str) const;
+	inline int			FindLastString(const mtlChars &p_str) const;
+	inline bool			ToInt(int &p_out) const;
+	inline bool			ToFloat(float &p_out) const;
+	bool				FromInt(int i);
+	bool				FromFloat(float f);
 };
 
 template <unsigned int N, unsigned int I>
@@ -143,6 +146,11 @@ const char *mtlChars::GetChars( void ) const
 int mtlChars::GetSize( void ) const
 {
 	return m_size;
+}
+
+bool mtlChars::IsNullTerminated( void ) const
+{
+	return m_str[m_size] == '\0';
 }
 
 mtlChars mtlChars::Dynamic(const char *p_str, int p_size)
@@ -211,11 +219,6 @@ int mtlString::GetSize( void ) const
 void mtlString::SetPoolGrowth(int p_growth)
 {
 	m_growth = p_growth;
-}
-
-void mtlString::Append(const mtlChars &p_str)
-{
-	Insert(p_str, m_size);
 }
 
 mtlSubstring mtlString::GetSubstring(int p_start, int p_end) const
