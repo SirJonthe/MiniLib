@@ -1,5 +1,5 @@
 MiniLib
--------
+=======
 
 Legal notice
 ------------

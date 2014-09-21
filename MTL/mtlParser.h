@@ -47,12 +47,12 @@ public:
 	char			PeekChar(bool skipWhite=true) const;
 	void			BackChar(bool skipWhite=true);
 	void			SkipChar(bool skipWhite=true);
-	mtlSubstring	ReadWord( void );
-	mtlSubstring	PeekWord( void ) const;
+	mtlChars		ReadWord( void );
+	mtlChars		PeekWord( void ) const;
 	void			BackWord( void );
 	void			SkipWord( void );
-	mtlSubstring	ReadLine( void );
-	mtlSubstring	PeekLine( void ) const;
+	mtlChars		ReadLine( void );
+	mtlChars		PeekLine( void ) const;
 	void			BackLine( void );
 	void			SkipLine( void );
 	bool			IsEndOfFile( void ) const { return IsEndOfFile(m_reader); }
@@ -70,14 +70,14 @@ public:
 	//bool			JumpToWordBack(const mtlChars &p_word);
 	//bool			JumpToString(const mtlChars &p_string);
 	//bool			JumpToStringBack(const mtlChars &p_string);
-	//mtlSubstring	ReadEnclosure(int level, bool trimWhite=true) const;
-	//mtlSubstring	ReadEnclosure(bool trimWhite=true) const;
-	//mtlSubstring ReadToChar(const mtlChars &p_chars, bool trimWhite=true); // read everything from current position to character
-	//mtlSubstring PeekToChar(const mtlChars &p_chars, bool trimWhite=true);
-	//mtlSubstring ReadToWord(const mtlChars &p_word, bool trimWhite=true);
-	//mtlSubstring PeekToWord(const mtlChars &p_word, bool trimWhite=true);
-	//mtlSubstring ReadToString(const mtlChars &p_string, bool trimWhite=true);
-	//mtlSubstring PeekToString(const mtlChars &p_string, bool trimWhite=true);
+	//mtlChars		ReadEnclosure(int level, bool trimWhite=true) const;
+	//mtlChars		ReadEnclosure(bool trimWhite=true) const;
+	//mtlChars		ReadToChar(const mtlChars &p_chars, bool trimWhite=true); // read everything from current position to character
+	//mtlChars		PeekToChar(const mtlChars &p_chars, bool trimWhite=true);
+	//mtlChars		ReadToWord(const mtlChars &p_word, bool trimWhite=true);
+	//mtlChars		PeekToWord(const mtlChars &p_word, bool trimWhite=true);
+	//mtlChars		ReadToString(const mtlChars &p_string, bool trimWhite=true);
+	//mtlChars		PeekToString(const mtlChars &p_string, bool trimWhite=true);
 	
 	// Maybe functions for setting custom separators (treated as whitespaces)
 	// This enables the string:

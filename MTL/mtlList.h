@@ -52,7 +52,9 @@ public:
 	inline							mtlList( void );
 	inline							~mtlList( void );
 	void							AddLast(const type_t &p_value);
+	type_t							&AddLast( void );
 	void							AddFirst(const type_t &p_value);
+	type_t							&AddFirst( void );
 	void							RemoveLast( void );
 	void							RemoveFirst( void );
 	mtlNode<type_t>					*Insert(const type_t &p_value, mtlNode<type_t> *p_node);
@@ -73,12 +75,12 @@ public:
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode( void ) :
-m_parent(NULL), m_next(NULL), m_prev(NULL)
+m_item(), m_parent(NULL), m_next(NULL), m_prev(NULL)
 {}
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item, mtlList<type_t> *p_parent, mtlNode<type_t> *p_next, mtlNode<type_t> *p_prev) :
-m_parent(p_parent), m_next(p_next), m_prev(p_prev), m_item(p_item)
+m_item(p_item), m_parent(p_parent), m_next(p_next), m_prev(p_prev)
 {
 	if (m_prev != NULL) { m_prev->m_next = this; }
 	if (m_next != NULL) { m_next->m_prev = this; }
@@ -91,7 +93,7 @@ mtlNode<type_t>::~mtlNode( void )
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item) :
-m_parent(NULL), m_next(NULL), m_prev(NULL), m_item(p_item)
+m_item(p_item), m_parent(NULL), m_next(NULL), m_prev(NULL)
 {}
 
 template < typename type_t >
@@ -169,12 +171,38 @@ void mtlList<type_t>::AddLast(const type_t &p_value)
 }
 
 template < typename type_t >
+type_t &mtlList<type_t>::AddLast( void )
+{
+	mtlNode<type_t> *node = new mtlNode<type_t>;
+	node->m_parent = this;
+	node->m_next = NULL;
+	node->m_prev = m_last;
+	m_last = node;
+	if (m_first == NULL) { m_first = m_last; }
+	++m_size;
+	return node->m_item;
+}
+
+template < typename type_t >
 void mtlList<type_t>::AddFirst(const type_t &p_value)
 {
 	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, m_first, NULL);
 	m_first = node;
 	if (m_last == NULL) { m_last = m_first; }
 	++m_size;
+}
+
+template < typename type_t >
+type_t &mtlList<type_t>::AddFirst( void )
+{
+	mtlNode<type_t> *node = new mtlNode<type_t>;
+	node->m_parent = this;
+	node->m_next = m_first;
+	node->m_prev = NULL;
+	m_first = node;
+	if (m_last == NULL) { m_last = m_first; }
+	++m_size;
+	return node->m_item;
 }
 
 template < typename type_t >
@@ -341,10 +369,10 @@ void mtlList<type_t>::Copy(const mtlList<type_t> &p_list)
 		m_size = p_list.m_size;
 		mtlNode<type_t> *src = p_list.m_first;
 		if (src != NULL) {
-			m_last = m_first = new mtlNode<type_t>(src->m_item, this, NULL, NULL);
+			m_last = m_first = new mtlNode<type_t>(src->value, this, NULL, NULL);
 			src = src->m_next;
 			while (src != NULL) {
-				m_last = new mtlNode<type_t>(src->m_item, this, NULL, m_last);
+				m_last = new mtlNode<type_t>(src->value, this, NULL, m_last);
 				src = src->m_next;
 			}
 		}

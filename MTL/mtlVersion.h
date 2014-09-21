@@ -4,8 +4,10 @@
 #include <limits.h>
 #include <stdint.h>
 
+#ifndef MTL_NO_UINT_CHECK
 #if sizeof(unsigned int) != 4
 #error "sizeof(unsigned int) != 4"
+#endif
 #endif
 
 static const union
@@ -21,13 +23,13 @@ static const union
 #define MTL_ENDIAN (mtlEndian.bits32)
 
 #define MTL_CPP_XX 0
-#define MTL_CPP_98 1
-#define MTL_CPP_11 2
+#define MTL_CPP_98 199711L
+#define MTL_CPP_11 201103L
 
-#if __cplusplus == 199711L
+#if __cplusplus == MTL_CPP_98
 // Common, even for compilers with C++11 features
 #define MTL_CPP_VER MTL_CPP_98
-#else if __cplusplus == 201103L
+#else if __cplusplus == MTL_CPP_11
 // I think this is very rare (only compilers with 100% support will have it, others might never implement it due to compatibility)
 #define MTL_CPP_VER MTL_CPP_11
 #else

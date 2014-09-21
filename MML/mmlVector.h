@@ -157,18 +157,6 @@ public:
 			e[i] = mmlClamp(min[i], e[i], max[i]);
 		}
 	}
-	void Floor( void )
-	{
-		for (int i = 0; i <	n; ++i) {
-			e[i] = floor(e[i]);
-		}
-	}
-	void Ceil( void )
-	{
-		for (int i = 0; i < n; ++i) {
-			e[i] = ceil(e[i]);
-		}
-	}
 	void Round( void )
 	{
 		for (int i = 0; i < n; ++i) {

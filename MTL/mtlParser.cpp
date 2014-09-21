@@ -75,7 +75,7 @@ void mtlParser::BackChar(bool skipWhite)
 	--m_reader;
 }
 
-mtlSubstring mtlParser::ReadWord( void )
+mtlChars mtlParser::ReadWord( void )
 {
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
@@ -84,10 +84,10 @@ mtlSubstring mtlParser::ReadWord( void )
 	while (!IsEndOfFile() && !IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
-	return mtlSubstring(m_buffer, start, m_reader);
+	return mtlChars(m_buffer, start, m_reader);
 }
 
-mtlSubstring mtlParser::PeekWord( void ) const
+mtlChars mtlParser::PeekWord( void ) const
 {
 	int i = m_reader;
 	while (!IsEndOfFile(i) && IsWhite(m_buffer.GetChars()[i])) {
@@ -97,7 +97,7 @@ mtlSubstring mtlParser::PeekWord( void ) const
 	while (!IsEndOfFile(i) && !IsWhite(m_buffer.GetChars()[i])) {
 		++i;
 	}
-	return mtlSubstring(m_buffer, start, i);
+	return mtlChars(m_buffer, start, i);
 }
 
 void mtlParser::BackWord( void )
@@ -122,7 +122,7 @@ void mtlParser::SkipWord( void )
 	}
 }
 
-mtlSubstring mtlParser::ReadLine( void )
+mtlChars mtlParser::ReadLine( void )
 {
 	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
@@ -135,10 +135,10 @@ mtlSubstring mtlParser::ReadLine( void )
 	while (!IsEndOfFile(end-1) && IsWhite(m_buffer.GetChars()[end-1])) {
 		--end;
 	}
-	return mtlSubstring(m_buffer, start, end);
+	return mtlChars(m_buffer, start, end);
 }
 
-mtlSubstring mtlParser::PeekLine( void ) const
+mtlChars mtlParser::PeekLine( void ) const
 {
 	int i = m_reader;
 	while (!IsEndOfFile(i) && IsWhite(m_buffer.GetChars()[i])) {
@@ -151,7 +151,7 @@ mtlSubstring mtlParser::PeekLine( void ) const
 	while (!IsEndOfFile(i-1) && IsWhite(m_buffer.GetChars()[i-1])) {
 		--i;
 	}
-	return mtlSubstring(m_buffer, start, i);
+	return mtlChars(m_buffer, start, i);
 }
 
 void mtlParser::BackLine( void )
@@ -218,7 +218,7 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 	return false;
 }
 
-/*mtlSubstring mtlParser::GetEnclosedString(char closing, bool allowEscape, bool allowMultiLine)
+/*mtlChars mtlParser::GetEnclosedString(char closing, bool allowEscape, bool allowMultiLine)
 {
-	return mtlSubstring();
+	return mtlChars();
 }*/

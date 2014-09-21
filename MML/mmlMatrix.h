@@ -338,7 +338,7 @@ mmlMatrix<rows,rows> &operator*=(mmlMatrix<rows,rows> &l, mmlMatrix<rows,rows> r
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		const mmlVector<rows> li = l[p_row]; // current l vector
 		for (int p_column = 0; p_column < rows; ++p_column) {
-			l[p_row][p_column] = mmlDot(li, r[p_column]);
+			l[p_row][p_column] = Dot(li, r[p_column]);
 		}
 	}
 	return l;

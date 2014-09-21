@@ -1,10 +1,11 @@
 #include <limits.h>
 #include <cmath>
+#include <cstdio>
 #include "mtlString.h"
 
 bool mtlChars::SameAsAny(char a, const char *b, int num)
 {
-	if (num < 0) { num = mtlChars::GetSizeDynamic(b); }
+	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
 	for (int i = 0; i < num; ++i) {
 		if (a == b[i]) {
 			return true;
@@ -23,7 +24,7 @@ bool mtlChars::SameAsAll(const char *a, const char *b, int num)
 	return true;
 }
 
-int mtlChars::GetSizeDynamic(const char *str)
+int mtlChars::GetDynamicSize(const char *str)
 {
 	if (str == NULL) { return 0; }
 	const char *s = str;
@@ -33,7 +34,7 @@ int mtlChars::GetSizeDynamic(const char *str)
 
 void mtlChars::ToLower(char *str, int num)
 {
-	if (num < 0) { num = mtlChars::GetSizeDynamic(str); }
+	if (num < 0) { num = mtlChars::GetDynamicSize(str); }
 	for (int i = 0; i < num; ++i) {
 		if (str[i] >= 'A' && str[i] <= 'Z') {
 			str[i] += 'a' - 'A';
@@ -41,97 +42,32 @@ void mtlChars::ToLower(char *str, int num)
 	}
 }
 
-bool mtlSubstring::Compare(const mtlChars &p_str) const
+mtlChars mtlChars::GetSubstring(int p_start, int p_end) const
 {
-	if (p_str.GetSize() != GetSize()) { return false; }
-	for (int i = 0; i < GetSize(); ++i) {
-		if (p_str.GetChars()[i] != m_str[i]) {
-			return false;
-		}
-	}
-	return true;
+	return mtlChars(*this, p_start, p_end);
 }
 
-
-void mtlSubstring::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+mtlChars mtlChars::GetTrimmed( void ) const
 {
-	const int num = p_str.GetSize();
-	int start = 0;
-	for (int i = 0; i < m_size; ++i) {
-		if (mtlChars::SameAsAny(m_str[i], p_str.GetChars(), num)) {
-			//if (i - start > 0) {
-			p_out.AddLast(mtlSubstring(*this, start, i));
-			//}
-			start = i + 1;
-		}
-	}
-	//if (GetSize() - start > 0) {
-	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
-	//}
+	mtlChars s(*this);
+	s.Trim();
+	return s;
 }
 
-void mtlSubstring::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+bool mtlChars::ToBool(bool &p_out) const
 {
-	int start = 0;
-	const int num = p_str.GetSize();
-	for (int i = 0; i < GetSize() - num; ++i) {
-		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
-			//if (i - start > 0) {
-			p_out.AddLast(mtlSubstring(*this, start, i));
-			//}
-			start = i + num;
-		}
+	if (Compare("true", false)) {
+		p_out = true;
+		return true;
 	}
-	//if (GetSize() - start > 0) {
-	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
-	//}
+	if (Compare("false", false)) {
+		p_out = false;
+		return true;
+	}
+	return false;
 }
 
-int mtlSubstring::FindFirstChar(const mtlChars &p_chars) const
-{
-	const int num = p_chars.GetSize();
-	for (int i = 0; i < m_size; ++i) {
-		if (mtlChars::SameAsAny(m_str[i], p_chars.GetChars(), num)) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-int mtlSubstring::FindLastChar(const mtlChars &p_chars) const
-{
-	const int num = p_chars.GetSize();
-	for (int i = m_size - 1; i >= 0; --i) {
-		if (mtlChars::SameAsAny(m_str[i], p_chars.GetChars(), num)) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-int mtlSubstring::FindFirstString(const mtlChars &p_str) const
-{
-	const int num = p_str.GetSize();
-	for (int i = 0; i < m_size; ++i) {
-		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-int mtlSubstring::FindLastString(const mtlChars &p_str) const
-{
-	const int num = p_str.GetSize();
-	for (int i = m_size - 1; i >= 0; --i) {
-		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-bool mtlSubstring::ToInt(int &p_out) const
+bool mtlChars::ToInt(int &p_out) const
 {
 	// 1) optional + or -
 	// 2) numbers only
@@ -164,7 +100,7 @@ bool mtlSubstring::ToInt(int &p_out) const
 	return true;
 }
 
-bool mtlSubstring::ToFloat(float &p_out) const
+bool mtlChars::ToFloat(float &p_out) const
 {
 	// 1) optional + or -
 	// 2) numbers only
@@ -220,6 +156,182 @@ bool mtlSubstring::ToFloat(float &p_out) const
 	return true;
 }
 
+void mtlChars::Trim( void )
+{
+	for (int i = 0; i < m_size; ++i) {
+		if (m_str[0] == ' ' || m_str[0] == '\t' || m_str[0] == '\n' || m_str[0] == '\r') {
+			++m_str;
+			--m_size;
+		} else {
+			break;
+		}
+	}
+
+	for (int i = m_size - 1; i >= 0; --i) {
+		if (m_str[i] == ' ' || m_str[i] == '\t' || m_str[i] == '\n' || m_str[i] == '\r') {
+			--m_size;
+		} else {
+			break;
+		}
+	}
+}
+
+void mtlChars::Substring(int p_start, int p_end)
+{
+	*this = mtlChars(*this, p_start, p_end);
+}
+
+void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+{
+	const int num = p_str.GetSize();
+	int start = 0;
+	for (int i = 0; i < m_size; ++i) {
+		if (mtlChars::SameAsAny(m_str[i], p_str.GetChars(), num)) {
+			//if (i - start > 0) {
+			mtlChars str(*this, start, i);
+			if (p_ignoreWhiteSpace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
+			//}
+			start = i + 1;
+		}
+	}
+	//if (GetSize() - start > 0) {
+	mtlChars str(*this, start, GetSize());
+	if (p_ignoreWhiteSpace) {
+		str.Trim();
+	}
+	p_out.AddLast(str);
+	//}
+}
+
+void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+{
+	int start = 0;
+	const int num = p_str.GetSize();
+	for (int i = 0; i < GetSize() - num; ++i) {
+		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
+			//if (i - start > 0) {
+			mtlChars str(*this, start, i);
+			if (p_ignoreWhiteSpace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
+			//}
+			start = i + num;
+		}
+	}
+	//if (GetSize() - start > 0) {
+	mtlChars str(*this, start, GetSize());
+	if (p_ignoreWhiteSpace) {
+		str.Trim();
+	}
+	p_out.AddLast(str);
+	//}
+}
+
+int mtlChars::FindFirstChar(const mtlChars &p_chars) const
+{
+	const int num = p_chars.GetSize();
+	for (int i = 0; i < m_size; ++i) {
+		if (mtlChars::SameAsAny(m_str[i], p_chars.GetChars(), num)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int mtlChars::FindLastChar(const mtlChars &p_chars) const
+{
+	const int num = p_chars.GetSize();
+	for (int i = m_size - 1; i >= 0; --i) {
+		if (mtlChars::SameAsAny(m_str[i], p_chars.GetChars(), num)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int mtlChars::FindFirstString(const mtlChars &p_str) const
+{
+	const int num = p_str.GetSize();
+	for (int i = 0; i < m_size; ++i) {
+		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int mtlChars::FindLastString(const mtlChars &p_str) const
+{
+	const int num = p_str.GetSize();
+	for (int i = m_size - 1; i >= 0; --i) {
+		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
+{
+	if (p_str.GetSize() != GetSize()) { return false; }
+	if (p_caseSensitive) {
+		for (int i = 0; i < GetSize(); ++i) {
+			if (p_str.GetChars()[i] != m_str[i]) {
+				return false;
+			}
+		}
+	} else {
+		mtlString a;
+		a.Copy(*this);
+		a.ToLower();
+		mtlString b;
+		b.Copy(p_str);
+		b.ToLower();
+		for (int i = 0; i < GetSize(); ++i) {
+			if (a.GetChars()[i] != b.GetChars()[i]) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+char *mtlString::NewPool(int p_size)
+{
+	const int actualSize = p_size + 1;
+	if (actualSize > m_pool) {
+		m_pool = ((actualSize / m_growth) + 1) * m_growth;
+		return new char[m_pool];
+	}
+	return NULL;
+}
+
+void mtlString::NewPoolDelete(int p_size)
+{
+	char *newPool = NewPool(p_size);
+	if (newPool != NULL) {
+		delete [] m_str;
+		m_str = newPool;
+	}
+}
+
+void mtlString::NewPoolPreserve(int p_size)
+{
+	char *newPool = NewPool(p_size);
+	if (newPool != NULL) {
+		for (int i = 0; i < m_size; ++i) {
+			newPool[i] = m_str[i];
+		}
+		newPool[m_size] = '\0';
+		delete [] m_str;
+		m_str = newPool;
+	}
+}
+
 void mtlString::SetSize(int p_size)
 {
 	NewPoolPreserve(p_size);
@@ -259,6 +371,19 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 	}
 }
 
+mtlString &mtlString::Append(const mtlChars &p_str)
+{
+	if (m_size + p_str.GetSize() > m_pool) {
+		NewPoolPreserve(m_size + p_str.GetSize());
+	}
+	for (int i = 0; i < p_str.GetSize(); ++i) {
+		m_str[i + m_size] = p_str.GetChars()[i];
+	}
+	m_size += p_str.GetSize();
+	m_str[m_size] = '\0';
+	return *this;
+}
+
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
 	const int p_num = p_str.GetSize();
@@ -295,38 +420,6 @@ void mtlString::Free( void )
 	m_pool = 0;
 }
 
-char *mtlString::NewPool(int p_size)
-{
-	const int actualSize = p_size + 1;
-	if (actualSize > m_pool) {
-		m_pool = ((actualSize / m_growth) + 1) * m_growth;
-		return new char[m_pool];
-	}
-	return NULL;
-}
-
-void mtlString::NewPoolDelete(int p_size)
-{
-	char *newPool = NewPool(p_size);
-	if (newPool != NULL) {
-		delete [] m_str;
-		m_str = newPool;
-	}
-}
-
-void mtlString::NewPoolPreserve(int p_size)
-{
-	char *newPool = NewPool(p_size);
-	if (newPool != NULL) {
-		for (int i = 0; i < m_size; ++i) {
-			newPool[i] = m_str[i];
-		}
-		newPool[m_size] = '\0';
-		delete [] m_str;
-		m_str = newPool;
-	}
-}
-
 void mtlString::Copy(const mtlChars &p_str)
 {
 	if (p_str.GetChars() == NULL) {
@@ -345,17 +438,68 @@ void mtlString::Copy(const mtlChars &p_str)
 	}
 }
 
-bool mtlString::Compare(const mtlChars &p_str) const
+bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	const int p_num = p_str.GetSize();
 	if (m_size != p_num) { return false; }
-	for (int i = 0; i < m_size; ++i) {
-		if (m_str[i] != p_str.GetChars()[i]) { return false; }
+	if (p_caseSensitive) {
+		for (int i = 0; i < m_size; ++i) {
+			if (m_str[i] != p_str.GetChars()[i]) { return false; }
+		}
+	} else {
+		mtlString a;
+		a.Copy(*this);
+		a.ToLower();
+		mtlString b;
+		b.Copy(p_str);
+		b.ToLower();
+		for (int i = 0; i < m_size; ++i) {
+			if (a.GetChars()[i] != b.GetChars()[i]) { return false; }
+		}
 	}
 	return true;
 }
 
-mtlHash::mtlHash(const mtlChars &p_str)
+bool mtlString::FromBool(bool b)
+{
+	if (b) { Copy("true"); }
+	else { Copy("false"); }
+	return true;
+}
+
+bool mtlString::FromInt(int i)
+{
+	char ch_out[32];
+	int size = sprintf(ch_out, "%d", i);
+	if (size >= 0) {
+		Copy(mtlChars::FromDynamic(ch_out, size));
+	}
+	return size >= 0;
+}
+
+bool mtlString::FromFloat(float f)
+{
+	char ch_out[32];
+	int size = sprintf(ch_out, "%f", f);
+	if (size >= 0) {
+		Copy(mtlChars::FromDynamic(ch_out, size));
+	}
+	return size >= 0;
+}
+
+mtlHash::mtlHash(const mtlChars &p_str) // probably prevents template constructor from getting called
+{
+	const int size = p_str.GetSize();
+	value = 2166136261u;
+	for (int i = 0; i < size; ++i) {
+		value ^= p_str.GetChars()[i];
+		value *= 16777619u;
+	}
+	value ^= '\0';
+	value *= 16777619u;
+}
+
+mtlHash::mtlHash(const mtlString &p_str)
 {
 	const int size = p_str.GetSize();
 	value = 2166136261u;

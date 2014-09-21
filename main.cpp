@@ -128,6 +128,8 @@ void DrawLine(int argc, char **argv);
 // TODO: Refactor renderer (completely generic rendering design), only provides interface for rendering primitives
 // TODO: Model renders itself, uses renderer interface - PROBLEM: how to render stencil shadows? Separate rendering function?
 // TODO: Texture and Model need virtual API interface functions
+// TODO: Fix mtlString::Append()
+// TODO: Make mtlParser more powerful (see header)
 
 // BUG: mtlString::Insert does not work when appending, does it work for other cases?
 // BUG: mtlString::Overwrite fails to write a larger string than is already available

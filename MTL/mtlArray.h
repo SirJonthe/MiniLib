@@ -139,7 +139,7 @@ template < typename type_t >
 void mtlArray<type_t>::Resize(int p_size)
 {
 	if (p_size < 0) { p_size = 0; }
-	if ((poolMemory && p_size > m_pool) || (p_size != m_size)) {
+	if ((poolMemory && p_size > m_pool) || (!poolMemory && p_size != m_size)) {
 		if (p_size > 0) {
 			const unsigned int minSize = (p_size < m_size) ? p_size : m_size;
 			type_t *data = m_arr;
