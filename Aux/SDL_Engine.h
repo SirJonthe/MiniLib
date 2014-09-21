@@ -15,7 +15,7 @@
 #include "../MGL/mglEngine.h"
 
 std::ostream &operator<<(std::ostream &out, const mtlString &p_str);
-std::ostream &operator<<(std::ostream &out, const mtlSubstring &p_str);
+std::ostream &operator<<(std::ostream &out, const mtlChars &p_str);
 
 class SDL_Framebuffer : public mglFramebuffer<>
 {

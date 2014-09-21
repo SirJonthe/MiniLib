@@ -80,7 +80,7 @@ int mglTexture::GetTiledIndex(int x, int y) const
 			/* x1 = */ (((x >> mglTILE_AREA_SHIFT) + ((y & mglTILE_MASK) << m_blockTileRatioShift)) << mglTILE_SHIFT);
 }
 
-int mglTexture::GetMortonIndex(int x, int y) const
+int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
 {
 	x = (x | (x << 8)) & 0x00FF00FF;
 	x = (x | (x << 4)) & 0x0F0F0F0F;
@@ -111,5 +111,25 @@ int mglTexture::GetMortonIndex(int x, int y) const
 
 	return yf*m_dimension + xf;
 }*/
+
+// CORE CONCEPTS
+
+// SWIZZLING
+// no swizzling (this does not sit well when combining MGL with OpenGL/DirectX)
+// provide swizzling as separate function
+// would still allow user to manually swizzle texture
+// software rasterizer might then assume texture has been manually swizzled
+
+// TEXTURE SIZES
+// mglTexture enforces a power of two texture size (width and height may not be same)
+
+/*template < typename pixel_t, unsigned int channels_i = 1 >
+class mglTexture
+{
+private:
+	pixel_t	*m_pixels;
+	int		m_width;
+	int		m_height;
+};*/
 
 #endif

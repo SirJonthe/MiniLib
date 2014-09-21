@@ -25,9 +25,12 @@ About
 * For users that do not care about game functionality the
   library is designed to work without that component, i.e.
   by removing/omitting the MGL folder from your project
-* Barring a few changes the same can be said about the common
-  library's independence from the math library and vice versa.
-  Currently only MML/mmlFixed.h depends on MTL/mtlString.h.
+
+Interdependence
+---------------
+* MTL and MML are designed to work independently of one another.
+* MTL and MML are also independent of MGL.
+* MGL is dependent on MTL and MML.
 
 Compiling
 ---------
@@ -40,4 +43,11 @@ NOTES
 * This software should be considered in alpha stage.
 * This library is still under construction. Current design
   may be subject to change.
-  
+
+Future changes
+--------------
+* Rather than actually being a game engine, MGL will be refactored
+  to become a toolbox for graphics related tasks.
+* MAGE2D might one day be refactored into a small general-purpose
+  game engine (for 2D *and* 3D) built on top of the new version of
+  MGL.

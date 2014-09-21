@@ -218,7 +218,215 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 	return false;
 }
 
-/*mtlChars mtlParser::GetEnclosedString(char closing, bool allowEscape, bool allowMultiLine)
+/*mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<mtlString> &out)
 {
-	return mtlChars();
+	// function = { return %s, %f; } ;
+		// spaces mean there *can* be spaces (space/tab/newline) that separates the types, but there does not have to be
+	// function %_= %_{ return %_ %s %_};%n
+		// %_ means there *must* be more than one space (space/tab/newline) that separates the types
+		// %_ %_ is invalid since the first %_ already consumes all spaces
+		// %n consumes all spaces, until a newline is found
+			// expression fails if parser parses a non-white character when processing %n
+	// All % expressions can be escaped using \%, meaning we treat that as a character like any other rather than an expression
+
+	// %c = set to non-case sensitive
+	// %C = set to case sensitive
+
+	// " and ' are exceptions where if a " or ' lies on the stack no
+	// other brace gets added until a matching (non-escaped) " or ' is found
+	static const mtlChars openBraces  = "([{<\"\'";
+	static const mtlChars closeBraces = ")]}>\"\'";
+
+	int startPosition = m_reader;
+	out.RemoveAll();
+	ExpressionResult result = ExpressionFound;
+	bool caseSensitive = true;
+
+	mtlList<char> braceStack;
+	int exprReader = 0;
+
+	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionFound) {
+
+		// skip all white characters
+		while (exprReader < expr.GetSize() && IsWhite(expr[exprReader])) { ++exprReader; }
+
+		int start = exprReader;
+
+		// read a word
+		while (exprReader < expr.GetSize()) {
+
+			char ch = expr[exprReader++];
+
+			// variable expression
+			if (ch == '%') {
+				if (exprReader == 0 || expr[exprReader-1] != esc) {
+					++exprReader;
+					break;
+				}
+			}
+
+			// end of word
+			else if (IsWhite(ch)) {
+				break;
+			}
+
+			// opening brace, always valid to add to stack
+			else if (mtlChars::SameAsAny(ch, openBraces.GetChars(), openBraces.GetSize())) {
+				if (ch == '\'' || ch == '\"' || (braceStack.GetSize() == 0 && braceStack.GetLast()->GetItem() != '\'' && braceStack.GetLast()->GetItem() != '\"')) {
+					braceStack.AddLast(ch);
+					break;
+				}
+			}
+
+			else if (mtlChars::SameAsAny(ch, closeBraces.GetChars(), closeBraces.GetSize())) {
+				// add to stack if valid, else emit error
+			}
+		}
+		mtlChars cexpr = expr.Substring(start, exprReader); // only a single word
+
+		if (cexpr.GetSize() > 0) {
+
+			// match a variable expression
+			if (cexpr[0] == '%') {
+				if (cexpr.GetSize() != 2) {
+					result = ExpressionInputError;
+				} else {
+					switch (cexpr[1]) {
+					case 'c':
+					case 'C':
+						caseSensitive = (cexpr[1] == 'C');
+						break;
+					}
+				}
+			}
+
+			// match a constant expression
+			else {
+				// the variable sign has been escaped, so we need to adjust the substring
+				if (cexpr[0] == '\\' && cexpr[1] == '%') { cexpr = cexpr.Substring(1, cexpr.GetSize()); }
+
+				// match a constant
+			}
+		}
+
+		++m_reader;
+	}
+
+	if (result != ExpressionFound) {
+		out.RemoveAll();
+		m_reader = startPosition;
+	}
+	return result;
 }*/
+
+mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<mtlChars> &out)
+{
+	static const mtlChars openBraces  = "([{<\"\'";
+	static const mtlChars closeBraces = ")]}>\"\'";
+	static const mtlChars variables = "cCifbs_n";
+
+	mtlList<char> braceStack;
+
+	out.RemoveAll();
+
+	const int initalReader = m_reader;
+	ExpressionResult result = ExpressionFound;
+	bool caseSensitive = true;
+	int exprReader = 0;
+	bool escapedChar = false;
+
+	enum ReadState
+	{
+		Constant,
+		Variable,
+		Escape
+	};
+
+	ReadState readState = Normal;
+
+	// DELIMITERS MUST ALWAYS BE A SINGLE CHARACTER, I.E. FIRST INSTANCE OF THE DELIMITER MEANS BREAK
+		// OTHERWISE PARSER CANNOT DETERMINE WHERE TO BREAK A VARIABLE EXPRESSION (ESPESCIALLY STRINGS)
+
+	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionFound) {
+
+		char ech = expr[exprReader++];
+
+		// Set read state
+		if (readState == Constant) {
+			if (ech == '%') {
+				++exprReader;
+				readState = Variable;
+			}
+		}
+
+		// Process a variable
+		if (readState == Variable) {
+
+			if (exprReader >= expr.GetSize()) { result = ExpressionInputError; }
+
+			char varType = expr[exprReader];
+
+			switch (varType) {
+			case 'c':
+			case 'C':
+				caseSensitive = (varType == 'C');
+				break;
+
+			case 'i':
+			case 'f':
+			case 'b':
+			case 's':
+
+				// for i/f/b delimiter is implicit (meaning user does not need to explicity specify a delimiter for trailing variable expressions)
+					// Expression("%s=%i",out) will work
+				// for s delimiter must be explicit (or else the parser parses the entire file)
+					// Expression("%s=%s",out) will read all of the text file
+					// Expression(%s=%s%_",out) will read one word
+					// Expression("%s=%s%n",out) will read one line (spaces after the last word will be trimmed)
+					// Expression("%s=%s;",out) will read until ;
+
+				break;
+
+			case '_':
+				if (IsWhite()) { ++m_reader; }
+				else { result = ExpressionNotFound; }
+				break;
+
+			case 'n': {
+				bool foundNewl = false;
+				while (!IsEndOfFile() && IsWhite() && !foundNewl) {
+					if (IsNewl()) {
+						foundNewl = true;
+					}
+					++m_reader;
+				}
+				if (!foundNewl) { result = ExpressionNotFound; }
+				break;
+			}
+
+			default:
+				result = ExpressionInputError;
+				break;
+			}
+
+			++exprReader;
+			readState = Constant;
+		}
+
+		// Process a constant expression
+		else if (readState == Constant) {
+		}
+
+	}
+
+	if (braceStack.GetSize() != 0) {
+		result = ExpressionUnbalancedBraces;
+	}
+
+	if (result != ExpressionFound) {
+		out.RemoveAll();
+		m_reader = initalReader;
+	}
+
+	return result;
+}

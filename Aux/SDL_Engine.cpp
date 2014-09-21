@@ -8,7 +8,7 @@ std::ostream &operator<<(std::ostream &out, const mtlString &p_str)
 	return out << p_str.GetChars();
 }
 
-std::ostream &operator<<(std::ostream &out, const mtlSubstring &p_str)
+std::ostream &operator<<(std::ostream &out, const mtlChars &p_str)
 {
 	for (int i = 0; i < p_str.GetSize(); ++i) {
 		out << p_str.GetChars()[i];
