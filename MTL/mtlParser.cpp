@@ -1,11 +1,84 @@
 #include <fstream>
 #include "mtlParser.h"
 
+#define mtlOpenBraces	"([{<\'\""
+#define mtlClosedBraces	")]}>\'\""
+#define mtlVariables	"cCifbs_n"
+
+enum mtlReadState
+{
+	Constant,
+	Variable,
+	Escape
+};
+
 void mtlParser::ClearTrailingWhitespaces( void )
 {
 	while (!IsEndOfFile(m_size-1) && IsWhite(m_buffer.GetChars()[m_size-1])) {
 		--m_size;
 	}
+}
+
+mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &expr) const
+{
+	mtlList<char> braceStack;
+	int numVar = 0;
+	mtlReadState readState = Constant;
+
+	for (int i = 0; i < expr.GetSize(); ++i) {
+
+		// brace matching
+		// two variable expressions must be separated
+		char ch = expr[i];
+
+		if (readState == Constant) {
+
+			if (ch == var) {
+				readState = Variable;
+				if (++numVar == 2) {
+					return ExpressionInputError;
+				}
+			} else if (ch == esc) {
+				readState = Escape;
+				numVar = 0;
+			} else {
+
+				if (mtlChars::SameAsAny(ch, mtlOpenBraces, sizeof(mtlOpenBraces))) {
+
+					if (braceStack.GetLast()->GetItem() != '\"' && braceStack.GetLast()->GetItem() != '\'') {
+						braceStack.AddLast(ch);
+					} else if (ch == braceStack.GetLast()->GetItem()) {
+						braceStack.RemoveLast();
+					}
+
+				} else {
+
+					int chi = mtlChars::SameAsWhich(ch, mtlClosedBraces, sizeof(mtlClosedBraces));
+					if (chi > -1) {
+
+						if (i == 0) { return ExpressionUnbalancedBraces; }
+
+						char match = openBraces.GetChars()[chi];
+						if (match == braceStack.GetLast()->GetItem()) {
+							braceStack.RemoveLast();
+						} else {
+							return ExpressionUnbalancedBraces;
+						}
+					}
+				}
+			}
+			numVar = 0;
+		} else if (readState == Variable) {
+			if (!mtlChars::SameAsAny(ch, mtlVariables, sizeof(mtlVariables))) {
+				return ExpressionInputError;
+			}
+			readState = Constant;
+		} else if (readState == Escape) {
+			readState = Constant;
+		}
+	}
+
+	return ExpressionValid;
 }
 
 mtlParser::mtlParser( void ) : m_buffer(), m_size(0), m_reader(0)
@@ -218,142 +291,41 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 	return false;
 }
 
-/*mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<mtlString> &out)
-{
-	// function = { return %s, %f; } ;
-		// spaces mean there *can* be spaces (space/tab/newline) that separates the types, but there does not have to be
-	// function %_= %_{ return %_ %s %_};%n
-		// %_ means there *must* be more than one space (space/tab/newline) that separates the types
-		// %_ %_ is invalid since the first %_ already consumes all spaces
-		// %n consumes all spaces, until a newline is found
-			// expression fails if parser parses a non-white character when processing %n
-	// All % expressions can be escaped using \%, meaning we treat that as a character like any other rather than an expression
+/*// function = { return %s, %f; } ;
+	// spaces mean there *can* be spaces (space/tab/newline) that separates the types, but there does not have to be
+// function %_= %_{ return %_ %s %_};%n
+	// %_ means there *must* be more than one space (space/tab/newline) that separates the types
+	// %_ %_ is invalid since the first %_ already consumes all spaces
+	// %n consumes all spaces, until a newline is found
+		// expression fails if parser parses a non-white character when processing %n
+// All % expressions can be escaped using \%, meaning we treat that as a character like any other rather than an expression
 
-	// %c = set to non-case sensitive
-	// %C = set to case sensitive
+// %c = set to non-case sensitive
+// %C = set to case sensitive
 
-	// " and ' are exceptions where if a " or ' lies on the stack no
-	// other brace gets added until a matching (non-escaped) " or ' is found
-	static const mtlChars openBraces  = "([{<\"\'";
-	static const mtlChars closeBraces = ")]}>\"\'";
+// " and ' are exceptions where if a " or ' lies on the stack no
+// other brace gets added until a matching (non-escaped) " or ' is found*/
 
-	int startPosition = m_reader;
-	out.RemoveAll();
-	ExpressionResult result = ExpressionFound;
-	bool caseSensitive = true;
-
-	mtlList<char> braceStack;
-	int exprReader = 0;
-
-	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionFound) {
-
-		// skip all white characters
-		while (exprReader < expr.GetSize() && IsWhite(expr[exprReader])) { ++exprReader; }
-
-		int start = exprReader;
-
-		// read a word
-		while (exprReader < expr.GetSize()) {
-
-			char ch = expr[exprReader++];
-
-			// variable expression
-			if (ch == '%') {
-				if (exprReader == 0 || expr[exprReader-1] != esc) {
-					++exprReader;
-					break;
-				}
-			}
-
-			// end of word
-			else if (IsWhite(ch)) {
-				break;
-			}
-
-			// opening brace, always valid to add to stack
-			else if (mtlChars::SameAsAny(ch, openBraces.GetChars(), openBraces.GetSize())) {
-				if (ch == '\'' || ch == '\"' || (braceStack.GetSize() == 0 && braceStack.GetLast()->GetItem() != '\'' && braceStack.GetLast()->GetItem() != '\"')) {
-					braceStack.AddLast(ch);
-					break;
-				}
-			}
-
-			else if (mtlChars::SameAsAny(ch, closeBraces.GetChars(), closeBraces.GetSize())) {
-				// add to stack if valid, else emit error
-			}
-		}
-		mtlChars cexpr = expr.Substring(start, exprReader); // only a single word
-
-		if (cexpr.GetSize() > 0) {
-
-			// match a variable expression
-			if (cexpr[0] == '%') {
-				if (cexpr.GetSize() != 2) {
-					result = ExpressionInputError;
-				} else {
-					switch (cexpr[1]) {
-					case 'c':
-					case 'C':
-						caseSensitive = (cexpr[1] == 'C');
-						break;
-					}
-				}
-			}
-
-			// match a constant expression
-			else {
-				// the variable sign has been escaped, so we need to adjust the substring
-				if (cexpr[0] == '\\' && cexpr[1] == '%') { cexpr = cexpr.Substring(1, cexpr.GetSize()); }
-
-				// match a constant
-			}
-		}
-
-		++m_reader;
-	}
-
-	if (result != ExpressionFound) {
-		out.RemoveAll();
-		m_reader = startPosition;
-	}
-	return result;
-}*/
 
 mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<mtlChars> &out)
 {
-	static const mtlChars openBraces  = "([{<\"\'";
-	static const mtlChars closeBraces = ")]}>\"\'";
-	static const mtlChars variables = "cCifbs_n";
-
-	mtlList<char> braceStack;
-
 	out.RemoveAll();
 
 	const int initalReader = m_reader;
-	ExpressionResult result = ExpressionFound;
 	bool caseSensitive = true;
 	int exprReader = 0;
-	bool escapedChar = false;
+	mtlReadState readState = Constant;
+	mtlList<char> braceStack;
 
-	enum ReadState
-	{
-		Constant,
-		Variable,
-		Escape
-	};
+	ExpressionResult result = VerifyInputExpression(expr);
 
-	ReadState readState = Normal;
-
-	// DELIMITERS MUST ALWAYS BE A SINGLE CHARACTER, I.E. FIRST INSTANCE OF THE DELIMITER MEANS BREAK
-		// OTHERWISE PARSER CANNOT DETERMINE WHERE TO BREAK A VARIABLE EXPRESSION (ESPESCIALLY STRINGS)
-
-	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionFound) {
+	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionValid) {
 
 		char ech = expr[exprReader++];
 
 		// Set read state
 		if (readState == Constant) {
-			if (ech == '%') {
+			if (ech == var) {
 				++exprReader;
 				readState = Variable;
 			}
@@ -375,7 +347,7 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 			case 'i':
 			case 'f':
 			case 'b':
-			case 's':
+			case 's': {
 
 				// for i/f/b delimiter is implicit (meaning user does not need to explicity specify a delimiter for trailing variable expressions)
 					// Expression("%s=%i",out) will work
@@ -385,7 +357,13 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 					// Expression("%s=%s%n",out) will read one line (spaces after the last word will be trimmed)
 					// Expression("%s=%s;",out) will read until ;
 
+				// DELIMITERS MUST ALWAYS BE A SINGLE CHARACTER, I.E. FIRST INSTANCE OF THE DELIMITER MEANS BREAK
+					// OTHERWISE PARSER CANNOT DETERMINE WHERE TO BREAK A VARIABLE EXPRESSION (ESPESCIALLY STRINGS)
+
+				char delimiter = ;
+
 				break;
+			}
 
 			case '_':
 				if (IsWhite()) { ++m_reader; }
@@ -423,9 +401,11 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 		result = ExpressionUnbalancedBraces;
 	}
 
-	if (result != ExpressionFound) {
+	if (result != ExpressionValid) {
 		out.RemoveAll();
 		m_reader = initalReader;
+	} else {
+		result = ExpressionFound;
 	}
 
 	return result;

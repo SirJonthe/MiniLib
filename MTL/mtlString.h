@@ -19,6 +19,7 @@ private:
 	static int				GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
 public:
 	static bool				SameAsAny(char a, const char *b, int num = -1);
+	static int				SameAsWhich(char a, const char *b, int num = -1);
 	static bool				SameAsAll(const char *a, const char *b, int num);
 	static int				GetDynamicSize(const char *str);
 	template < int t_size >

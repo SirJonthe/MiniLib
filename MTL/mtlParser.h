@@ -19,6 +19,7 @@ private:
 	static const char newl = '\n';
 	static const char cret = '\r';
 	static const char esc = '\\';
+	static const char var = '%';
 
 public:
 	static bool IsWhite(char c) { return c == space || c == tab || c == newl || c == cret; }
@@ -32,6 +33,8 @@ private:
 private:
 	bool IsEndOfFile(int i) const { return i >= m_size || i < 0; }
 	void ClearTrailingWhitespaces( void );
+
+	ExpressionResult VerifyInputExpression(const mtlChars &expr) const;
 
 public:
 					mtlParser( void );
@@ -98,6 +101,7 @@ public:
 		ExpressionInputError, // %s%s (two or more types without delimiters)
 		ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
 		ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
+		ExpressionValid,
 		ExpressionFound
 	};
 
