@@ -3,7 +3,8 @@
 
 #define mtlOpenBraces	"([{<\'\""
 #define mtlClosedBraces	")]}>\'\""
-#define mtlVariables	"cCifbs_n"
+#define mtlVariables	"cCifbswln"
+//define mtlVariables "cCifbs_n"
 
 enum mtlReadState
 {
@@ -249,16 +250,63 @@ void mtlParser::SkipLine( void )
 	}
 }
 
+mtlChars mtlParser::ReadTo(const mtlChars &p_str)
+{
+	int start = m_reader;
+	while (!IsEndOfFile() && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+m_reader, p_str.GetSize())) {
+		++m_reader;
+	}
+	if (GetCharsLeft() < p_str.GetSize()) {
+		m_reader = m_buffer.GetSize();
+	}
+	return mtlChars(m_buffer, start, m_reader);
+}
+
+mtlChars mtlParser::PeekTo(const mtlChars &p_str)
+{
+	int i = m_reader;
+	while (!IsEndOfFile(i) && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+i, p_str.GetSize())) {
+		++i;
+	}
+	if (GetCharsLeft() < p_str.GetSize()) {
+		i = m_buffer.GetSize();
+	}
+	return mtlChars(m_buffer, m_reader, i);
+}
+
+mtlChars mtlParser::ReadToAny(const mtlChars &p_chars)
+{
+	int start = m_reader;
+	while (!IsEndOfFile() && mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
+		++m_reader;
+	}
+	return mtlChars(m_buffer, start, m_reader);
+}
+
+mtlChars mtlParser::PeekToAny(const mtlChars &p_chars)
+{
+	int i = m_reader;
+	while (!IsEndOfFile(i) && mtlChars::SameAsAny(m_buffer[i], p_chars.GetChars(), p_chars.GetSize())) {
+		++i;
+	}
+	return mtlChars(m_buffer, m_reader, i);
+}
+
+void mtlParser::BackToAny(const mtlChars &p_chars)
+{
+	while (!IsEndOfFile() && !mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
+		--m_reader;
+	}
+}
+
 void mtlParser::JumpToEndWord( void )
 {
-	// results in two undo
 	JumpToEndChar();
 	BackWord();
 }
 
 void mtlParser::JumpToEndLine( void )
 {
-	// results in two undo
 	JumpToEndChar();
 	BackLine();
 }
@@ -307,15 +355,17 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 // other brace gets added until a matching (non-escaped) " or ' is found*/
 
 
-mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<mtlChars> &out)
+mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlChars> &out)
 {
 	out.RemoveAll();
+
+	if (expr.GetSize() == 0) { return ExpressionFound; }
 
 	const int initalReader = m_reader;
 	bool caseSensitive = true;
 	int exprReader = 0;
 	mtlReadState readState = Constant;
-	mtlList<char> braceStack;
+	char quoteChar = 0;
 
 	ExpressionResult result = VerifyInputExpression(expr);
 
@@ -328,6 +378,8 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 			if (ech == var) {
 				++exprReader;
 				readState = Variable;
+			} else if (ech == esc) {
+				readState = Escape;
 			}
 		}
 
@@ -339,38 +391,99 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 			char varType = expr[exprReader];
 
 			switch (varType) {
-			case 'c':
-			case 'C':
+			case 'c': // case sensitivity disabled
+			case 'C': // case sensitivity enabled
 				caseSensitive = (varType == 'C');
 				break;
 
-			case 'i':
-			case 'f':
-			case 'b':
-			case 's': {
+			case 'i': // Int (broken by delimiter or space)
+			case 'f': // Float (broken by delimiter or space)
+			case 'b': // Bool (broken by delimiter or space)
+			case 'w': // Word (broken by delimiter or space)
+			{
+				char delimiter = (exprReader+1 < expr.GetSize()) ? expr[exprReader+1] : 0;
+				if (delimiter == esc) {
+					delimiter = (exprReader+2 < expr.GetSize()) ? expr[exprReader+2] : 0;
+				}
+				bool isWhite = IsWhite(delimiter);
 
-				// for i/f/b delimiter is implicit (meaning user does not need to explicity specify a delimiter for trailing variable expressions)
-					// Expression("%s=%i",out) will work
-				// for s delimiter must be explicit (or else the parser parses the entire file)
-					// Expression("%s=%s",out) will read all of the text file
-					// Expression(%s=%s%_",out) will read one word
-					// Expression("%s=%s%n",out) will read one line (spaces after the last word will be trimmed)
-					// Expression("%s=%s;",out) will read until ;
+				int start = m_reader;
+				while (!IsEndOfFile(i) && !IsWhite() && ((!isWhite && m_buffer[m_reader] != delimiter) || (isWhite && !IsWhite(m_buffer[m_reader])))) {
+					++m_reader;
+				}
+				mtlChars variable(m_buffer, start, m_reader);
+				variable.Trim();
 
-				// DELIMITERS MUST ALWAYS BE A SINGLE CHARACTER, I.E. FIRST INSTANCE OF THE DELIMITER MEANS BREAK
-					// OTHERWISE PARSER CANNOT DETERMINE WHERE TO BREAK A VARIABLE EXPRESSION (ESPESCIALLY STRINGS)
+				int ti = 0;;
+				float fi = 0.0f;
+				bool bi = false;
 
-				char delimiter = ;
+				if (ech == 'w') {
+					out.AddLast(variable);
+				} else if (ech == 'i') {
+					if (variable.ToInt(ti)) {
+						out.AddLast(variable);
+					} else {
+						result = ExpressionTypeMismatch;
+					}
+				} else if (ech == 'f') {
+					if (variable.ToFloat(fi)) {
+						out.AddLast(variable);
+					} else {
+						result = ExpressionTypeMismatch;
+					}
+				} else if (ech == 'b') {
+					if (variable.ToBool(bi)) {
+						out.AddLast(variable);
+					} else {
+						result = ExpressionTypeMismatch;
+					}
+				}
 
 				break;
 			}
 
-			case '_':
-				if (IsWhite()) { ++m_reader; }
-				else { result = ExpressionNotFound; }
-				break;
+			case 's': // String (Broken by delimiter)
+			{
+				char delimiter = 0;
+				for (int i = exprReader+1; i < expr.GetSize(); ++i) {
+					if (expr[i] == esc) { ++i; continue; }
+					if (!IsWhite(expr[i])) {
+						delimiter = expr[i];
+						break;
+					}
+				}
 
-			case 'n': {
+				mtlChars variable;
+				if (delimiter == 0) {
+					variable = mtlChars(m_buffer, m_reader, m_buffer.GetSize());
+					m_reader = m_buffer.GetSize();
+				} else {
+					while (!IsEndOfFile() && m_buffer[m_reader] != delimiter) {
+						++m_reader;
+					}
+					variable = mtlChars(m_buffer, start, m_reader);
+				}
+
+				if (quoteChar != '\"' && quoteChar != '\'') {
+					variable.Trim();
+				}
+
+				break;
+			}
+
+			case 'l': // String (Broken by newline)
+			{
+				mtlChars variable = ReadLine();
+				if (quoteChar != '\"' && quoteChar != '\'') {
+					variable.Trim();
+				}
+				out.AddLast(variable);
+				break;
+			}
+
+			case 'n': // Newline
+			{
 				bool foundNewl = false;
 				while (!IsEndOfFile() && IsWhite() && !foundNewl) {
 					if (IsNewl()) {
@@ -393,6 +506,39 @@ mtlParser::ExpressionResult mtlParser::Expression(const mtlChars &expr, mtlList<
 
 		// Process a constant expression
 		else if (readState == Constant) {
+
+			if (IsNewl(m_buffer[m_reader])) {
+				while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+					++m_reader;
+				}
+			}
+			if (IsWhite(ech)) {
+				while (exprReader < expr.GetSize() && IsWhite(ech)) {
+					ech = expr[++exprReader];
+				}
+			}
+
+			if (!IsEndOfFile() || m_buffer[m_reader] != ech) {
+				result = ExpressionNotFound;
+			} else {
+
+				if (quoteChar == 0) {
+					if (ech == '\'' || ech == '\"') { // opening quote
+						quoteChar = ech;
+					}
+				} else if (quoteChar == ech) { // closing quote
+					quoteChar == 0;
+				}
+
+			}
+
+			++m_reader;
+			++exprReader;
+		}
+
+		else if (readState == Escape) {
+			++exprReader;
+			readState = Constant;
 		}
 
 	}

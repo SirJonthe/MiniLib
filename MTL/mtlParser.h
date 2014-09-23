@@ -24,17 +24,17 @@ private:
 public:
 	static bool IsWhite(char c) { return c == space || c == tab || c == newl || c == cret; }
 	static bool IsNewl(char c) { return c == newl || c == cret; }
+	static bool IsLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || ch == '_'; }
 
 private:
-	mtlChars				m_buffer;
-	int						m_size; // size can be smaller than m_buffer->GetSize() (skips trailing whitespaces)
-	int						m_reader;
+	mtlChars	m_buffer;
+	int			m_size; // size can be smaller than m_buffer->GetSize() (skips trailing whitespaces)
+	int			m_reader;
 
 private:
-	bool IsEndOfFile(int i) const { return i >= m_size || i < 0; }
-	void ClearTrailingWhitespaces( void );
-
-	ExpressionResult VerifyInputExpression(const mtlChars &expr) const;
+	bool				IsEndOfFile(int i) const { return i >= m_size || i < 0; }
+	void				ClearTrailingWhitespaces( void );
+	ExpressionResult	VerifyInputExpression(const mtlChars &expr) const;
 
 public:
 					mtlParser( void );
@@ -57,6 +57,14 @@ public:
 	mtlChars		PeekLine( void ) const;
 	void			BackLine( void );
 	void			SkipLine( void );
+
+	mtlChars		ReadTo(const mtlChars &p_str);
+	mtlChars		PeekTo(const mtlChars &p_str);
+	//void			BackTo(const mtlChars &p_str);
+
+	mtlChars		ReadToAny(const mtlChars &p_chars);
+	mtlChars		PeekToAny(const mtlChars &p_chars);
+	void			BackToAny(const mtlChars &p_chars);
 
 	bool			IsEndOfFile( void ) const { return IsEndOfFile(m_reader); }
 	int				GetCharCount( void ) const { return m_size; }
@@ -105,7 +113,7 @@ public:
 		ExpressionFound
 	};
 
-	ExpressionResult Expression(const mtlChars &expr, mtlList<mtlChars> &out);
+	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out);
 };
 
 #endif
