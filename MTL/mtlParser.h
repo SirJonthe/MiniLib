@@ -24,7 +24,17 @@ private:
 public:
 	static bool IsWhite(char c) { return c == space || c == tab || c == newl || c == cret; }
 	static bool IsNewl(char c) { return c == newl || c == cret; }
-	static bool IsLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || ch == '_'; }
+	static bool IsLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
+
+	enum ExpressionResult
+	{
+		ExpressionNotFound,
+		ExpressionInputError, // %s%s (two or more types without delimiters)
+		ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
+		ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
+		ExpressionValid,
+		ExpressionFound
+	};
 
 private:
 	mtlChars	m_buffer;
@@ -102,16 +112,6 @@ public:
 		// uses strings in 'var' and values in 'val' to identify variables
 		// IF FALSE IS RETURNED, THE CARET WILL NOT MOVE!!!
 	*/
-
-	enum ExpressionResult
-	{
-		ExpressionNotFound,
-		ExpressionInputError, // %s%s (two or more types without delimiters)
-		ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
-		ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
-		ExpressionValid,
-		ExpressionFound
-	};
 
 	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out);
 };

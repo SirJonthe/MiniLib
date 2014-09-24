@@ -51,7 +51,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 {
 	std::ifstream fin(p_filename.GetDirectory().GetChars(), std::ios::binary);
 	if (!fin.is_open()) {
-		m_error.Copy("File unreadable");
+		SetError("File unreadable");
 		return false;
 	}
 	enum RelevantHeaderField
@@ -85,11 +85,11 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	unsigned char header[HEADER_SIZE];
 	fin.read((char*)header, HEADER_SIZE);
 	if (fin.fail()) {
-		m_error.Copy("Reading TGA header failed");
+		SetError("Reading TGA header failed");
 		return false;
 	}
 	if (header[COLOR_MAP_TYPE] != NO_COLOR_MAP) {
-		m_error.Copy("TGA contains color map");
+		SetError("TGA contains color map");
 		return false;
 	}
 	
@@ -111,14 +111,14 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	}
 	
 	if (bpp == -1) {
-		m_error.Copy("Unsupported pixel depth");
+		SetError("Unsupported pixel depth");
 		return false;
 	}
 	
 	int w = (int)(*(unsigned short*)(header+IMAGE_WIDTH));
 	int h = (int)(*(unsigned short*)(header+IMAGE_HEIGHT));
 	if (w != h) {
-		m_error.Copy("Dimensions are not equal");
+		SetError("Dimensions are not equal");
 		return false;
 	}
 	if (!Create(w)) {
@@ -133,7 +133,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		unsigned char *image = new unsigned char[SIZE*bpp + 1];
 
 		if (fin.read((char*)image, SIZE*bpp).bad()) {
-			m_error.Copy("Reading pixel data failed");
+			SetError("Reading pixel data failed");
 			delete [] image;
 			return false;
 		}
@@ -252,7 +252,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		unsigned char *image = new unsigned char[SIZE];
 		
 		if (fin.read((char*)image, SIZE).bad()) {
-			m_error.Copy("Reading pixel data failed");
+			SetError("Reading pixel data failed");
 			delete [] image;
 			return false;
 		}
@@ -319,7 +319,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		}
 		
 	} else {
-		m_error.Copy("Unknown image type");
+		SetError("Unknown image type");
 		Free();
 		return false;
 	}
@@ -364,8 +364,10 @@ bool mglTexture::Load(const mtlDirectory &p_filename)
 	} else if (p_filename.GetExtension().Compare("tgam")) { // Morton ordered targa
 		return LoadTGA(p_filename);
 	}
-	m_error.Copy("Cannot load format: ");
-	m_error.Append(p_filename.GetExtension());
+	mtlString error;
+	error.Copy("Cannot load format: ");
+	error.Append(p_filename.GetExtension());
+	SetError(error);
 	return false;
 }
 
@@ -380,7 +382,7 @@ bool mglTexture::Create(int p_dimension)
 		m_blockTileRatioShift = m_blocksPerDimShift - mglTILE_SHIFT; // essentially, this determines the base 2 log of m_dimension / (TILE*TILE)
 		m_pixels = new unsigned int[GetArea()];
 	} else {
-		m_error.Copy("Bad dimensions");
+		SetError("Bad dimensions");
 	}
 	return !IsBad();
 }
@@ -403,7 +405,7 @@ void mglTexture::Free( void )
 	m_dimensionMask = 0;
 	m_blocksPerDimShift = 0;
 	m_blockTileRatioShift = 0;
-	m_error.Copy("");
+	SetError("");
 }
 
 /*#include "../MML/mmlMath.h"

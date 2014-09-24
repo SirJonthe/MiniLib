@@ -96,7 +96,7 @@ public:
 	mtlAsset<mglModel> mesh;
 public:
 	explicit	mglMeshCollider(mtlAsset<mglModel> &p_mesh) : mglCollider(mglCollider::Mesh), mesh(p_mesh) {}
-	explicit	mglMeshCollider(const mtlChars &p_meshFilename) : mglCollider(mglCollider::Mesh), mesh(p_meshFilename) {}
+	explicit	mglMeshCollider(const mtlChars &p_meshFilename) : mglCollider(mglCollider::Mesh), mesh(mtlAsset<mglModel>::Load(p_meshFilename)) {}
 	bool		GetCollision(mglRay p_ray, mglRayCollision &p_info);
 };
 
@@ -106,7 +106,7 @@ public:
 	mtlAsset<mglStaticModel> mesh;
 public:
 	explicit	mglStaticMeshCollider(mtlAsset<mglStaticModel> &p_mesh) : mglCollider(mglCollider::StaticMesh), mesh(p_mesh) {}
-	explicit	mglStaticMeshCollider(const mtlChars &p_meshFilename) : mglCollider(mglCollider::StaticMesh), mesh(p_meshFilename) {}
+	explicit	mglStaticMeshCollider(const mtlChars &p_meshFilename) : mglCollider(mglCollider::StaticMesh), mesh(mtlAsset<mglStaticModel>::Load(p_meshFilename)) {}
 	bool		GetCollision(mglRay p_ray, mglRayCollision &p_info)
 	{
 		return false;

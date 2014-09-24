@@ -430,8 +430,9 @@ void SimpleScene(int argc, char **argv)
 	mglObject *obj = new ControllableObject("game_object");
 	engine.AddObject(obj);
 	std::cout << "Loading model...";
-	if (!obj->model.Load<mglModel>("../Models/Ship/mod.obj")) {
-		std::cout << "failed: " << obj->model.GetError() << std::endl;
+	obj->model = mtlAsset<mglModel>::Load("../Models/Ship/mod.obj");
+	if (obj->model.IsNull()) {
+		std::cout << "failed" << std::endl;
 		engine.CloseSystems();
 		return;
 	}
@@ -471,8 +472,9 @@ void SimpleSceneOGL(int argc, char **argv)
 	mglObject *obj = new ControllableObject("game_object");
 	engine.AddObject(obj);
 	std::cout << "Loading model...";
-	if (!obj->model.Load<mglModel>("../Models/Ship/mod.obj")) {
-		std::cout << "failed: " << obj->model.GetError() << std::endl;
+	obj->model = mtlAsset<mglModel>::Load("../Models/Ship/mod.obj");
+	if (obj->model.IsNull()) {
+		std::cout << "failed" << std::endl;
 		engine.CloseSystems();
 		return;
 	}
@@ -511,8 +513,9 @@ void TexturedTriangle(int argc, char **argv)
 	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
 	mtlAsset<mglTexture> texture;
 	std::cout << "Loading texture...";
-	if (!texture.Load<mglModel>("../Models/Ship/tex.tga")) {
-		std::cout << "failed: " << texture.GetError() << std::endl;
+	texture = mtlAsset<mglTexture>::Load("../Models/Ship/tex.tga");
+	if (texture.IsNull()) {
+		std::cout << "failed" << std::endl;
 		engine.CloseSystems();
 		return;
 	}

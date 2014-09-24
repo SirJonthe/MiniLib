@@ -59,7 +59,7 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 
 						if (i == 0) { return ExpressionUnbalancedBraces; }
 
-						char match = openBraces.GetChars()[chi];
+						char match = mtlOpenBraces[chi];
 						if (match == braceStack.GetLast()->GetItem()) {
 							braceStack.RemoveLast();
 						} else {
@@ -408,7 +408,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				bool isWhite = IsWhite(delimiter);
 
 				int start = m_reader;
-				while (!IsEndOfFile(i) && !IsWhite() && ((!isWhite && m_buffer[m_reader] != delimiter) || (isWhite && !IsWhite(m_buffer[m_reader])))) {
+				while (!IsEndOfFile() && !IsWhite(m_buffer[m_reader]) && ((!isWhite && m_buffer[m_reader] != delimiter) || (isWhite && !IsWhite(m_buffer[m_reader])))) {
 					++m_reader;
 				}
 				mtlChars variable(m_buffer, start, m_reader);
@@ -459,6 +459,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					variable = mtlChars(m_buffer, m_reader, m_buffer.GetSize());
 					m_reader = m_buffer.GetSize();
 				} else {
+					int start = m_reader;
 					while (!IsEndOfFile() && m_buffer[m_reader] != delimiter) {
 						++m_reader;
 					}
@@ -485,8 +486,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			case 'n': // Newline
 			{
 				bool foundNewl = false;
-				while (!IsEndOfFile() && IsWhite() && !foundNewl) {
-					if (IsNewl()) {
+				while (!IsEndOfFile() && IsWhite(m_buffer[m_reader]) && !foundNewl) {
+					if (IsNewl(m_buffer[m_reader])) {
 						foundNewl = true;
 					}
 					++m_reader;
@@ -541,10 +542,6 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			readState = Constant;
 		}
 
-	}
-
-	if (braceStack.GetSize() != 0) {
-		result = ExpressionUnbalancedBraces;
 	}
 
 	if (result != ExpressionValid) {

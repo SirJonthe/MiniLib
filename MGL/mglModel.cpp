@@ -9,7 +9,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 {
 	mtlParser parser;
 	parser.SetBuffer(p_fileContents);
-	mtlSubstring param;
+	mtlChars param;
 
 	int v = 0, vt = 1, vn = 1, mtl = 0; // create a default texture coordinate and normal to avoid crashes when model does not contain any coords/normals
 	mtlList<mtlString> materials;
@@ -17,7 +17,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 
 	while (!parser.IsEndOfFile()) {
 		param = parser.ReadWord();
-		mtlSubstring line = parser.ReadLine();
+		mtlChars line = parser.ReadLine();
 		if (param.GetSize() == 0 || param.GetChars()[0] == '#') { continue; }
 		if (param.Compare("f")) {
 			if (missingDefaultMaterial) {
@@ -46,6 +46,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 			// do nothing
 			// or maybe parse mtllib for newmtl to count materials...?
 		} else {
+			mtlString error;
 			if (
 					param.Compare("vp") || param.Compare("deg") || param.Compare("bmat") ||
 					param.Compare("step") || param.Compare("cstype") || param.Compare("p") ||
@@ -58,11 +59,12 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 					param.Compare("trace_obj") || param.Compare("ctech") || param.Compare("stech") ||
 					param.Compare("maplib") || param.Compare("usemap") || param.Compare("shadow_obj")
 					) {
-				m_error.Copy("Unsupported param: ");
+				error.Copy("Unsupported param: ");
 			} else {
-				m_error.Copy("Unknown param: ");
+				error.Copy("Unknown param: ");
 			}
-			m_error.Append(param);
+			error.Append(param);
+			SetError(error);
 			return false;
 		}
 	}
@@ -80,11 +82,12 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 		// Will not handle comments on same line as proper statements
 	mtlParser parser;
 	parser.SetBuffer(p_fileContents);
-	mtlSubstring param;
+	mtlChars param;
 	mglMaterialIndex *currentMaterial = NULL;
 	int currentV = 0, currentT = 1, currentN = 1, currentM = -1;
 	m_texCoords[0] = mmlVector<2>(0.0f, 0.0f); // default tex coord (for models that don't contain tex coords)
 	m_normals[0] = mmlVector<3>(0.0f, 0.0f, 0.0f); // default normal (for models that don't contain normals)
+	mtlString error;
 
 	while (!parser.IsEndOfFile()) {
 		param = parser.ReadWord();
@@ -96,20 +99,20 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			mtlList<FacetIndex> facet;
 			while (!line.IsEndOfFile()) {
 				param = line.ReadWord();
-				mtlList<mtlSubstring> facetPoint;
+				mtlList<mtlChars> facetPoint;
 				param.SplitByChar(facetPoint, "/");
-				mtlNode<mtlSubstring> *facetIndexStr = facetPoint.GetLast();
+				mtlNode<mtlChars> *facetIndexStr = facetPoint.GetLast();
 				FacetIndex facetIndex = { -1, 0, 0 };
 				switch (facetPoint.GetSize()) {
 					case 3:
 						if (!facetIndexStr->GetItem().ToInt(facetIndex.n)) {
-							m_error.Copy("Failed to convert to int");
+							SetError("Failed to convert to int");
 							return false;
 						}
 						if (facetIndex.n < 0) {
 							facetIndex.n += currentN - 1;
 							if (facetIndex.n < 0) {
-								m_error.Copy("Relative index out of range");
+								SetError("Relative index out of range");
 								return false;
 							}
 						}
@@ -117,13 +120,13 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 					case 2:
 						if (facetIndexStr->GetItem().GetSize() > 0) { // texture index *can* be empty in order to specify [vertex]//[normal]
 							if (!facetIndexStr->GetItem().ToInt(facetIndex.t)) {
-								m_error.Copy("Failed to convert to int");
+								error.Copy("Failed to convert to int");
 								return false;
 							}
 							if (facetIndex.t < 0) {
 								facetIndex.t += currentN - 1;
 								if (facetIndex.t < 0) {
-									m_error.Copy("Relative index out of range");
+									SetError("Relative index out of range");
 									return false;
 								}
 							}
@@ -131,13 +134,13 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						facetIndexStr = facetIndexStr->GetPrev();
 					case 1:
 						if (!facetIndexStr->GetItem().ToInt(facetIndex.v)) {
-							m_error.Copy("Failed to convert to int");
+							SetError("Failed to convert to int");
 							return false;
 						}
 						if (facetIndex.v < 0) {
 							facetIndex.v += currentN - 1;
 							if (facetIndex.v < 0) {
-								m_error.Copy("Relative index out of range");
+								SetError("Relative index out of range");
 								return false;
 							}
 						} else {
@@ -146,7 +149,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						facetIndexStr = facetIndexStr->GetPrev();
 						break;
 					default:
-						m_error.Copy("Facet format error");
+						SetError("Facet format error");
 						return false;
 				}
 				facet.AddLast(facetIndex);
@@ -174,7 +177,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 					j = j->GetNext();
 				}
 			} else {
-				m_error.Copy("Incomplete facet");
+				SetError("Incomplete facet");
 				return false;
 			}
 		} else if (param.Compare("v")) {
@@ -182,18 +185,18 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			while (!line.IsEndOfFile()) {
 				param = line.ReadWord();
 				if (n > 4) {
-					m_error.Copy("Too many arguments in v");
+					SetError("Too many arguments in v");
 					return false;
 				} else if (n < 3) {
 					if (!param.ToFloat(m_vertices[currentV][n])) {
-						m_error.Copy("Failed to convert to float");
+						SetError("Failed to convert to float");
 						return false;
 					}
 				}
 				++n;
 			}
 			if (n < 3) {
-				m_error.Copy("Too few arguments in v");
+				SetError("Too few arguments in v");
 				return false;
 			}
 			++currentV;
@@ -202,18 +205,18 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			while (!line.IsEndOfFile()) {
 				param = line.ReadWord();
 				if (n > 3) {
-					m_error.Copy("Too many arguments in vt");
+					SetError("Too many arguments in vt");
 					return false;
 				} else if (n < 2) {
 					if (!param.ToFloat(m_texCoords[currentT][n])) {
-						m_error.Copy("Failed to convert to float");
+						SetError("Failed to convert to float");
 						return false;
 					}
 				}
 				++n;
 			}
 			if (n < 2) {
-				m_error.Copy("Too few arguments in vt");
+				SetError("Too few arguments in vt");
 				return false;
 			}
 			++currentT;
@@ -222,18 +225,18 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			while (!line.IsEndOfFile()) {
 				param = line.ReadWord();
 				if (n > 3) {
-					m_error.Copy("Too many arguments in vn");
+					SetError("Too many arguments in vn");
 					return false;
 				} else {
 					if (!param.ToFloat(m_normals[currentN][n])) {
-						m_error.Copy("Failed to convert to float");
+						SetError("Failed to convert to float");
 						return false;
 					}
 				}
 				++n;
 			}
 			if (n < 3) {
-				m_error.Copy("Too few arguments in vn");
+				SetError("Too few arguments in vn");
 				return false;
 			}
 			++currentN;
@@ -247,14 +250,14 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 				}
 			}
 			if (m == m_materials.GetSize()) {
-				m_error.Copy("Undefined material");
+				SetError("Undefined material");
 				return false;
 			}
 		} else if (param.Compare("mtllib")) {
 			param = line.ReadLine();
 			mtlString mtlContents;
 			if (!mtlParser::BufferFile(param, mtlContents)) {
-				m_error.Copy("Material file unreadable");
+				SetError("Material file unreadable");
 				return false;
 			}
 			mtlParser mtlFile(mtlContents);
@@ -272,53 +275,55 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						while (!mtlLine.IsEndOfFile()) {
 							param = mtlLine.ReadWord();
 							if (n >= 3) {
-								m_error.Copy("Too many arguments in Kd");
+								SetError("Too many arguments in Kd");
 								return false;
 							} else if (n < 3) {
 								if (!param.ToFloat(m_materials[currentM].m_properties.m_diffuseColor[n])) {
-									m_error.Copy("Failed to convert to float");
+									SetError("Failed to convert to float");
 									return false;
 								}
 							}
 							++n;
 						}
 						if (n < 3) {
-							m_error.Copy("Too few arguments in Kd");
+							SetError("Too few arguments in Kd");
 							return false;
 						}
 					} else if (param.Compare("map_Kd")) {
 						if (newmtl < 0) {
-							m_error.Copy("Missing material name");
+							SetError("Missing material name");
 							return false;
 						}
-						mtlSubstring path = mtlLine.ReadLine();
-						if (!m_materials[currentM].m_properties.m_diffuseMap.Load(path)) {
-							m_error.Copy("Diffuse map load failed: ");
-							m_error.Append(m_materials[currentM].m_properties.m_diffuseMap.GetError());
+						mtlChars path = mtlLine.ReadLine();
+						m_materials[currentM].m_properties.m_diffuseMap = mtlAsset<mglTexture>::Load(path);
+						if (m_materials[currentM].m_properties.m_diffuseMap.IsNull()) {
+							SetError("Diffuse map load failed");
 							return false;
 						}
 					} else if (param.Compare("bump")) {
 						if (newmtl < 0) {
-							m_error.Copy("Missing material name");
+							SetError("Missing material name");
 							return false;
 						}
-						mtlSubstring path = mtlLine.ReadLine();
-						if (!m_materials[currentM].m_properties.m_normalMap.Load(path)) {
-							m_error.Copy("Normal map load failed: ");
-							m_error.Append(m_materials[currentM].m_properties.m_normalMap.GetError());
+						mtlChars path = mtlLine.ReadLine();
+						m_materials[currentM].m_properties.m_normalMap = mtlAsset<mglTexture>::Load(path);
+						if (m_materials[currentM].m_properties.m_normalMap.IsNull()) {
+							SetError("Normal map load failed");
 							return false;
 						}
 					} else {
+						mtlString error;
 						if (param.Compare("Ka") || param.Compare("Kd") || param.Compare("Ks") ||
 							param.Compare("Tf") || param.Compare("illum") || param.Compare("d") ||
 							param.Compare("Ns") || param.Compare("sharpness") || param.Compare("Ni") ||
 							param.Compare("map_Ka") || param.Compare("map_Ks") || param.Compare("map_Ns") ||
 							param.Compare("map_d") || param.Compare("disp") || param.Compare("decal")) {
-							m_error.Copy("Unsupported .mtl param: ");
+							error.Copy("Unsupported .mtl param: ");
 						} else {
-							m_error.Copy("Unknown .mtl param: ");
+							error.Copy("Unknown .mtl param: ");
 						}
-						m_error.Append(param);
+						error.Append(param);
+						SetError(error);
 						return false;
 					}
 				}
@@ -494,22 +499,22 @@ void mglModel::Free( void )
 	m_volume = -1.0f;
 	m_facets.Free();
 	m_closed = false;
-	m_error.Copy("");
+	SetError("");
 }
 
 bool mglModel::Load(const mtlDirectory &p_filename)
 {
 	Free();
-	m_error.Copy("");
+	SetError("");
 	
 	if (!p_filename.GetExtension().Compare("obj")) {
-		m_error.Copy("Not an .obj file");
+		SetError("Not an .obj file");
 		return false;
 	}
 	
 	mtlString fileContents;
 	if (!mtlParser::BufferFile(p_filename.GetDirectory(), fileContents)) {
-		m_error.Copy("File unreadable");
+		SetError("File unreadable");
 		return false;
 	}
 	

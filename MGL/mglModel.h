@@ -41,7 +41,7 @@ private:
 	mtlAsset< mglTexture >	m_diffuseMap;
 	mtlAsset< mglTexture >	m_normalMap;
 public: 
-							mglMaterial( void ) : m_diffuseColor(1.0f, 1.0f, 1.0f), m_diffuseMap(""), m_normalMap("") {}
+							mglMaterial( void ) : m_diffuseColor(1.0f, 1.0f, 1.0f), m_diffuseMap(), m_normalMap() {}
 	const mglTexture		*GetDiffuseMap( void ) const { return m_diffuseMap.GetAsset(); }
 	const mglTexture		*GetNormalMap( void ) const { return m_normalMap.GetAsset(); }
 	const mtlString			&GetName( void ) const { return m_name; }

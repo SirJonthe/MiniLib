@@ -14,7 +14,7 @@ bool mtlChars::SameAsAny(char a, const char *b, int num)
 	return false;
 }
 
-bool mtlChars::SameAsWhich(char a, const char *b, int num)
+int mtlChars::SameAsWhich(char a, const char *b, int num)
 {
 	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
 	for (int i = 0; i < num; ++i) {
