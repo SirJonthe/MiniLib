@@ -1,4 +1,5 @@
 #include "MTL/mtlBinaryTree.h"
+#include "MTL/mtlParser.h"
 
 #include "MGL/mglCamera.h"
 #include "MGL/mglFramebuffer.h"
@@ -16,6 +17,7 @@ void Unit_Directory( void );
 void Unit_QuatToMatrix( void );
 void Unit_MergeLists( void );
 void Unit_BinaryTree( void );
+void Unit_Expression( void );
 
 std::ostream &operator<<(std::ostream &out, const mtlString &str)
 {
@@ -69,6 +71,7 @@ int main(int argc, char **argv)
 	Unit_QuatToMatrix();
 	Unit_MergeLists();
 	Unit_BinaryTree();
+	Unit_Expression();
 	std::cout << "completed" << std::endl;
 
 	return 0;
@@ -132,55 +135,6 @@ void Unit_Clipping( void )
 		std::cout << "failed" << std::endl;
 	}
 }
-
-/*void Unit_TextureCache(Platform &platform)
-{
-	mglTexture texture;
-	texture.Create(512);
- 
-	mmlVector<4> a(400.0f, 0.0f, 0.0f, 0.0f);
-	mmlVector<4> b(800.0f, 300.0f, 1.0f, 0.0f);
-	mmlVector<4> c(400.0f, 600.0f, 1.0f, 1.0f);
-	mmlVector<4> d(0.0f, 300.0f, 0.0f, 1.0f);
- 
-	const int numFrames = 100;
-	const float angleInc = mmlPI / numFrames;
-	const float COS = cos(angleInc);
-	const float SIN = sin(angleInc);
-	mmlMatrix<2,2> m;
-	m[0][0] = COS; m[0][1] = -SIN;
-	m[1][0] = SIN; m[1][1] =  COS;
-	mmlVector<2> t;
-	t[0] = 400.0f;
-	t[1] = 300.0f;
- 
-	mglSWMonoRasterizer raster(platform.GetVideo());
- 
- 
-	for (int i = 0; i < numFrames; ++i) {
-		
-		raster.Debug_RenderTriangle(a, b, c, &texture);
-		raster.Debug_RenderTriangle(a, c, d, &texture);
- 
-		mmlVector<2>::Cast(&a) -= t;
-		mmlVector<2>::Cast(&a) *= m;
-		mmlVector<2>::Cast(&a) += t;
-		
-		mmlVector<2>::Cast(&b) -= t;
-		mmlVector<2>::Cast(&b) *= m;
-		mmlVector<2>::Cast(&b) += t;
-		
-		mmlVector<2>::Cast(&c) -= t;
-		mmlVector<2>::Cast(&c) *= m;
-		mmlVector<2>::Cast(&c) += t;
-		
-		mmlVector<2>::Cast(&d) -= t;
-		mmlVector<2>::Cast(&d) *= m;
-		mmlVector<2>::Cast(&d) += t;
-	}
- 
-	platform.UpdateVideo();
-}*/
 
 void Unit_Directory( void )
 {
@@ -327,4 +281,41 @@ void Unit_BinaryTree( void )
 	if (n == NULL) { std::cout << ": (" << find << ")"; }
 	else { std::cout << ": [" << find << "]"; }
 	std::cout << std::endl;
+}
+
+void Unit_Expression( void )
+{
+	std::cout << "Testing expression matching...";
+
+	mtlString buffer;
+	buffer.Copy("func1 =   { 10, a string, 123.0f } \n\tfunc2 = { [1;2; 3], word }\nsome string = \"  this is a complete string \"\t\n");
+
+	mtlParser parser;
+	parser.SetBuffer(buffer);
+
+	mtlList<mtlChars> output;
+
+	mtlParser::ExpressionResult result = parser.Match("%s={%i,%s,%f}%n", output);
+	if (result != mtlParser::ExpressionFound) {
+		std::cout << "mismatch (1): " << result << std::endl;
+		return;
+	} else {
+	}
+
+	result = parser.Match("%s={[%i,%i,%i],%w}%n", output);
+	if (result != mtlParser::ExpressionFound) {
+		std::cout << "mismatch (2): " << result << std::endl;
+		return;
+	} else {
+	}
+
+	result = parser.Match("%s=\"%s\"%n", output);
+	if (result != mtlParser::ExpressionFound) {
+		std::cout << "mismatch (3): " << result << std::endl;
+		return;
+	} else {
+	}
+
+	std::cout << "success!" << std::endl;
+	return;
 }

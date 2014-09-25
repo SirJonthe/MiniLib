@@ -1,0 +1,14 @@
+EDuke32 2.0.0devel r3214 
+Compiled Nov 20 2012 08:37:48
+Using /usr/share/games/eduke32/ for game data
+Using /home/jonathan/Code/MiniLib/ for game data
+Using /home/jonathan/.eduke32/ for game data
+Initializing SDL system interface (compiled against SDL version 1.2.15, found version 1.2.15)
+Using "x11" video driver
+Searching for game data...
+Found no recognized game data!
+Warning: could not find main data file "DUKE3D.GRP"!
+Duke Nukem 3D game data was not found.  A valid copy of "DUKE3D.GRP" or other compatible data is needed to run EDuke32.
+You can find "DUKE3D.GRP" in the "DN3DINST" or "ATOMINST" directory on your Duke Nukem 3D installation CD-ROM.
+
+EDuke32 will now close.

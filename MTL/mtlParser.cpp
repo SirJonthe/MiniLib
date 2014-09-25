@@ -23,7 +23,6 @@ void mtlParser::ClearTrailingWhitespaces( void )
 mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &expr) const
 {
 	mtlList<char> braceStack;
-	int numVar = 0;
 	mtlReadState readState = Constant;
 
 	for (int i = 0; i < expr.GetSize(); ++i) {
@@ -36,17 +35,13 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 
 			if (ch == var) {
 				readState = Variable;
-				if (++numVar == 2) {
-					return ExpressionInputError;
-				}
 			} else if (ch == esc) {
 				readState = Escape;
-				numVar = 0;
 			} else {
 
 				if (mtlChars::SameAsAny(ch, mtlOpenBraces, sizeof(mtlOpenBraces))) {
 
-					if (braceStack.GetLast()->GetItem() != '\"' && braceStack.GetLast()->GetItem() != '\'') {
+					if (braceStack.GetSize() == 0 || (braceStack.GetLast()->GetItem() != '\"' && braceStack.GetLast()->GetItem() != '\'')) {
 						braceStack.AddLast(ch);
 					} else if (ch == braceStack.GetLast()->GetItem()) {
 						braceStack.RemoveLast();
@@ -68,7 +63,6 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 					}
 				}
 			}
-			numVar = 0;
 		} else if (readState == Variable) {
 			if (!mtlChars::SameAsAny(ch, mtlVariables, sizeof(mtlVariables))) {
 				return ExpressionInputError;
@@ -483,7 +477,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				break;
 			}
 
-			case 'n': // Newline
+			case 'n': // Newline (makes sure there is a newline in the matched expression)
 			{
 				bool foundNewl = false;
 				while (!IsEndOfFile() && IsWhite(m_buffer[m_reader]) && !foundNewl) {
