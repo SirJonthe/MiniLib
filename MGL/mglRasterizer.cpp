@@ -10,7 +10,6 @@
 #include "../MML/mmlMath.h"
 #include "../MML/mmlFixed.h"
 #include "mglRasterizer.h"
-#include "mglObject.h"
 
 const mglTexture mglTexturedRasterizer::defaultMaterial(16, 0xFF00FFFF);
 
