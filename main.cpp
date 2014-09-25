@@ -1,8 +1,6 @@
 #include "MTL/mtlBinaryTree.h"
 
-#include "MGL/mglObject.h"
 #include "MGL/mglCamera.h"
-#include "MGL/mglEngine.h"
 #include "MGL/mglFramebuffer.h"
 #include "MGL/mglRasterizer.h"
 
@@ -11,99 +9,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "Aux/SDL_Engine.h"
-#include "Aux/OGL_Engine.h"
-#include "Aux/OGL_Rasterizer.h"
-
-class ControllableObject : public mglObject
-{
-private:
-	bool			m_mouseDown;
-	bool			m_shiftDown;
-	mmlVector<3>	m_moveInc;
-protected:
-	void OnUpdate( void );
-public:
-	ControllableObject(const mtlChars &p_name) : mglObject(p_name), m_mouseDown(false), m_shiftDown(false), m_moveInc(0.0f, 0.0f, 0.0f) { transform.position += mglTransform::globalAxis.forward * 20.0f; }
-};
-
-void ControllableObject::OnUpdate( void )
-{
-	const mtlNode<mglInput> *inputNode = GetEngine()->GetInput();
-	while (inputNode != NULL) {
-		mglInput input = inputNode->GetItem();
-		switch (input.type) {
-		case mglButtonInput:
-			if (input.button.device == mglMouse && input.button.button == SDL_BUTTON_LEFT) {
-				m_mouseDown = (input.button.state == mglButtonDown) ? true : false;
-			} else if (input.button.device == mglKeyboard) {
-				if (input.button.button == SDLK_ESCAPE) { GetEngine()->Break(); }
-				else {
-					const float speed = input.button.state == mglButtonDown ? 4.0f : 0.0f;
-					if (input.button.button == SDLK_RIGHT) {
-						m_moveInc[0] = mglTransform::globalAxis.right[0] * speed;
-					} else if (input.button.button == SDLK_LEFT) {
-						m_moveInc[0] = mglTransform::globalAxis.right[0] * -speed;
-					} else if (input.button.button == SDLK_a) {
-						m_moveInc[1] = mglTransform::globalAxis.up[1] * speed;
-					} else if (input.button.button == SDLK_z) {
-						m_moveInc[1] = mglTransform::globalAxis.up[1] * -speed;
-					} else if (input.button.button == SDLK_UP) {
-						m_moveInc[2] = mglTransform::globalAxis.forward[2] * speed;
-					} else if (input.button.button == SDLK_DOWN) {
-						m_moveInc[2] = mglTransform::globalAxis.forward[2] * -speed;
-					} else if (input.button.button == SDLK_LSHIFT) {
-						m_shiftDown = (input.button.state == mglButtonDown) ? true : false;
-					}
-				}
-			}
-			break;
-		case mglMotionInput:
-			if (m_mouseDown) {
-				if (!m_shiftDown) {
-					transform.RotateGlobal(mglTransform::globalAxis.up, float(input.motion.relX) * 0.01f);
-				} else {
-					transform.RotateGlobal(mglTransform::globalAxis.right, float(input.motion.relY) * 0.01f);
-				}
-			}
-			break;
-		default:
-			std::cout << "Not gownah happe!" << std::endl;
-			std::cout << input.type << std::endl;
-		}
-		inputNode = inputNode->GetNext();
-	}
-	transform.MoveGlobal(m_moveInc * GetEngine()->GetDeltaTime());
-}
-
-class TransformController : public mglObject
-{
-private:
-	mglTransform	*m_transform;
-	bool			m_connected;
-protected:
-	void OnUpdate( void );
-public:
-	TransformController(const mtlChars &p_name, mglTransform &p_transform) : mglObject(p_name), m_transform(&p_transform), m_connected(false) {}
-};
-
-void TransformController::OnUpdate( void )
-{
-	const mtlNode<mglInput> *input = GetEngine()->GetInput();
-	while (input != NULL) {
-		mglInput i = input->GetItem();
-		if (i.type == mglButtonInput && i.button.device == mglKeyboard && i.button.state == mglButtonDown && i.button.button == SDLK_SPACE) {
-				if (!m_connected) {
-					m_transform->SetParentTransform(&transform, true);
-				} else {
-					m_transform->SetParentTransform(NULL, true);
-				}
-				m_connected = !m_connected;
-		}
-		input = input->GetNext();
-	}
-}
-
 void Unit_StringAppend( void );
 void Unit_StringOverwrite( void );
 void Unit_Clipping( void );
@@ -111,10 +16,19 @@ void Unit_Directory( void );
 void Unit_QuatToMatrix( void );
 void Unit_MergeLists( void );
 void Unit_BinaryTree( void );
-void SimpleScene(int argc, char **argv);
-void SimpleSceneOGL(int argc, char **argv);
-void TexturedTriangle(int argc, char **argv);
-void DrawLine(int argc, char **argv);
+
+std::ostream &operator<<(std::ostream &out, const mtlString &str)
+{
+	return out << str.GetChars();
+}
+
+std::ostream &operator<<(std::ostream &out, const mtlChars &str)
+{
+	for (int i = 0; i < str.GetSize(); ++i) {
+		out << str.GetChars()[i];
+	}
+	return out;
+}
 
 // TODO: Implement SIMD parallel rasterizer, render in blocks of X pixels
 // TODO: Implement CPU parallel rasterizer, one CPU per SIMD block scanline (local cache coherency)
@@ -157,8 +71,6 @@ int main(int argc, char **argv)
 	Unit_BinaryTree();
 	std::cout << "completed" << std::endl;
 
-	//SimpleSceneOGL(argc, argv);
-	DrawLine(argc,argv);
 	return 0;
 }
 
@@ -415,195 +327,4 @@ void Unit_BinaryTree( void )
 	if (n == NULL) { std::cout << ": (" << find << ")"; }
 	else { std::cout << ": [" << find << "]"; }
 	std::cout << std::endl;
-}
-
-void SimpleScene(int argc, char **argv)
-{
-	SDL_Engine engine;
-	if (!engine.InitSystems(argc, argv) || !engine.SetVideo(800, 600, false)) {
-		std::cout << "Failed to init engine" << std::endl;
-		return;
-	}
-	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
-	//mglFlatRasterizer *raster = new mglFlatRasterizer(engine.GetVideo());
-	engine.AddObject(new mglCamera("game_camera", raster));
-	mglObject *obj = new ControllableObject("game_object");
-	engine.AddObject(obj);
-	std::cout << "Loading model...";
-	obj->model = mtlAsset<mglModel>::Load("../Models/Ship/mod.obj");
-	if (obj->model.IsNull()) {
-		std::cout << "failed" << std::endl;
-		engine.CloseSystems();
-		return;
-	}
-	std::cout << "done" << std::endl;
-	
-	engine.SetWindowCaption(argv[0]);
-	
-	engine.SetScreenClearColor(0);
-	
-	engine.Run();
-	
-	// MGL actually allows trailing memory to leak, since the OS will handle it anyway
-	// do this to avoid memory checkers from detecting leaked memory (in order):
-	engine.DestroyAllObjects(); // frees all engine-registered objects and unlocks references to models
-	mtlAsset<mglModel>::Purge(); // frees all models and unlocks references to textures
-	mtlAsset<mglStaticModel>::Purge(); // frees all BSP models and unlocks references to textures
-	mtlAsset<mglTexture>::Purge(); // frees all textures
-	
-	engine.CloseSystems();
-}
-
-void SimpleSceneOGL(int argc, char **argv)
-{
-	OGL_Engine engine;
-	if (!engine.InitSystems(argc, argv)) {
-		std::cout << "Failed to init engine" << std::endl;
-		return;
-	}
-	std::cout << "Video init...";
-	if (!engine.SetVideo(800, 600, false)) {
-		std::cout << "Failed to init video" << std::endl;
-		return;
-	}
-	std::cout << "done" << std::endl;
-	OGL_Rasterizer *raster = new OGL_Rasterizer(engine.GetVideo());
-	engine.AddObject(new mglCamera("game_camera", raster));
-	mglObject *obj = new ControllableObject("game_object");
-	engine.AddObject(obj);
-	std::cout << "Loading model...";
-	obj->model = mtlAsset<mglModel>::Load("../Models/Ship/mod.obj");
-	if (obj->model.IsNull()) {
-		std::cout << "failed" << std::endl;
-		engine.CloseSystems();
-		return;
-	}
-	std::cout << "done" << std::endl;
-	
-	TransformController transformController("game_transform", obj->transform);
-	engine.AddObject(&transformController);
-	transformController.transform.position = mmlVector<3>(15.0f, 17.0f, 20.0f);
-	transformController.transform.RotateGlobal(mglTransform::globalAxis.up, 100.0f);
-	transformController.transform.RotateGlobal(mglTransform::globalAxis.right, 20.0f);
-	transformController.transform.RotateGlobal(mglTransform::globalAxis.forward, 1.0f);
-	
-	engine.SetWindowCaption(argv[0]);
-	
-	engine.SetScreenClearColor(0);
-	
-	engine.Run();
-	
-	// MGL actually allows trailing memory to leak, since the OS will handle it anyway
-	// do this to avoid memory checkers from detecting leaked memory (in order):
-	engine.DestroyAllObjects(); // frees all engine-registered objects and unlocks references to models
-	mtlAsset<mglModel>::Purge(); // frees all models and unlocks references to textures
-	mtlAsset<mglStaticModel>::Purge(); // frees all BSP models and unlocks references to textures
-	mtlAsset<mglTexture>::Purge(); // frees all textures
-	
-	engine.CloseSystems();
-}
-
-void TexturedTriangle(int argc, char **argv)
-{
-	SDL_Engine engine;
-	if (!engine.InitSystems(argc, argv) || !engine.SetVideo(800, 600, false)) {
-		std::cout << "Failed to init engine" << std::endl;
-		return;
-	}
-	mglTexturedRasterizer *raster = new mglTexturedRasterizer(engine.GetVideo());
-	mtlAsset<mglTexture> texture;
-	std::cout << "Loading texture...";
-	texture = mtlAsset<mglTexture>::Load("../Models/Ship/tex.tga");
-	if (texture.IsNull()) {
-		std::cout << "failed" << std::endl;
-		engine.CloseSystems();
-		return;
-	}
-	std::cout << "done" << std::endl;
-	
-	engine.SetWindowCaption(argv[0]);
-	
-	const mmlVector<4> a(  0.0f,   0.0f, 0.0f, 1.0f);
-	const mmlVector<4> b(200.0f,   0.0f, 1.0f, 1.0f);
-	const mmlVector<4> c(200.0f, 200.0f, 1.0f, 0.0f);
-	const mmlVector<4> d(  0.0f, 200.0f, 0.0f, 0.0f);
-	
-	raster->Debug_RenderTriangle(a, b, c, texture.GetAsset());
-	raster->Debug_RenderTriangle(a, c, d, texture.GetAsset());
-	
-	SDL_Flip(SDL_GetVideoSurface());
-	
-	SDL_Event event;
-	bool quit = false;
-	while (!quit && SDL_WaitEvent(&event)) {
-		switch (event.type) {
-			case SDL_QUIT:
-			case SDL_KEYDOWN:
-				quit = true;
-				break;
-		}
-	}
-	
-	engine.CloseSystems();
-}
-
-void DrawLine(int argc, char **argv)
-{
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		std::cout << "Failed to init SDL" << std::endl;
-		return;
-	}
-	if (SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE|SDL_DOUBLEBUF) == NULL) {
-		std::cout << "Failed to init video" << std::endl;
-		return;
-	}
-	
-	bool quit = false;
-	bool update = true;
-	int x = 0, y = 0;
-	SDL_Event event;
-	while (!quit) {
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
-				case SDL_KEYDOWN:
-				case SDL_QUIT:
-					quit = true;
-					break;
-				case SDL_MOUSEMOTION:
-					x = event.motion.x;
-					y = event.motion.y;
-					update = true;
-					break;
-			}
-		}
-		if (update) {
-			Uint32 *pixels = (Uint32*)SDL_GetVideoSurface()->pixels;
-			int area = SDL_GetVideoSurface()->w*SDL_GetVideoSurface()->h;
-			for (int i = 0; i < area; ++i) {
-				pixels[i] = 0;
-			}
-			
-			mglRay line;
-			line.origin = mmlVector<3>(float(SDL_GetVideoSurface()->w >> 1), float(SDL_GetVideoSurface()->h >> 1), 0.0f);
-			const mmlVector<3> mouse(float(x), float(y), 0.0f);
-			line.direction = mmlNormalize(mouse - line.origin);
-			mglDifferentialAnalyzer dda(line);
-			
-			int counter = 0;
-			do {
-				int xn = dda.GetX(), yn = dda.GetY();
-				if (xn >= 0 && xn < SDL_GetVideoSurface()->w && yn >= 0 && yn < SDL_GetVideoSurface()->h) {
-					pixels[yn * SDL_GetVideoSurface()->w + xn] = 0xff00ffff;
-				}
-				dda.Step();
-				++counter;
-			} while (dda.GetX() != x && dda.GetY() != y && counter < 1000);
-			
-			SDL_Flip(SDL_GetVideoSurface());
-			update = false;
-		}
-	}
-	
-	SDL_FreeSurface(SDL_GetVideoSurface());
-	SDL_Quit();
 }
