@@ -28,7 +28,6 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 	for (int i = 0; i < expr.GetSize(); ++i) {
 
 		// brace matching
-		// two variable expressions must be separated
 		char ch = expr[i];
 
 		if (readState == Constant) {
