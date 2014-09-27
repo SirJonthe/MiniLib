@@ -369,25 +369,56 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 		// Set read state
 		if (readState == Constant) {
+
 			if (ech == var) {
-				++exprReader;
 				readState = Variable;
+
 			} else if (ech == esc) {
 				readState = Escape;
+
+			} else {
+
+				if (IsNewl(m_buffer[m_reader])) {
+					while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+						++m_reader;
+					}
+				}
+				if (IsWhite(ech)) {
+					while (exprReader < expr.GetSize() && IsWhite(ech)) {
+						ech = expr[++exprReader];
+					}
+				}
+
+				if (!IsEndOfFile() || m_buffer[m_reader] != ech) {
+					result = ExpressionNotFound;
+				} else {
+
+					if (quoteChar == 0) {
+						if (ech == '\'' || ech == '\"') { // opening quote
+							quoteChar = ech;
+						}
+					} else if (quoteChar == ech) { // closing quote
+						quoteChar = 0;
+					}
+
+				}
+
+				++m_reader;
+				++exprReader;
+
 			}
+
 		}
 
 		// Process a variable
-		if (readState == Variable) {
+		else if (readState == Variable) {
 
 			if (exprReader >= expr.GetSize()) { result = ExpressionInputError; }
 
-			char varType = expr[exprReader];
-
-			switch (varType) {
+			switch (ech) {
 			case 'c': // case sensitivity disabled
 			case 'C': // case sensitivity enabled
-				caseSensitive = (varType == 'C');
+				caseSensitive = (ech == 'C');
 				break;
 
 			case 'i': // Int (broken by delimiter or space)
@@ -440,16 +471,23 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			case 's': // String (Broken by delimiter)
 			{
 				char delimiter = 0;
-				for (int i = exprReader+1; i < expr.GetSize(); ++i) {
-					if (expr[i] == esc) { ++i; continue; }
-					if (!IsWhite(expr[i])) {
+				bool escape = false;
+				bool delimiterFound = false;
+				for (int i = exprReader; i < expr.GetSize(); ++i) {
+					if (!escape && expr[i] == esc) {
+						escape = true;
+						continue;
+					}
+					if (!IsWhite(expr[i]) && (!escape || expr[i] != var)) {
 						delimiter = expr[i];
+						delimiterFound = true;
 						break;
 					}
+					escape = false;
 				}
 
 				mtlChars variable;
-				if (delimiter == 0) {
+				if (!delimiterFound) {
 					variable = mtlChars(m_buffer, m_reader, m_buffer.GetSize());
 					m_reader = m_buffer.GetSize();
 				} else {
@@ -463,6 +501,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				if (quoteChar != '\"' && quoteChar != '\'') {
 					variable.Trim();
 				}
+
+				out.AddLast(variable);
 
 				break;
 			}
@@ -497,38 +537,6 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			++exprReader;
 			readState = Constant;
-		}
-
-		// Process a constant expression
-		else if (readState == Constant) {
-
-			if (IsNewl(m_buffer[m_reader])) {
-				while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
-					++m_reader;
-				}
-			}
-			if (IsWhite(ech)) {
-				while (exprReader < expr.GetSize() && IsWhite(ech)) {
-					ech = expr[++exprReader];
-				}
-			}
-
-			if (!IsEndOfFile() || m_buffer[m_reader] != ech) {
-				result = ExpressionNotFound;
-			} else {
-
-				if (quoteChar == 0) {
-					if (ech == '\'' || ech == '\"') { // opening quote
-						quoteChar = ech;
-					}
-				} else if (quoteChar == ech) { // closing quote
-					quoteChar == 0;
-				}
-
-			}
-
-			++m_reader;
-			++exprReader;
 		}
 
 		else if (readState == Escape) {
