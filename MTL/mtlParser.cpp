@@ -3,8 +3,8 @@
 
 #define mtlOpenBraces	"([{<\'\""
 #define mtlClosedBraces	")]}>\'\""
-#define mtlVariables	"cCifbswln"
-//define mtlVariables "cCifbs_n"
+#define mtlVariables	"cCifbswln_"
+#define mtlWhitespaces	" \t\n\r"
 
 enum mtlReadState
 {
@@ -12,13 +12,6 @@ enum mtlReadState
 	Variable,
 	Escape
 };
-
-void mtlParser::ClearTrailingWhitespaces( void )
-{
-	while (!IsEndOfFile(m_size-1) && IsWhite(m_buffer.GetChars()[m_size-1])) {
-		--m_size;
-	}
-}
 
 mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &expr) const
 {
@@ -75,10 +68,10 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 	return ExpressionValid;
 }
 
-mtlParser::mtlParser( void ) : m_buffer(), m_size(0), m_reader(0)
+mtlParser::mtlParser( void ) : m_buffer(), m_reader(0)
 {}
 
-mtlParser::mtlParser(const mtlChars &p_buffer) : m_buffer(), m_size(0), m_reader(0)
+mtlParser::mtlParser(const mtlChars &p_buffer) : m_buffer(), m_reader(0)
 {
 	SetBuffer(p_buffer);
 }
@@ -86,9 +79,8 @@ mtlParser::mtlParser(const mtlChars &p_buffer) : m_buffer(), m_size(0), m_reader
 void mtlParser::SetBuffer(const mtlChars &p_buffer)
 {
 	m_buffer = p_buffer;
-	m_size = p_buffer.GetSize();
+	m_buffer.Trim();
 	m_reader = 0;
-	ClearTrailingWhitespaces();
 }
 
 bool mtlParser::BufferFile(const mtlDirectory &p_file, mtlString &p_buffer)
@@ -350,6 +342,8 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 
 mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlChars> &out)
 {
+	// implement case sensitivity (I'm not using the case state, only setting it to a value)
+
 	out.RemoveAll();
 
 	if (expr.GetSize() == 0) { return ExpressionFound; }
@@ -377,18 +371,19 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			} else {
 
-				if (IsNewl(m_buffer[m_reader])) {
+				if (quoteChar == 0) {
 					while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
 						++m_reader;
 					}
-				}
-				if (IsWhite(ech)) {
+
 					while (exprReader < expr.GetSize() && IsWhite(ech)) {
 						ech = expr[++exprReader];
 					}
 				}
 
-				if (!IsEndOfFile() || m_buffer[m_reader] != ech) {
+				char bufchar = m_buffer[m_reader++];
+
+				if (IsEndOfFile() || bufchar != ech) {
 					result = ExpressionNotFound;
 				} else {
 
@@ -401,12 +396,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					}
 
 				}
-
-				++m_reader;
-				++exprReader;
-
 			}
-
 		}
 
 		// Process a variable
@@ -425,9 +415,18 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			case 'b': // Bool (broken by delimiter or space)
 			case 'w': // Word (broken by delimiter or space)
 			{
-				char delimiter = (exprReader+1 < expr.GetSize()) ? expr[exprReader+1] : 0;
-				if (delimiter == esc) {
-					delimiter = (exprReader+2 < expr.GetSize()) ? expr[exprReader+2] : 0;
+				bool delimiterFound = false;
+				char delimiter = 0;
+				if (exprReader < expr.GetSize()) {
+					if (expr[exprReader] == esc) {
+						if (exprReader+1 < expr.GetSize()) {
+							delimiter = expr[exprReader+1];
+							delimiterFound = true;
+						}
+					} else {
+						delimiter = expr[exprReader];
+						delimiterFound = true;
+					}
 				}
 				bool isWhite = IsWhite(delimiter);
 
@@ -438,7 +437,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				mtlChars variable(m_buffer, start, m_reader);
 				variable.Trim();
 
-				int ti = 0;;
+				int ti = 0;
 				float fi = 0.0f;
 				bool bi = false;
 
@@ -529,12 +528,22 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				break;
 			}
 
+			case '_':
+			{
+				if (!IsWhite(m_buffer[m_reader])) {
+					result = ExpressionNotFound;
+				} else {
+					while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+						++m_reader;
+					}
+				}
+				break;
+			}
+
 			default:
 				result = ExpressionInputError;
 				break;
 			}
-
-			++exprReader;
 			readState = Constant;
 		}
 
