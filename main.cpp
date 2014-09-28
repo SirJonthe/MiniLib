@@ -197,6 +197,7 @@ void Unit_Directory( void )
 
 void Unit_QuatToMatrix( void )
 {
+	std::cout << "\tTesting quaternion...";
 	mglTransform transform;
 	transform.position = mmlVector<3>(40.0f, 14.0f, 73.0f);
 	transform.rotation.RotateByAxisAngle(mglTransform::globalAxis.up, 14.3f);
@@ -266,7 +267,7 @@ void Unit_MergeLists( void )
 
 void Unit_BinaryTree( void )
 {
-	std::cout << "Testing binary tree...";
+	std::cout << "\tTesting binary tree...";
 	
 	mtlBinaryTree<int> tree;
 	
@@ -285,7 +286,7 @@ void Unit_BinaryTree( void )
 
 void Unit_Expression( void )
 {
-	std::cout << "Testing expression matching...";
+	std::cout << "\tTesting expression matching..." << std::endl;
 
 	mtlString buffer;
 	buffer.Copy("func1 =   { 10, a string, 123.0f } \n\tfunc2 = { [1;2; 3], word }\nsome string = \"  this is a complete string \"\t\n");
@@ -297,25 +298,46 @@ void Unit_Expression( void )
 
 	mtlParser::ExpressionResult result = parser.Match("%s={%i,%s,%f}%n", output);
 	if (result != mtlParser::ExpressionFound) {
-		std::cout << "mismatch (1): " << result << std::endl;
+		std::cout << "\t\tMismatch (1): " << result << std::endl;
 		return;
 	} else {
+		std::cout << "\t\tExpression 1: ";
+		mtlNode<mtlChars> *n = output.GetFirst();
+		while (n != NULL) {
+			std::cout << "\"" << n->GetItem() << "\" ";
+			n = n->GetNext();
+		}
+		std::cout << std::endl;
 	}
 
 	result = parser.Match("%s={[%i,%i,%i],%w}%n", output);
 	if (result != mtlParser::ExpressionFound) {
-		std::cout << "mismatch (2): " << result << std::endl;
+		std::cout << "\t\tMismatch (2): " << result << std::endl;
 		return;
 	} else {
+		std::cout << "\t\tExpression 2: ";
+		mtlNode<mtlChars> *n = output.GetFirst();
+		while (n != NULL) {
+			std::cout << "\"" << n->GetItem() << "\" ";
+			n = n->GetNext();
+		}
+		std::cout << std::endl;
 	}
 
 	result = parser.Match("%s=\"%s\"%n", output);
 	if (result != mtlParser::ExpressionFound) {
-		std::cout << "mismatch (3): " << result << std::endl;
+		std::cout << "\t\tMismatch (3): " << result << std::endl;
 		return;
 	} else {
+		std::cout << "\t\tExpression 3: ";
+		mtlNode<mtlChars> *n = output.GetFirst();
+		while (n != NULL) {
+			std::cout << "\"" << n->GetItem() << "\" ";
+			n = n->GetNext();
+		}
+		std::cout << std::endl;
 	}
 
-	std::cout << "success!" << std::endl;
+	std::cout << "\t\tsuccess!" << std::endl;
 	return;
 }

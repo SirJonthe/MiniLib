@@ -402,7 +402,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 		// Process a variable
 		else if (readState == Variable) {
 
-			if (exprReader >= expr.GetSize()) { result = ExpressionInputError; }
+			if (exprReader > expr.GetSize()) { result = ExpressionInputError; }
 
 			switch (ech) {
 			case 'c': // case sensitivity disabled
@@ -428,10 +428,11 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 						delimiterFound = true;
 					}
 				}
-				bool isWhite = IsWhite(delimiter);
 
 				int start = m_reader;
-				while (!IsEndOfFile() && !IsWhite(m_buffer[m_reader]) && ((!isWhite && m_buffer[m_reader] != delimiter) || (isWhite && !IsWhite(m_buffer[m_reader])))) {
+				// read until delimiter, or if a delimiter does not exist space
+				while (!IsEndOfFile()) {
+					if (delimiterFound && m_buffer[m_reader] == delimiter) { break; }
 					++m_reader;
 				}
 				mtlChars variable(m_buffer, start, m_reader);
