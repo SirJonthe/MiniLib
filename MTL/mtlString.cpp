@@ -53,6 +53,16 @@ void mtlChars::ToLower(char *str, int num)
 	}
 }
 
+void mtlChars::ToUpper(char *str, int num)
+{
+	if (num < 0) { num = mtlChars::GetDynamicSize(str); }
+	for (int i = 0; i < num; ++i) {
+		if (str[i] >= 'a' && str[i] <= 'z') {
+			str[i] -= 'a' - 'A';
+		}
+	}
+}
+
 mtlChars mtlChars::GetSubstring(int p_start, int p_end) const
 {
 	return mtlChars(*this, p_start, p_end);

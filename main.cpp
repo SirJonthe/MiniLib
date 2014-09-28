@@ -192,7 +192,7 @@ void Unit_Directory( void )
 		std::cout << "\t\t\t" << dir10.GetFolders() << " | " << dir10.GetFilename() << " | " << dir10.GetExtension() << std::endl;
 	}
 	
-	std::cout << "\tdone" << std::endl;
+	std::cout << "\t\tdone" << std::endl;
 }
 
 void Unit_QuatToMatrix( void )
@@ -310,7 +310,7 @@ void Unit_Expression( void )
 		std::cout << std::endl;
 	}
 
-	result = parser.Match("%s={[%i,%i,%i],%w}%n", output);
+	result = parser.Match("%s={[%i;%i;%i],%w}%n", output);
 	if (result != mtlParser::ExpressionFound) {
 		std::cout << "\t\tMismatch (2): " << result << std::endl;
 		return;

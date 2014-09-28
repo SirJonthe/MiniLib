@@ -82,6 +82,8 @@ public:
 	bool			JumpToChar(const mtlChars &p_chars);
 	bool			JumpToCharBack(const mtlChars &p_chars);
 
+	void			ConsumeWhitespaces( void );
+
 	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out);
 };
 

@@ -324,6 +324,13 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 	return false;
 }
 
+void mtlParser::ConsumeWhitespaces( void )
+{
+	while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+		++m_reader;
+	}
+}
+
 /*// function = { return %s, %f; } ;
 	// spaces mean there *can* be spaces (space/tab/newline) that separates the types, but there does not have to be
 // function %_= %_{ return %_ %s %_};%n
@@ -372,9 +379,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			} else {
 
 				if (quoteChar == 0) {
-					while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
-						++m_reader;
-					}
+
+					ConsumeWhitespaces();
 
 					while (exprReader < expr.GetSize() && IsWhite(ech)) {
 						ech = expr[++exprReader];
@@ -383,7 +389,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 				char bufchar = m_buffer[m_reader++];
 
-				if (IsEndOfFile() || bufchar != ech) {
+				if (bufchar != ech) {
 					result = ExpressionNotFound;
 				} else {
 
@@ -417,26 +423,30 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			{
 				bool delimiterFound = false;
 				char delimiter = 0;
-				if (exprReader < expr.GetSize()) {
-					if (expr[exprReader] == esc) {
-						if (exprReader+1 < expr.GetSize()) {
-							delimiter = expr[exprReader+1];
-							delimiterFound = true;
-						}
-					} else {
-						delimiter = expr[exprReader];
+				bool escape = false;
+				for (int i = exprReader; i < expr.GetSize() && !delimiterFound; ++i) {
+					// look for a non-white character
+					char ch = expr[i];
+					if (ch == var && !escape) {
+						i += 1;
+					} else if (ch == esc) {
+						escape = true;
+						continue;
+					} else if (!IsWhite(ch)) {
+						delimiter = ch;
 						delimiterFound = true;
 					}
+					escape = false;
 				}
 
-				int start = m_reader;
 				// read until delimiter, or if a delimiter does not exist space
+				ConsumeWhitespaces(); // remove all white spaces prior to word
+				int start = m_reader;
 				while (!IsEndOfFile()) {
-					if (delimiterFound && m_buffer[m_reader] == delimiter) { break; }
+					if ((delimiterFound && m_buffer[m_reader] == delimiter) || IsWhite(m_buffer[m_reader])) { break; }
 					++m_reader;
 				}
 				mtlChars variable(m_buffer, start, m_reader);
-				variable.Trim();
 
 				int ti = 0;
 				float fi = 0.0f;
@@ -469,7 +479,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			case 's': // String (Broken by delimiter)
 			{
-				char delimiter = 0;
+				/*char delimiter = 0;
 				bool escape = false;
 				bool delimiterFound = false;
 				for (int i = exprReader; i < expr.GetSize(); ++i) {
@@ -481,6 +491,24 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 						delimiter = expr[i];
 						delimiterFound = true;
 						break;
+					}
+					escape = false;
+				}*/
+
+				bool delimiterFound = false;
+				char delimiter = 0;
+				bool escape = false;
+				for (int i = exprReader; i < expr.GetSize() && !delimiterFound; ++i) {
+					// look for a non-white character
+					char ch = expr[i];
+					if (ch == var && !escape) {
+						i += 1;
+					} else if (ch == esc) {
+						escape = true;
+						continue;
+					} else if (!IsWhite(ch)) {
+						delimiter = ch;
+						delimiterFound = true;
 					}
 					escape = false;
 				}

@@ -25,8 +25,11 @@ public:
 	template < int t_size >
 	static int				GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
 	static void				ToLower(char *str, int num = -1);
+	static void				ToUpper(char *str, int num = -1);
 	inline static mtlChars	FromDynamic(const char *p_str, int p_size = -1);
 	inline static mtlChars	FromDynamic(const char *p_str, int p_start, int p_end);
+	inline static char		ToLower(char ch);
+	inline static char		ToUpper(char ch);
 public:
 	inline					mtlChars( void );
 	template < int t_size >
@@ -100,6 +103,7 @@ public:
 	void				Copy(const mtlChars &p_str);
 
 	inline void			ToLower( void );
+	inline void			ToUpper( void );
 	inline mtlChars		GetTrimmed( void ) const;
 	inline mtlChars		GetSubstring(int p_start, int p_end = -1) const;
 
@@ -172,6 +176,22 @@ mtlChars mtlChars::FromDynamic(const char *p_str, int p_start, int p_end)
 	mtlChars ch;
 	ch.m_str = p_str + p_start;
 	ch.m_size = p_end - p_start;
+	return ch;
+}
+
+char mtlChars::ToLower(char ch)
+{
+	if (ch >= 'A' && ch <= 'Z') {
+		ch += 'a' - 'A';
+	}
+	return ch;
+}
+
+char mtlChars::ToUpper(char ch)
+{
+	if (ch >= 'a' && ch <= 'z') {
+		ch -= 'a' - 'Z';
+	}
 	return ch;
 }
 
@@ -268,6 +288,11 @@ void mtlString::SetPoolGrowth(int p_growth)
 void mtlString::ToLower( void )
 {
 	mtlChars::ToLower(m_str, m_size);
+}
+
+void mtlString::ToUpper( void )
+{
+	mtlChars::ToUpper(m_str, m_size);
 }
 
 mtlChars mtlString::GetTrimmed( void ) const
