@@ -389,7 +389,9 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 				char bufchar = m_buffer[m_reader++];
 
-				if (bufchar != ech) {
+				if (caseSensitive && bufchar != ech) {
+					result = ExpressionNotFound;
+				} else if (!caseSensitive && mtlChars::ToLower(bufchar) != mtlChars::ToLower(ech)) {
 					result = ExpressionNotFound;
 				} else {
 

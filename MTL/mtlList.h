@@ -3,27 +3,26 @@
 
 #include <cstddef>
 
-// put mtlNode inside mtlList
-// add Merge sort
-// Insert
-
 template < typename type_t > class mtlList;
 
 template < typename type_t >
 class mtlNode
 {
 	friend class mtlList<type_t>;
+
 private:
 	type_t			m_item;
 	mtlList<type_t>	*m_parent;
 	mtlNode<type_t>	*m_next;
 	mtlNode<type_t>	*m_prev;
+
 private:
 					mtlNode( void ); // not allowed to create stack instance
 					mtlNode(const mtlNode<type_t>&) {}
 	mtlNode<type_t>	&operator=(const mtlNode<type_t>&) { return *this; }
 					mtlNode(const type_t &p_item, mtlList<type_t> *p_parent, mtlNode<type_t> *p_next, mtlNode<type_t> *p_prev);
 					~mtlNode( void );
+
 public:
 	inline explicit					mtlNode(const type_t &p_item);
 	inline const mtlList<type_t>	*GetParent( void ) const;
@@ -48,6 +47,7 @@ private:
 private:
 					mtlList(const mtlList<type_t>&) {}
 	mtlList<type_t>	&operator=(const mtlList<type_t>&) { return *this; }
+
 public:
 	inline							mtlList( void );
 	inline							~mtlList( void );
@@ -59,6 +59,9 @@ public:
 	void							RemoveFirst( void );
 	mtlNode<type_t>					*Insert(const type_t &p_value, mtlNode<type_t> *p_node);
 	mtlNode<type_t>					*Insert(mtlList<type_t> &p_list, mtlNode<type_t> *p_node);
+	mtlNode<type_t>					*Insert(mtlNode<type_t> *p_item, mtlNode<type_t> *p_node);
+	mtlNode<type_t>					*InsertSort(const type_t &p_value);
+	mtlNode<type_t>					*InsertSort(mtlNode<type_t> *p_node);
 	mtlNode<type_t>					*Remove(mtlNode<type_t> *p_node);
 	void							Split(mtlNode<type_t> *p_begin, int p_num, mtlList<type_t> &p_out);
 	static void						Swap(mtlNode<type_t> *p_a, mtlNode<type_t> *p_b);
@@ -272,6 +275,34 @@ mtlNode<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlNode<type_t
 }
 
 template < typename type_t >
+mtlNode<type_t> *mtlList<type_t>::Insert(mtlNode<type_t> *p_item, mtlNode<type_t> *p_node)
+{
+	mtlList<type_t> out;
+	p_item->GetParent()->Split(p_item, 1, out);
+	return Insert(out, p_node);
+}
+
+template < typename type_t >
+mtlNode<type_t> *mtlList<type_t>::InsertSort(const type_t &p_value)
+{
+	mtlNode<type_t> *node = m_root;
+	while (node != NULL && node->m_item < p_value) {
+		node = node->m_next;
+	}
+	return Insert(p_value, node);
+}
+
+template < typename type_t >
+mtlNode<type_t> *mtlList<type_t>::InsertSort(mtlNode<type_t> *p_node)
+{
+	mtlNode<type_t> *node = m_root;
+	while (node != NULL && node->m_item < p_node->m_item) {
+		node = node->GetNext();
+	}
+	return Insert(node, p_node);
+}
+
+template < typename type_t >
 mtlNode<type_t> *mtlList<type_t>::Remove(mtlNode<type_t> *p_node)
 {
 	if (p_node->m_parent != this) { return NULL; }
@@ -297,7 +328,7 @@ void mtlList<type_t>::Split(mtlNode<type_t> *p_begin, int p_num, mtlList<type_t>
 		end->m_parent = &p_out;
 	}
 	
-	p_out.Free();
+	p_out.RemoveAll();
 
 	p_out.m_first = p_begin;
 	p_out.m_last = end;
