@@ -285,7 +285,7 @@ mtlNode<type_t> *mtlList<type_t>::Insert(mtlNode<type_t> *p_item, mtlNode<type_t
 template < typename type_t >
 mtlNode<type_t> *mtlList<type_t>::InsertSort(const type_t &p_value)
 {
-	mtlNode<type_t> *node = m_root;
+	mtlNode<type_t> *node = m_first;
 	while (node != NULL && node->m_item < p_value) {
 		node = node->m_next;
 	}
@@ -295,7 +295,7 @@ mtlNode<type_t> *mtlList<type_t>::InsertSort(const type_t &p_value)
 template < typename type_t >
 mtlNode<type_t> *mtlList<type_t>::InsertSort(mtlNode<type_t> *p_node)
 {
-	mtlNode<type_t> *node = m_root;
+	mtlNode<type_t> *node = m_first;
 	while (node != NULL && node->m_item < p_node->m_item) {
 		node = node->GetNext();
 	}

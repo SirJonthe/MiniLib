@@ -5,9 +5,6 @@
 #include "mtlList.h"
 
 class mtlString;
-//class mtlSubstring;
-
-// Merge mtlChars and mtlSubstring to mtlChars?
 
 class mtlChars
 {
@@ -78,6 +75,7 @@ private:
 	int		m_size;
 	int		m_pool;
 	int		m_growth;
+	
 private:
 				mtlString(const mtlString&) {}
 	mtlString	&operator=(const mtlString&) { return *this; }
@@ -85,6 +83,7 @@ private:
 	char		*NewPool(int p_size);
 	void		NewPoolDelete(int p_size);
 	void		NewPoolPreserve(int p_size);
+	
 public:
 	inline				mtlString( void );
 	inline explicit		mtlString(const mtlChars &p_str);

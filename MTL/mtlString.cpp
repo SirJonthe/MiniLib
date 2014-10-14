@@ -347,16 +347,16 @@ void mtlString::NewPoolPreserve(int p_size)
 		for (int i = 0; i < m_size; ++i) {
 			newPool[i] = m_str[i];
 		}
-		newPool[m_size] = '\0';
 		delete [] m_str;
 		m_str = newPool;
 	}
+	m_str[p_size] = '\0';
 }
 
 void mtlString::SetSize(int p_size)
 {
 	NewPoolPreserve(p_size);
-	m_size = p_size;
+	m_size = p_size >= 0 ? p_size : 0;
 }
 
 void mtlString::Insert(const mtlChars &p_str, int p_at)
