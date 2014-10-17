@@ -44,9 +44,10 @@ private:
 	mtlStringMap<float>	m_constants;
 
 private:
-	bool	IsTermBalanced( void ) const;
-	bool	IsBraceBalanced( void ) const;
 	void	SanitizeExpression( void );
+	bool	IsBraceBalanced( void ) const;
+	bool	IsTermBalanced( void ) const;
+	bool	IsLegalChars( void ) const;
 	void	DestroyTermTree(TermNode *node);
 	void	GenerateTermTree(TermNode *& node, const mtlChars &expression);
 	int		FindOperation(const mtlChars &operation, const mtlChars &expression) const;

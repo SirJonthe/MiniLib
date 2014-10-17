@@ -49,10 +49,18 @@ mtlExpression::~mtlExpression( void )
 	DestroyTermTree(m_root);
 }
 
-bool mtlExpression::IsTermBalanced( void ) const
+void mtlExpression::SanitizeExpression( void )
 {
-	// check so that each term has an operation and two operands
-	return true;
+	int skipped = 0;
+	for (int i = 0; i < m_expression.GetSize(); ++i) {
+		char ch = m_expression.GetChars()[i];
+		if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
+			++skipped;
+		} else {
+			m_expression.GetChars()[i - skipped] = ch;
+		}
+	}
+	m_expression.SetSize(m_expression.GetSize() - skipped);
 }
 
 bool mtlExpression::IsBraceBalanced( void ) const
@@ -73,18 +81,21 @@ bool mtlExpression::IsBraceBalanced( void ) const
 	return stack == 0;
 }
 
-void mtlExpression::SanitizeExpression( void )
+bool mtlExpression::IsTermBalanced( void ) const
 {
-	int skipped = 0;
+	// check so that each term has an operation and two operands
+	return true;
+}
+
+bool mtlExpression::IsLegalChars( void ) const
+{
 	for (int i = 0; i < m_expression.GetSize(); ++i) {
 		char ch = m_expression.GetChars()[i];
-		if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
-			++skipped;
-		} else {
-			m_expression.GetChars()[i - skipped] = ch;
+		if (!mtlChars::IsAlphanumeric(ch) && ch != '_' && ch != '(' && ch != ')' && !mtlChars::IsMath(ch)) {
+			return false;
 		}
 	}
-	m_expression.SetSize(m_expression.GetSize() - skipped);
+	return true;
 }
 
 void mtlExpression::DestroyTermTree(mtlExpression::TermNode *node)
@@ -188,14 +199,18 @@ float mtlExpression::GetConstant(const mtlChars &name) const
 
 bool mtlExpression::SetExpression(const mtlChars &expression)
 {
+	DestroyTermTree(m_root);
+
 	m_expression.Copy(expression);
 	SanitizeExpression();
-	bool retVal = IsBraceBalanced() && IsTermBalanced();
+
+	bool retVal = IsBraceBalanced() && IsTermBalanced() && IsLegalChars();
 	if (!retVal) {
 		m_expression.Free();
+	} else {
+		GenerateTermTree(m_root, m_expression);
 	}
-	DestroyTermTree(m_root);
-	GenerateTermTree(m_root, m_expression);
+
 	return retVal;
 }
 

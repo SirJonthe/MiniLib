@@ -7,9 +7,17 @@ typedef unsigned long long TypeID;
 
 class mtlBase
 {
+protected:
+	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() != id); }
+
 public:
 	static TypeID GetClassType( void ) { return 0; }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
+
+	virtual bool IsClass(TypeID id) const { return IsClassNonVirtual(id); }
+	bool IsClass(const mtlBase &base) const { return IsClass(base.GetInstanceType()); }
+	template < typename other_t >
+	bool IsClass( void ) const { return IsClass(other_t::GetClassType()); }
 };
 
 //
@@ -34,14 +42,17 @@ private:
 	// &mtlInherit<someClass, child1>::m_typeAddress == &mtlInherit<someClass, child2>::m_typeAddress
 	static type_t *m_typeAddress;
 
+protected:
+	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() != id) ? base_t::IsClassNonVirtual(id) : true; }
+
 public:
+
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	static TypeID GetParentClassType( void ) { return base_t::GetClassType(); }
-	virtual TypeID GetParentInstanceType( void ) const { return base_t::GetInstanceType(); }
+	virtual bool IsClass(TypeID id) const { return (GetInstanceType() != id) ? base_t::IsClassNonVirtual(id) : true; }
 };
 
-template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL;
+template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL; // we don't care about initialization order since we are not interested in it's value
 
 #endif
