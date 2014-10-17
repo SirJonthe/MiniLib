@@ -102,17 +102,16 @@ void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		return;
 	}
 	
-	char operations[] = {
-		'+', '-', '*', '/', '^'
+	static const int OperationClasses = 3;
+	static const char *Operations[OperationClasses] = {
+		"+-", "*/", "^"
 	};
 	
 	int opIndex = -1;
-	char op;
 	
-	for (int i = 0; i < sizeof(operations); ++i) {
-		opIndex = FindOperation(operations[i], expression);
+	for (int i = 0; i < OperationClasses; ++i) {
+		opIndex = FindOperation(mtlChars::FromDynamic(Operations[i]), expression);
 		if (opIndex != -1) {
-			op = operations[i];
 			break;
 		}
 	}
@@ -120,7 +119,7 @@ void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	if (opIndex != -1) {
 		
 		OperationNode *opNode = new OperationNode;
-		opNode->operation = op;
+		opNode->operation = expression[opIndex];
 		opNode->left = NULL;
 		opNode->right = NULL;
 		
@@ -149,7 +148,7 @@ void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	}
 }
 
-int mtlExpression::FindOperation(char operation, const mtlChars &expression) const
+int mtlExpression::FindOperation(const mtlChars &operations, const mtlChars &expression) const
 {
 	int braceStack = 0;
 	for (int i = 0; i < expression.GetSize(); ++i) {
@@ -158,7 +157,7 @@ int mtlExpression::FindOperation(char operation, const mtlChars &expression) con
 			++braceStack;
 		} else if (ch == ')') {
 			--braceStack;
-		} else if (braceStack == 0 && ch == operation) { // contents of parenthesis are not parsed
+		} else if (braceStack == 0 && operations.SameAsAny(ch)) { // contents of parenthesis are not parsed
 			return i;
 		}
 	}

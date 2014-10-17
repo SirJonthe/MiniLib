@@ -49,7 +49,7 @@ private:
 	void	SanitizeExpression( void );
 	void	DestroyTermTree(TermNode *node);
 	void	GenerateTermTree(TermNode *& node, const mtlChars &expression);
-	int		FindOperation(char operation, const mtlChars &expression) const;
+	int		FindOperation(const mtlChars &operation, const mtlChars &expression) const;
 	
 public:
 					mtlExpression( void );
