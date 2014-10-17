@@ -8,7 +8,7 @@ typedef unsigned long long TypeID;
 class mtlBase
 {
 protected:
-	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() != id); }
+	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() == id); }
 
 public:
 	static TypeID GetClassType( void ) { return 0; }
@@ -50,7 +50,10 @@ public:
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	virtual bool IsClass(TypeID id) const { return (GetInstanceType() != id) ? base_t::IsClassNonVirtual(id) : true; }
+	virtual bool IsClass(TypeID id) const { return IsClassNonVirtual(id); }
+	bool IsClass(const mtlBase &base) const { return IsClass(base.GetInstanceType()); }
+	template < typename other_t >
+	bool IsClass( void ) const { return IsClass(other_t::GetClassType()); }
 };
 
 template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL; // we don't care about initialization order since we are not interested in it's value
