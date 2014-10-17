@@ -1,5 +1,6 @@
 #include "MTL/mtlBinaryTree.h"
 #include "MTL/mtlParser.h"
+#include "MTL/mtlExpression.h"
 
 #include "MGL/mglCamera.h"
 #include "MGL/mglFramebuffer.h"
@@ -18,6 +19,7 @@ void Unit_QuatToMatrix( void );
 void Unit_MergeLists( void );
 void Unit_BinaryTree( void );
 void Unit_Expression( void );
+void Unit_MathExpression( void );
 
 std::ostream &operator<<(std::ostream &out, const mtlString &str)
 {
@@ -45,7 +47,6 @@ std::ostream &operator<<(std::ostream &out, const mtlChars &str)
 // TODO: Model renders itself, uses renderer interface - PROBLEM: how to render stencil shadows? Separate rendering function?
 // TODO: Texture and Model need virtual API interface functions
 // TODO: Fix mtlString::Append()
-// TODO: Make mtlParser more powerful (see header)
 
 // BUG: mtlString::Insert does not work when appending, does it work for other cases?
 // BUG: mtlString::Overwrite fails to write a larger string than is already available
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
 	Unit_MergeLists();
 	Unit_BinaryTree();
 	Unit_Expression();
+	Unit_MathExpression();
 	std::cout << "completed" << std::endl;
 
 	return 0;
@@ -340,4 +342,13 @@ void Unit_Expression( void )
 
 	std::cout << "\t\tsuccess!" << std::endl;
 	return;
+}
+
+void Unit_MathExpression( void )
+{
+	std::cout << "Unit_MathExpression...";
+	mtlExpression expr;
+	expr.SetConstant("Pi", 3.14159f);
+	expr.SetExpression("(0+1)*Pi");
+	std::cout << expr.GetExpression() << " = " << expr.Evaluate() << std::endl;
 }

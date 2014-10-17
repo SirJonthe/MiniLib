@@ -11,9 +11,11 @@ class mtlChars
 private:
 	const char	*m_str;
 	int			m_size;
+
 private:
 	static int				GetSizeActual(int stringSize, int targetSize = -1) { return (targetSize < 0 || targetSize > stringSize) ? stringSize : targetSize; }
 	static int				GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
+
 public:
 	static bool				SameAsAny(char a, const char *b, int num = -1);
 	static int				SameAsWhich(char a, const char *b, int num = -1);
@@ -27,6 +29,10 @@ public:
 	inline static mtlChars	FromDynamic(const char *p_str, int p_start, int p_end);
 	inline static char		ToLower(char ch);
 	inline static char		ToUpper(char ch);
+	inline static bool		IsAlpha(char ch);
+	inline static bool		IsNumeric(char ch);
+	inline static bool		IsAlphanumeric(char ch);
+
 public:
 	inline					mtlChars( void );
 	template < int t_size >
@@ -64,6 +70,8 @@ public:
 	inline char				operator[](int i) const;
 
 	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
+	inline bool				SameAsAny(char ch) const;
+	inline int				SameAsWhich(char ch) const;
 	inline bool				operator==(const mtlChars &str) const;
 	inline bool				operator!=(const mtlChars &str) const;
 };
@@ -194,6 +202,21 @@ char mtlChars::ToUpper(char ch)
 	return ch;
 }
 
+bool mtlChars::IsAlpha(char ch)
+{
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+}
+
+bool mtlChars::IsNumeric(char ch)
+{
+	return (ch >= '0' && ch <= '9');
+}
+
+bool mtlChars::IsAlphanumeric(char ch)
+{
+	return IsAlpha(ch) || IsNumeric(ch);
+}
+
 mtlChars::mtlChars( void ) :
 	m_str(NULL), m_size(0)
 {}
@@ -247,6 +270,16 @@ bool mtlChars::IsNull( void ) const
 char mtlChars::operator[](int i) const
 {
 	return m_str[i];
+}
+
+bool mtlChars::SameAsAny(char ch) const
+{
+	return SameAsAny(ch, m_str, m_size);
+}
+
+int mtlChars::SameAsWhich(char ch) const
+{
+	return SameAsWhich(ch, m_str, m_size);
 }
 
 bool mtlChars::operator==(const mtlChars &p_str) const

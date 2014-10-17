@@ -117,7 +117,7 @@ void mtlStringMap<type_t>::RemoveAll( void )
 template < typename type_t >
 const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
 {
-	mtlBranch<HashNode> *b = GetNode(name);
+	const mtlBranch<HashNode> *b = GetNode(name);
 	if (b == NULL) { return NULL; }
     typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 	while (n != NULL) {
