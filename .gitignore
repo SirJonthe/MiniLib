@@ -12,3 +12,5 @@
 *.pro.user
 *.pro
 
+# Specific files
+main.cpp
