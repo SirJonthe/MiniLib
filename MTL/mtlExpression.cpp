@@ -81,12 +81,6 @@ bool mtlExpression::IsBraceBalanced( void ) const
 	return stack == 0;
 }
 
-bool mtlExpression::IsTermBalanced( void ) const
-{
-	// check so that each term has an operation and two operands
-	return true;
-}
-
 bool mtlExpression::IsLegalChars( void ) const
 {
 	for (int i = 0; i < m_expression.GetSize(); ++i) {
@@ -106,13 +100,14 @@ void mtlExpression::DestroyTermTree(mtlExpression::TermNode *node)
 	delete node;
 }
 
-void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlChars &expression)
+bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlChars &expression)
 {
 	if (expression.GetSize() == 0) {
 		node = NULL;
-		return;
+		return false;
 	}
 	
+	bool retval = true;
 	static const int OperationClasses = 3;
 	static const char *Operations[OperationClasses] = {
 		"+-", "*/", "^"
@@ -137,13 +132,12 @@ void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		mtlChars lexpr = mtlChars(expression, 0, opIndex);
 		mtlChars rexpr = mtlChars(expression, opIndex + 1, expression.GetSize());
 		
-		GenerateTermTree(opNode->left, lexpr);
-		GenerateTermTree(opNode->right, rexpr);
+		retval = GenerateTermTree(opNode->left, lexpr) && GenerateTermTree(opNode->right, rexpr);
 
 		node = opNode;
 	} else if (expression.GetChars()[0] == '(' && expression.GetChars()[expression.GetSize() - 1] == ')') {
 		
-		GenerateTermTree(node, mtlChars(expression, 1, expression.GetSize() - 1));
+		retval = GenerateTermTree(node, mtlChars(expression, 1, expression.GetSize() - 1));
 		
 	} else { // STOPPING CONDITION
 		
@@ -152,11 +146,17 @@ void mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		valNode->right = NULL;
 		valNode->value = 0.0f;
 		if (!expression.ToFloat(valNode->value)) {
-			valNode->value = GetConstant(expression);
+			const float *constant = m_constants.GetEntry(expression);
+			if (constant != NULL) {
+				valNode->value = *constant;
+			} else {
+				retval = false;
+			}
 		}
 		node = valNode;
 	
 	}
+	return retval;
 }
 
 int mtlExpression::FindOperation(const mtlChars &operations, const mtlChars &expression) const
@@ -204,11 +204,11 @@ bool mtlExpression::SetExpression(const mtlChars &expression)
 	m_expression.Copy(expression);
 	SanitizeExpression();
 
-	bool retVal = IsBraceBalanced() && IsTermBalanced() && IsLegalChars();
+	bool retVal = IsBraceBalanced() && IsLegalChars() && GenerateTermTree(m_root, m_expression);
 	if (!retVal) {
 		m_expression.Free();
-	} else {
-		GenerateTermTree(m_root, m_expression);
+		DestroyTermTree(m_root);
+		m_root = NULL;
 	}
 
 	return retVal;
