@@ -264,6 +264,16 @@ void mtlBinaryTree<type_t>::ToListReversed(mtlList<type_t> &list) const
 template < typename type_t >
 mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 {
+	// POSSIBLE BUG:
+		// If a node that I am removing has two children, and I pick the largest smallest value of the right
+		// tree to insert in its place, what happens if the right tree is empty?
+		// Regardless, this promotes unbalanced trees.
+	// POSSIBLE SOLUTION:
+		// Randomize where we pick insertion nodes from. If selected tree is empty, pick the other one.
+		// Alternate where we pick insertion nodes from. If selected tree is empty, pick the other one.
+		// Calculate sizes of subtrees and pick the largest one.
+		// If both trees are empty, delete node (and set it to NULL) and return NULL
+
 	if (node->m_tree != this) { return NULL; }
 
 	// return the address of the node that assumes this place
