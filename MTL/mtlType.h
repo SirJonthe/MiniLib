@@ -8,16 +8,21 @@ typedef unsigned long long TypeID;
 class mtlBase
 {
 protected:
-	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() == id); }
+	static bool IsType(TypeID id) { return (GetClassType() == id); }
 
 public:
 	static TypeID GetClassType( void ) { return 0; }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	virtual bool IsClass(TypeID id) const { return IsClassNonVirtual(id); }
-	bool IsClass(const mtlBase &base) const { return IsClass(base.GetInstanceType()); }
+	virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
+	bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
 	template < typename other_t >
-	bool IsClass( void ) const { return IsClass(other_t::GetClassType()); }
+	bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
+
+	static bool IsClassType(TypeID id) { return IsType(id); }
+	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }
+	template < typename other_t >
+	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
 };
 
 //
@@ -43,17 +48,21 @@ private:
 	static type_t *m_typeAddress;
 
 protected:
-	bool IsClassNonVirtual(TypeID id) const { return (GetClassType() != id) ? base_t::IsClassNonVirtual(id) : true; }
+	static bool IsType(TypeID id) { return (GetClassType() != id) ? base_t::IsType(id) : true; }
 
 public:
-
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	virtual bool IsClass(TypeID id) const { return IsClassNonVirtual(id); }
-	bool IsClass(const mtlBase &base) const { return IsClass(base.GetInstanceType()); }
+	virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
+	bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
 	template < typename other_t >
-	bool IsClass( void ) const { return IsClass(other_t::GetClassType()); }
+	bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
+
+	static bool IsClassType(TypeID id) { return IsType(id); }
+	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }
+	template < typename other_t >
+	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
 };
 
 template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL; // we don't care about initialization order since we are not interested in it's value

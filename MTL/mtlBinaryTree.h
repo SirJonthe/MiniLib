@@ -14,8 +14,8 @@ private:
 	type_t					m_item;
 	mtlBinaryTree<type_t>	*m_tree;
 	mtlBranch<type_t>		*m_parent;
-	mtlBranch<type_t>		*m_positive;
-	mtlBranch<type_t>		*m_negative;
+	mtlBranch<type_t>		*m_right;
+	mtlBranch<type_t>		*m_left;
 private:
 	mtlBranch(const type_t &item, mtlBranch<type_t> *parent, mtlBinaryTree<type_t> *tree);
 	mtlBranch( void ) {}
@@ -35,10 +35,10 @@ public:
 	const type_t			&GetItem( void ) const { return m_item; }
 	const mtlBranch<type_t>	*GetParent( void ) const { return m_parent; }
 	mtlBranch<type_t>		*GetParent( void ) { return m_parent; }
-	const mtlBranch<type_t>	*GetPositive( void ) const { return m_positive; }
-	mtlBranch<type_t>		*GetPositive( void ) { return m_positive; }
-	const mtlBranch<type_t>	*GetNegative( void ) const { return m_negative; }
-	mtlBranch<type_t>		*GetNegative( void ) { return m_negative; }
+	const mtlBranch<type_t>	*GetRight( void ) const { return m_right; }
+	mtlBranch<type_t>		*GetRight( void ) { return m_right; }
+	const mtlBranch<type_t>	*GetLeft( void ) const { return m_left; }
+	mtlBranch<type_t>		*GetLeft( void ) { return m_left; }
 	int						GetDepth( void ) const { return GetDepth(this, 0); }
 	int						GetHeight( void ) const { return GetHeight(this, 0); }
 	template < typename compare_t >
@@ -59,7 +59,7 @@ public:
 
 template < typename type_t >
 mtlBranch<type_t>::mtlBranch(const type_t &item, mtlBranch<type_t> *parent, mtlBinaryTree<type_t> *tree) :
-m_item(item), m_tree(tree), m_parent(parent), m_positive(NULL), m_negative(NULL)
+m_item(item), m_tree(tree), m_parent(parent), m_right(NULL), m_left(NULL)
 {}
 
 template < typename type_t >
@@ -73,8 +73,8 @@ template < typename type_t >
 int mtlBranch<type_t>::GetHeight(const mtlBranch<type_t> *node, int currentHeight) const
 {
 	if (node == NULL) { return currentHeight; }
-	const int pos = GetHeight(node->m_positive, currentHeight + 1);
-	const int neg = GetHeight(node->m_negative, currentHeight + 1);
+	const int pos = GetHeight(node->m_right, currentHeight + 1);
+	const int neg = GetHeight(node->m_left, currentHeight + 1);
 	return (pos > neg) ? pos : neg;
 }
 
@@ -84,9 +84,9 @@ const mtlBranch<type_t> *mtlBranch<type_t>::Find(const mtlBranch<type_t> *node, 
 {
 	if (node->m_item == item) { return node; }
 	if (node->m_item > item) {
-		if (node->m_negative != NULL) { return Find(node->m_negative, item, closest); }
+		if (node->m_left != NULL) { return Find(node->m_left, item, closest); }
 	} else {
-		if (node->m_positive != NULL) { return Find(node->m_positive, item, closest); }
+		if (node->m_right != NULL) { return Find(node->m_right, item, closest); }
 	}
 	return closest ? node : NULL;
 }
@@ -97,9 +97,9 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 {
 	if (node->m_item == item) { return node; }
 	if (node->m_item > item) {
-		if (node->m_negative != NULL) { return Find(node->m_negative, item, closest); }
+		if (node->m_left != NULL) { return Find(node->m_left, item, closest); }
 	} else {
-		if (node->m_positive != NULL) { return Find(node->m_positive, item, closest); }
+		if (node->m_right != NULL) { return Find(node->m_right, item, closest); }
 	}
 	return closest ? node : NULL;
 }
@@ -108,36 +108,36 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 template < typename type_t >
 const mtlBranch<type_t> *mtlBranch<type_t>::FindMin(const mtlBranch<type_t> *node) const
 {
-	if (node->m_negative == NULL) { return this; }
-	return FindMin(node->m_negative);
+	if (node->m_left == NULL) { return this; }
+	return FindMin(node->m_left);
 }
 
 template < typename type_t >
 mtlBranch<type_t> *mtlBranch<type_t>::FindMin(mtlBranch<type_t> *node)
 {
-	if (node->m_negative == NULL) { return this; }
-	return FindMin(node->m_negative);
+	if (node->m_left == NULL) { return this; }
+	return FindMin(node->m_left);
 }
 
 template < typename type_t >
 const mtlBranch<type_t> *mtlBranch<type_t>::FindMax(const mtlBranch<type_t> *node) const
 {
-	if (node->m_positive == NULL) { return this; }
-	return FindMax(node->m_positive);
+	if (node->m_right == NULL) { return this; }
+	return FindMax(node->m_right);
 }
 
 template < typename type_t >
 mtlBranch<type_t> *mtlBranch<type_t>::FindMax(mtlBranch<type_t> *node)
 {
-	if (node->m_positive == NULL) { return this; }
-	return FindMax(node->m_positive);
+	if (node->m_right == NULL) { return this; }
+	return FindMax(node->m_right);
 }
 
 // Find	a more efficient way of traversing...
 template < typename type_t >
 bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference) const
 {
-	return node == NULL || (IsBalanced(node->m_negative) && IsBalanced(node->m_positive) && (abs(GetHeight(node->m_negative, 0) - GetHeight(node->m_positive, 0)) <= permittedDifference));
+	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
 }
 
 template < typename type_t >
@@ -182,31 +182,31 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Insert(mtlBranch<type_t> *parent, mtlB
 		return node;
 	}
 	if (node->m_item == item) { return node; }
-	if (node->m_item > item) { return Insert(node, node->m_negative, item); }
-	return Insert(node, node->m_positive, item);
+	if (node->m_item > item) { return Insert(node, node->m_left, item); }
+	return Insert(node, node->m_right, item);
 }
 
 template < typename type_t >
 void mtlBinaryTree<type_t>::ToList(mtlList<type_t> &list, const mtlBranch<type_t> *node) const
 {
-	if (node->m_negative != NULL) {
-		ToList(list, node->m_negative);
+	if (node->m_left != NULL) {
+		ToList(list, node->m_left);
 	}
 	list.AddBack(node->m_item);
-	if (node->m_positive != NULL) {
-		ToList(list, node->m_positive);
+	if (node->m_right != NULL) {
+		ToList(list, node->m_right);
 	}
 }
 
 template < typename type_t >
 void mtlBinaryTree<type_t>::ToListReversed(mtlList<type_t> &list, const mtlBranch<type_t> *node) const
 {
-	if (node->m_positive != NULL) {
-		ToList(list, node->m_positive);
+	if (node->m_right != NULL) {
+		ToList(list, node->m_right);
 	}
 	list.AddBack(node->m_item);
-	if (node->m_negative != NULL) {
-		ToList(list, node->m_negative);
+	if (node->m_left != NULL) {
+		ToList(list, node->m_left);
 	}
 }
 
@@ -214,8 +214,8 @@ template < typename type_t >
 void mtlBinaryTree<type_t>::Delete(mtlBranch<type_t> *node)
 {
 	if (node != NULL) {
-		Delete(node->m_negative);
-		Delete(node->m_positive);
+		Delete(node->m_left);
+		Delete(node->m_right);
 		delete node;
 	}
 }
@@ -264,51 +264,46 @@ void mtlBinaryTree<type_t>::ToListReversed(mtlList<type_t> &list) const
 template < typename type_t >
 mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 {
-	// POSSIBLE BUG:
-		// If a node that I am removing has two children, and I pick the largest smallest value of the right
-		// tree to insert in its place, what happens if the right tree is empty?
-		// Regardless, this promotes unbalanced trees.
-	// POSSIBLE SOLUTION:
-		// Randomize where we pick insertion nodes from. If selected tree is empty, pick the other one.
-		// Alternate where we pick insertion nodes from. If selected tree is empty, pick the other one.
-		// Calculate sizes of subtrees and pick the largest one.
-		// If both trees are empty, delete node (and set it to NULL) and return NULL
-
-	if (node->m_tree != this) { return NULL; }
+	if (node == NULL || node->m_tree != this) { return NULL; }
 
 	// return the address of the node that assumes this place
 	mtlBranch<type_t> *returnBranch = NULL;
 	mtlBranch<type_t> **nodePointer = NULL;
 	if (node->m_parent != NULL) {
-		if (node->m_parent->m_negative == node) {
-			nodePointer = &node->m_parent->m_negative;
+		if (node->m_parent->m_left == node) {
+			nodePointer = &node->m_parent->m_left;
 		} else {
-			nodePointer = &node->m_parent->m_positive;
+			nodePointer = &node->m_parent->m_right;
 		}
 	}
 
-	if (node->m_negative == NULL) {
-		if (node->m_positive == NULL) {
+	if (node->m_left == NULL) {
+		if (node->m_right == NULL) {
 			returnBranch = NULL;
 		} else {
-			returnBranch = node->m_negative;
+			returnBranch = node->m_left;
 		}
-	} else if (node->m_positive == NULL) {
-		returnBranch = node->m_positive;
-	} else {
-		returnBranch = node->m_positive->FindMin();
+	} else if (node->m_right == NULL) {
+		returnBranch = node->m_right;
+	} else { // positive and negative are guaranteed to be non-null
+		// based on the address of the node, pick a subtree to remove from (don't use LSB as it is unlikely to be 1)
+		if ((node & (1<<4))) {
+			returnBranch = node->m_right->FindMin();
+		} else {
+			returnBranch = node->m_left->FindMax();
+		}
 
 		if (returnBranch->m_parent != node) {
 			// only the smallest node's positive side may be non-null (otherwise it would not be smallest)
-			if (returnBranch->m_parent->m_negative == returnBranch) { // parent will never be null
-				returnBranch->m_parent->m_negative = returnBranch->m_positive;
+			if (returnBranch->m_parent->m_left == returnBranch) { // parent will never be null
+				returnBranch->m_parent->m_left = returnBranch->m_right;
 			} else {
-				returnBranch->m_parent->m_positive = returnBranch->m_positive;
+				returnBranch->m_parent->m_right = returnBranch->m_right;
 			}
 		}
 
-		returnBranch->m_negative = node->m_negative;
-		returnBranch->m_positive = node->m_positive;
+		returnBranch->m_left = node->m_left;
+		returnBranch->m_right = node->m_right;
 	}
 
 	if(returnBranch != NULL) {
