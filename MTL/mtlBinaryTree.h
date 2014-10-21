@@ -170,6 +170,7 @@ public:
 	void					ToList(mtlList<type_t> &list) const;
 	void					ToListReversed(mtlList<type_t> &list) const;
 	mtlBranch<type_t>		*Remove(mtlBranch<type_t> *node);
+	bool					IsEmpty( void ) const;
 	// rebalance
 };
 
@@ -287,7 +288,7 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 		returnBranch = node->m_right;
 	} else { // positive and negative are guaranteed to be non-null
 		// based on the address of the node, pick a subtree to remove from (don't use LSB as it is unlikely to be 1)
-		if ((node & (1<<4))) {
+		if (((unsigned long long)node & (1<<4))) {
 			returnBranch = node->m_right->FindMin();
 		} else {
 			returnBranch = node->m_left->FindMax();
@@ -317,6 +318,12 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 	}
 	delete node;
 	return returnBranch;
+}
+
+template < typename type_t >
+bool mtlBinaryTree<type_t>::IsEmpty( void ) const
+{
+	return m_root == NULL;
 }
 
 #endif
