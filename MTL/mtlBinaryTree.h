@@ -16,6 +16,7 @@ private:
 	mtlBranch<type_t>		*m_parent;
 	mtlBranch<type_t>		*m_right;
 	mtlBranch<type_t>		*m_left;
+
 private:
 	mtlBranch(const type_t &item, mtlBranch<type_t> *parent, mtlBinaryTree<type_t> *tree);
 	mtlBranch( void ) {}
@@ -31,6 +32,7 @@ private:
 	const mtlBranch<type_t>	*FindMax(const mtlBranch<type_t> *node) const;
 	mtlBranch<type_t>		*FindMax(mtlBranch<type_t> *node);
 	bool					IsBalanced(const mtlBranch<type_t> *node, int permittedDifference) const;
+
 public:
 	const type_t			&GetItem( void ) const { return m_item; }
 	const mtlBranch<type_t>	*GetParent( void ) const { return m_parent; }
@@ -55,6 +57,21 @@ public:
 	mtlBranch<type_t>		*FindMax( void ) { return FindMax(this); }
 	bool					IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
 	mtlBranch<type_t>		*Remove( void );
+	template < typename functor_t >
+	void InOrder(const functor_t &functor) const
+	{
+		if (m_left != NULL) { m_left->InOrder(functor); }
+		functor(m_item);
+		if (m_right != NULL) { m_right->InOrder(functor); }
+
+	}
+	template < typename functor_t >
+	void InReverseOrder(const functor_t &functor) const
+	{
+		if (m_right != NULL) { m_right->InOrder(functor); }
+		functor(m_item);
+		if (m_left != NULL) { m_left->InOrder(functor); }
+	}
 };
 
 template < typename type_t >
@@ -108,28 +125,28 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 template < typename type_t >
 const mtlBranch<type_t> *mtlBranch<type_t>::FindMin(const mtlBranch<type_t> *node) const
 {
-	if (node->m_left == NULL) { return this; }
+	if (node->m_left == NULL) { return node; }
 	return FindMin(node->m_left);
 }
 
 template < typename type_t >
 mtlBranch<type_t> *mtlBranch<type_t>::FindMin(mtlBranch<type_t> *node)
 {
-	if (node->m_left == NULL) { return this; }
+	if (node->m_left == NULL) { return node; }
 	return FindMin(node->m_left);
 }
 
 template < typename type_t >
 const mtlBranch<type_t> *mtlBranch<type_t>::FindMax(const mtlBranch<type_t> *node) const
 {
-	if (node->m_right == NULL) { return this; }
+	if (node->m_right == NULL) { return node; }
 	return FindMax(node->m_right);
 }
 
 template < typename type_t >
 mtlBranch<type_t> *mtlBranch<type_t>::FindMax(mtlBranch<type_t> *node)
 {
-	if (node->m_right == NULL) { return this; }
+	if (node->m_right == NULL) { return node; }
 	return FindMax(node->m_right);
 }
 
@@ -152,6 +169,7 @@ class mtlBinaryTree
 private:
 	mtlBranch<type_t>	*m_root;
 	int					m_size;
+
 private:
 	mtlBinaryTree &operator=(const mtlBinaryTree&) { return *this; }
 	mtlBinaryTree(const mtlBinaryTree&) {}
@@ -159,6 +177,7 @@ private:
 	void ToList(mtlList<type_t> &list, const mtlBranch<type_t> *node) const;
 	void ToListReversed(mtlList<type_t> &list, const mtlBranch<type_t> *node) const;
 	void Delete(mtlBranch<type_t> *node);
+
 public:
 	mtlBinaryTree( void );
 	~mtlBinaryTree( void );
@@ -287,19 +306,29 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 	} else if (node->m_right == NULL) {
 		returnBranch = node->m_right;
 	} else { // positive and negative are guaranteed to be non-null
-		// based on the address of the node, pick a subtree to remove from (don't use LSB as it is unlikely to be 1)
+		// based on the address of the node, pick a "random" subtree to remove from (don't use LSB as it is unlikely to be 1)
+		int side = 0;
 		if (((unsigned long long)node & (1<<4))) {
 			returnBranch = node->m_right->FindMin();
+			side = 1;
 		} else {
 			returnBranch = node->m_left->FindMax();
+			side = -1;
 		}
 
-		if (returnBranch->m_parent != node && returnBranch->m_parent != NULL) {
-			// only the smallest node's positive side may be non-null (otherwise it would not be smallest)
-			if (returnBranch->m_parent->m_left == returnBranch) {
-				returnBranch->m_parent->m_left = returnBranch->m_right;
-			} else {
-				returnBranch->m_parent->m_right = returnBranch->m_right;
+		if (returnBranch->m_parent != node) {
+			if (side == -1) { // only the smallest node's right side may be non-null (otherwise it would not be smallest)
+				if (returnBranch->m_parent->m_left == returnBranch) {
+					returnBranch->m_parent->m_left = returnBranch->m_right;
+				} else {
+					returnBranch->m_parent->m_right = returnBranch->m_right;
+				}
+			} else { // only the largest node's left side may be non-null (otherwise it would not be the largest)
+				if (returnBranch->m_parent->m_left == returnBranch) {
+					returnBranch->m_parent->m_left = returnBranch->m_left;
+				} else {
+					returnBranch->m_parent->m_right = returnBranch->m_left;
+				}
 			}
 		}
 
