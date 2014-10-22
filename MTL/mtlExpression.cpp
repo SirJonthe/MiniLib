@@ -112,11 +112,18 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	static const char *Operations[OperationClasses] = {
 		"+-", "*/", "^"
 	};
+
+	// NOTE: a top-down convention is used for exponents, meaning I have to search the string in reverse when looking for ^
 	
 	int opIndex = -1;
 	
 	for (int i = 0; i < OperationClasses; ++i) {
-		opIndex = FindOperation(mtlChars::FromDynamic(Operations[i]), expression);
+		mtlChars ops = mtlChars::FromDynamic(Operations[i]);
+		if (!ops.Compare("^")) {
+			opIndex = FindOperation(ops, expression);
+		} else {
+			opIndex = FindOperationReverse(ops, expression);
+		}
 		if (opIndex != -1) {
 			break;
 		}
@@ -167,6 +174,22 @@ int mtlExpression::FindOperation(const mtlChars &operations, const mtlChars &exp
 		if (ch == '(') {
 			++braceStack;
 		} else if (ch == ')') {
+			--braceStack;
+		} else if (braceStack == 0 && operations.SameAsAny(ch)) { // contents of parenthesis are not parsed
+			return i;
+		}
+	}
+	return -1;
+}
+
+int mtlExpression::FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const
+{
+	int braceStack = 0;
+	for (int i = expression.GetSize() - 1; i >= 0; --i) {
+		char ch = expression.GetChars()[i];
+		if (ch == ')') {
+			++braceStack;
+		} else if (ch == '(') {
 			--braceStack;
 		} else if (braceStack == 0 && operations.SameAsAny(ch)) { // contents of parenthesis are not parsed
 			return i;

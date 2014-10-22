@@ -269,12 +269,12 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 
 	// return the address of the node that assumes this place
 	mtlBranch<type_t> *returnBranch = NULL;
-	mtlBranch<type_t> **nodePointer = NULL;
+	mtlBranch<type_t> **childPointer = NULL;
 	if (node->m_parent != NULL) {
 		if (node->m_parent->m_left == node) {
-			nodePointer = &node->m_parent->m_left;
+			childPointer = &node->m_parent->m_left;
 		} else {
-			nodePointer = &node->m_parent->m_right;
+			childPointer = &node->m_parent->m_right;
 		}
 	}
 
@@ -294,9 +294,9 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 			returnBranch = node->m_left->FindMax();
 		}
 
-		if (returnBranch->m_parent != node) {
+		if (returnBranch->m_parent != node && returnBranch->m_parent != NULL) {
 			// only the smallest node's positive side may be non-null (otherwise it would not be smallest)
-			if (returnBranch->m_parent->m_left == returnBranch) { // parent will never be null
+			if (returnBranch->m_parent->m_left == returnBranch) {
 				returnBranch->m_parent->m_left = returnBranch->m_right;
 			} else {
 				returnBranch->m_parent->m_right = returnBranch->m_right;
@@ -313,8 +313,8 @@ mtlBranch<type_t> *mtlBinaryTree<type_t>::Remove(mtlBranch<type_t> *node)
 
 	if (node == m_root) {
 		m_root = returnBranch;
-	} else if (nodePointer != NULL) {
-		*nodePointer = returnBranch;
+	} else if (childPointer != NULL) {
+		*childPointer = returnBranch;
 	}
 	delete node;
 	return returnBranch;
