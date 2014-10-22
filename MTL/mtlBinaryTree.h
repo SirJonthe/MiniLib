@@ -21,17 +21,18 @@ private:
 	mtlBranch(const type_t &item, mtlBranch<type_t> *parent, mtlBinaryTree<type_t> *tree);
 	mtlBranch( void ) {}
 	mtlBranch<type_t>		&operator=(const mtlBranch<type_t>&) { return *this; }
-	int						GetDepth(const mtlBranch<type_t> *node, int currentDepth) const;
-	int						GetHeight(const mtlBranch<type_t> *node, int currentHeight) const;
+
+	static int						GetDepth(const mtlBranch<type_t> *node, int currentDepth);
+	static int						GetHeight(const mtlBranch<type_t> *node, int currentHeight);
 	template < typename compare_t >
-	const mtlBranch<type_t>	*Find(const mtlBranch<type_t> *node, const compare_t &item, bool closest) const;
+	static const mtlBranch<type_t>	*Find(const mtlBranch<type_t> *node, const compare_t &item, bool closest);
 	template < typename compare_t >
-	mtlBranch<type_t>		*Find(mtlBranch<type_t> *node, const compare_t &item, bool closest);
-	const mtlBranch<type_t>	*FindMin(const mtlBranch<type_t> *node) const;
-	mtlBranch<type_t>		*FindMin(mtlBranch<type_t> *node);
-	const mtlBranch<type_t>	*FindMax(const mtlBranch<type_t> *node) const;
-	mtlBranch<type_t>		*FindMax(mtlBranch<type_t> *node);
-	bool					IsBalanced(const mtlBranch<type_t> *node, int permittedDifference) const;
+	static mtlBranch<type_t>		*Find(mtlBranch<type_t> *node, const compare_t &item, bool closest);
+	static const mtlBranch<type_t>	*FindMin(const mtlBranch<type_t> *node);
+	static mtlBranch<type_t>		*FindMin(mtlBranch<type_t> *node);
+	static const mtlBranch<type_t>	*FindMax(const mtlBranch<type_t> *node);
+	static mtlBranch<type_t>		*FindMax(mtlBranch<type_t> *node);
+	static bool						IsBalanced(const mtlBranch<type_t> *node, int permittedDifference);
 
 public:
 	const type_t			&GetItem( void ) const { return m_item; }
@@ -80,14 +81,14 @@ m_item(item), m_tree(tree), m_parent(parent), m_right(NULL), m_left(NULL)
 {}
 
 template < typename type_t >
-int mtlBranch<type_t>::GetDepth(const mtlBranch<type_t> *node, int currentDepth) const
+int mtlBranch<type_t>::GetDepth(const mtlBranch<type_t> *node, int currentDepth)
 {
 	if (node == NULL) { return currentDepth; }
 	return GetDepth(node->m_parent, currentDepth + 1);
 }
 
 template < typename type_t >
-int mtlBranch<type_t>::GetHeight(const mtlBranch<type_t> *node, int currentHeight) const
+int mtlBranch<type_t>::GetHeight(const mtlBranch<type_t> *node, int currentHeight)
 {
 	if (node == NULL) { return currentHeight; }
 	const int pos = GetHeight(node->m_right, currentHeight + 1);
@@ -97,7 +98,7 @@ int mtlBranch<type_t>::GetHeight(const mtlBranch<type_t> *node, int currentHeigh
 
 template < typename type_t >
 template < typename compare_t >
-const mtlBranch<type_t> *mtlBranch<type_t>::Find(const mtlBranch<type_t> *node, const compare_t &item, bool closest) const
+const mtlBranch<type_t> *mtlBranch<type_t>::Find(const mtlBranch<type_t> *node, const compare_t &item, bool closest)
 {
 	if (node->m_item == item) { return node; }
 	if (node->m_item > item) {
@@ -123,7 +124,7 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 
 
 template < typename type_t >
-const mtlBranch<type_t> *mtlBranch<type_t>::FindMin(const mtlBranch<type_t> *node) const
+const mtlBranch<type_t> *mtlBranch<type_t>::FindMin(const mtlBranch<type_t> *node)
 {
 	if (node->m_left == NULL) { return node; }
 	return FindMin(node->m_left);
@@ -137,7 +138,7 @@ mtlBranch<type_t> *mtlBranch<type_t>::FindMin(mtlBranch<type_t> *node)
 }
 
 template < typename type_t >
-const mtlBranch<type_t> *mtlBranch<type_t>::FindMax(const mtlBranch<type_t> *node) const
+const mtlBranch<type_t> *mtlBranch<type_t>::FindMax(const mtlBranch<type_t> *node)
 {
 	if (node->m_right == NULL) { return node; }
 	return FindMax(node->m_right);
@@ -152,7 +153,7 @@ mtlBranch<type_t> *mtlBranch<type_t>::FindMax(mtlBranch<type_t> *node)
 
 // Find	a more efficient way of traversing...
 template < typename type_t >
-bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference) const
+bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference)
 {
 	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
 }
