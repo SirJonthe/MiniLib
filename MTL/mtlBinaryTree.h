@@ -28,10 +28,6 @@ private:
 	static const mtlBranch<type_t>	*Find(const mtlBranch<type_t> *node, const compare_t &item, bool closest);
 	template < typename compare_t >
 	static mtlBranch<type_t>		*Find(mtlBranch<type_t> *node, const compare_t &item, bool closest);
-	static const mtlBranch<type_t>	*FindMin(const mtlBranch<type_t> *node);
-	static mtlBranch<type_t>		*FindMin(mtlBranch<type_t> *node);
-	static const mtlBranch<type_t>	*FindMax(const mtlBranch<type_t> *node);
-	static mtlBranch<type_t>		*FindMax(mtlBranch<type_t> *node);
 	static bool						IsBalanced(const mtlBranch<type_t> *node, int permittedDifference);
 
 public:
@@ -52,10 +48,10 @@ public:
 	const mtlBranch<type_t>	*FindClosest(const compare_t &item) const { return Find(this, item, true); }
 	template < typename compare_t >
 	mtlBranch<type_t>		*FindClosest(const compare_t &item) { return Find(this, item, true); }
-	const mtlBranch<type_t>	*FindMin( void ) const { return FindMin(this); }
-	mtlBranch<type_t>		*FindMin( void ) { return FindMin(this); }
-	const mtlBranch<type_t>	*FindMax( void ) const { return FindMax(this); }
-	mtlBranch<type_t>		*FindMax( void ) { return FindMax(this); }
+	const mtlBranch<type_t>	*FindMin( void ) const;
+	mtlBranch<type_t>		*FindMin( void );
+	const mtlBranch<type_t>	*FindMax( void ) const;
+	mtlBranch<type_t>		*FindMax( void );
 	bool					IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
 	mtlBranch<type_t>		*Remove( void );
 	template < typename func_t >
@@ -150,31 +146,43 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 
 
 template < typename type_t >
-const mtlBranch<type_t> *mtlBranch<type_t>::FindMin(const mtlBranch<type_t> *node)
+const mtlBranch<type_t> *mtlBranch<type_t>::FindMin( void ) const
 {
-	if (node->m_left == NULL) { return node; }
-	return FindMin(node->m_left);
+	const mtlBranch<type_t> *n = this;
+	while (n->m_left != NULL) {
+		n = n->m_left;
+	}
+	return n;
 }
 
 template < typename type_t >
-mtlBranch<type_t> *mtlBranch<type_t>::FindMin(mtlBranch<type_t> *node)
+mtlBranch<type_t> *mtlBranch<type_t>::FindMin( void )
 {
-	if (node->m_left == NULL) { return node; }
-	return FindMin(node->m_left);
+	mtlBranch<type_t> *n = this;
+	while (n->m_left != NULL) {
+		n = n->m_left;
+	}
+	return n;
 }
 
 template < typename type_t >
-const mtlBranch<type_t> *mtlBranch<type_t>::FindMax(const mtlBranch<type_t> *node)
+const mtlBranch<type_t> *mtlBranch<type_t>::FindMax( void ) const
 {
-	if (node->m_right == NULL) { return node; }
-	return FindMax(node->m_right);
+	const mtlBranch<type_t> *n = this;
+	while (n->m_right != NULL) {
+		n = n->m_right;
+	}
+	return n;
 }
 
 template < typename type_t >
-mtlBranch<type_t> *mtlBranch<type_t>::FindMax(mtlBranch<type_t> *node)
+mtlBranch<type_t> *mtlBranch<type_t>::FindMax( void )
 {
-	if (node->m_right == NULL) { return node; }
-	return FindMax(node->m_right);
+	mtlBranch<type_t> *n = this;
+	while (n->m_right != NULL) {
+		n = n->m_right;
+	}
+	return n;
 }
 
 // Find	a more efficient way of traversing...
