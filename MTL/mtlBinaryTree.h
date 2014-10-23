@@ -58,20 +58,46 @@ public:
 	mtlBranch<type_t>		*FindMax( void ) { return FindMax(this); }
 	bool					IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
 	mtlBranch<type_t>		*Remove( void );
-	template < typename functor_t >
-	void InOrder(const functor_t &functor) const
+	template < typename func_t >
+	void InOrder(const func_t &fn) const
 	{
 		if (m_left != NULL) { m_left->InOrder(functor); }
-		functor(m_item);
+		fn(m_item);
 		if (m_right != NULL) { m_right->InOrder(functor); }
 
 	}
-	template < typename functor_t >
-	void InReverseOrder(const functor_t &functor) const
+	template < typename func_t >
+	void InReverseOrder(const func_t &fn) const
 	{
 		if (m_right != NULL) { m_right->InOrder(functor); }
-		functor(m_item);
+		fn(m_item);
 		if (m_left != NULL) { m_left->InOrder(functor); }
+	}
+	template < typename func_t >
+	void InBreadth(const func_t &fn) const
+	{
+		mtlList<const mtlBranch<type_t>*> queue;
+		queue.AddLast(this);
+		while (queue.GetSize() != 0) {
+			const mtlBranch<type_t> *front = queue.GetFirst();
+			fn(front->GetItem());
+			queue.RemoveFirst();
+			if (front->m_left != NULL) { queue.AddLast(front->m_left); }
+			if (front->m_right != NULL) { queue.AddLast(front->m_right); }
+		}
+	}
+	template < typename func_t >
+	void InBreadthReverse(const func_t &fn) const
+	{
+		mtlList<const mtlBranch<type_t>*> queue;
+		queue.AddLast(this);
+		while (queue.GetSize() != 0) {
+			const mtlBranch<type_t> *front = queue.GetFirst();
+			fn(front->GetItem());
+			queue.RemoveFirst();
+			if (front->m_right != NULL) { queue.AddLast(front->m_right); }
+			if (front->m_left != NULL) { queue.AddLast(front->m_left); }
+		}
 	}
 };
 
