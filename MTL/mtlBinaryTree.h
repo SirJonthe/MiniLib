@@ -144,6 +144,18 @@ mtlBranch<type_t> *mtlBranch<type_t>::Find(mtlBranch<type_t> *node, const compar
 	return closest ? node : NULL;
 }
 
+// Find	a more efficient way of traversing...
+template < typename type_t >
+bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference)
+{
+	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
+}
+
+template < typename type_t >
+mtlBranch<type_t> *mtlBranch<type_t>::Remove( void )
+{
+	return m_tree->Remove(this);
+}
 
 template < typename type_t >
 const mtlBranch<type_t> *mtlBranch<type_t>::FindMin( void ) const
@@ -183,19 +195,6 @@ mtlBranch<type_t> *mtlBranch<type_t>::FindMax( void )
 		n = n->m_right;
 	}
 	return n;
-}
-
-// Find	a more efficient way of traversing...
-template < typename type_t >
-bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference)
-{
-	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
-}
-
-template < typename type_t >
-mtlBranch<type_t> *mtlBranch<type_t>::Remove( void )
-{
-	return m_tree->Remove(this);
 }
 
 template < typename type_t >
