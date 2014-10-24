@@ -408,7 +408,6 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
 	if (p_at > m_size) { return; }
-
 	const int num = p_str.GetSize();
 	const int newSize = num + p_at;
 	const char *str = p_str.GetChars();

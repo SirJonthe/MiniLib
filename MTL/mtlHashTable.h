@@ -16,13 +16,92 @@ template < typename type_t >
 class mtlHashTable
 {
 private:
-	mtlArray< mtlList<type_t> > m_table;
+	struct Entry
+	{
+		type_t	data;
+		mtlHash	hash;
+	};
+
+private:
+	mtlArray< mtlList<typename Entry> >	m_table;
+	int									m_num_entries;
+	// when m_num_entries / m_table.get_size() > 0.7 then allocate more table entries
+
+private:
+	int GetIndex(mtlHash hash) const;
+	void ResizeTable(int size);
 
 public:
-	const type_t *GetEntry(mtlHash h) const;
-	type_t *GetEntry(mtlHash h);
-	const type_t *GetEntry(const type_t &item) const;
-	type_t *GetEntry(const type_t &item);
+	mtlHashTable( void );
+
+	const type_t *Find(mtlHash hash) const;
+	type_t *Find(mtlHash hash);
+	void Insert(const type_t &item);
 };
+
+template < typename type_t >
+int mtlHashTable::GetIndex(mtlHash hash) const
+{
+	return hash.value & (m_table.GetSize() - 1);
+}
+
+template < typename type_t >
+void mtlHashTable::ResizeTable(int size)
+{
+	/*mtlArray< mtlList<type_t> > new_table(size);
+	for (int i = 0; i < m_table.GetSize(); ++i) {
+		mtlItem<type_t> *node = m_table[i].GetFirst();
+		while (node != NULL) {
+			node = node->GetNext();
+		}
+	}
+	m_table.Copy(new_table);*/
+}
+
+template < typename type_t >
+mtlHashTable::mtlHashTable( void ) : m_table(128), m_num_entries(0)
+{}
+
+template < typename type_t >
+const type_t *mtlHashTable::Find(mtlHash hash) const
+{
+	const mtlItem<typename Entry> *i = &m_table[GetIndex(hash)].GetFirst();
+	while (i != NULL && i->GetItem().hash != hash) {
+		i = i->GetNext();
+	}
+	return i != NULL ? i->GetItem() : NULL;
+}
+
+template < typename type_t >
+type_t *mtlHashTable::Find(mtlHash hash)
+{
+	mtlItem<typename Entry> *i = m_table[GetIndex(hash)].GetFirst();
+	while (i != NULL && i->GetItem().hash != hash) {
+		i = i->GetNext();
+	}
+	return i != NULL ? i->GetItem() : NULL;
+}
+
+template < typename type_t >
+void mtlHashTable::Insert(const type_t &item)
+{
+	mtlHash hash = item.ToHash();
+	int index = GetIndex(hash);
+
+	mtlItem<typename Entry> *i = m_table[index].GetFirst();
+	while (i != NULL && i->GetItem().hash != hash) {
+		i = i->GetNext();
+	}
+	if (i != NULL) { return; }
+
+	m_table[index].AddLast();
+	m_table[index].GetLast()->GetItem().data = item;
+	m_table[index].GetLast()->GetItem().hash = hash;
+
+	++m_num_entries;
+	if (float(m_num_entries) / float(m_table.GetSize()) > 0.7f) {
+		ResizeTable(m_table.GetSize() * 2);
+	}
+}
 
 #endif // MTL_HASHTABLE_H_INCLUDED__
