@@ -288,15 +288,7 @@ mtlNode<type_t> *mtlBinaryTree<type_t>::Remove(mtlNode<type_t> *node)
 		}
 	}
 
-	if (node->m_left == NULL) {
-		if (node->m_right == NULL) {
-			returnNode = NULL;
-		} else {
-			returnNode = node->m_left;
-		}
-	} else if (node->m_right == NULL) {
-		returnNode = node->m_right;
-	} else { // positive and negative are guaranteed to be non-null
+	if (node->m_left != NULL && node->m_right != NULL) { // positive and negative are guaranteed to be non-null
 
 		// What sub-tree do we take a node from and insert in the removed node's location?
 		// If we only take from one side all the time the tree will become unbalanced.
@@ -329,6 +321,8 @@ mtlNode<type_t> *mtlBinaryTree<type_t>::Remove(mtlNode<type_t> *node)
 		returnNode->m_right = node->m_right;
 		if (returnNode->m_left != NULL) { returnNode->m_left->m_parent = returnNode; }
 		if (returnNode->m_right != NULL) { returnNode->m_right->m_parent = returnNode; }
+	} else {
+		returnNode = node->m_left != NULL ? node->m_left : node->m_right; // pick the non-null one, if there is one
 	}
 
 	if(returnNode != NULL) {
@@ -341,6 +335,7 @@ mtlNode<type_t> *mtlBinaryTree<type_t>::Remove(mtlNode<type_t> *node)
 		*childNodePointer = returnNode;
 	}
 	delete node;
+	--m_size;
 	return returnNode;
 }
 
