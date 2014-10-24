@@ -388,7 +388,7 @@ void mglTexturedRasterizer::DrawTriangleList(const mtlList< mglStaticModel::Tria
 
 	mmlVector<5> tri[3];
 	mmlVector<5> clipped[4];
-	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFirst();
+	const mtlItem<mglStaticModel::Triangle> *node = p_list.GetFirst();
 	while (node != NULL) {
 		tri[0] = node->GetItem().a;
 		tri[1] = node->GetItem().b;
@@ -471,7 +471,7 @@ void mglTexturedRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4>
 		if (m_currentTexture == NULL) {
 			m_currentTexture = &defaultMaterial;
 		}
-		const mtlNode<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
+		const mtlItem<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
 		while (face != NULL) {
 			mmlVector<3>::Cast(tri) = p_model.GetVertex(face->GetItem().v1);
 			mmlVector<3>::Cast(tri+1) = p_model.GetVertex(face->GetItem().v2);
@@ -678,7 +678,7 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 
 	mmlVector<3> tri[3];
 	mmlVector<3> clipped[4];
-	const mtlNode<mglStaticModel::Triangle> *node = p_list.GetFirst();
+	const mtlItem<mglStaticModel::Triangle> *node = p_list.GetFirst();
 	while (node != NULL) {
 		tri[0] = mmlVector<3>::Cast(&node->GetItem().a);
 		tri[1] = mmlVector<3>::Cast(&node->GetItem().b);
@@ -754,7 +754,7 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 	const mmlVector<3> cameraDirection = mglTransform::globalAxis.forward * mmlMatrix<3,3>(camToObj);
 	
 	for (int m = 0; m < p_model.GetMaterialCount(); ++m) {
-		const mtlNode<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
+		const mtlItem<mglFacet> *face = p_model.GetMaterial(m).GetFacets();
 		const mmlVector<3> diffuseColor = p_model.GetMaterial(m).GetProperties().GetDiffuseColor();
 		while (face != NULL) {
 			tri[0] = p_model.GetVertex(face->GetItem().v1);

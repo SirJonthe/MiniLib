@@ -219,7 +219,7 @@ void mtlExclusive<type_t>::Delete( void )
 {
 	m_obj.Delete();
 	if (m_obj.IsNull() && !m_tracker.IsNull()) {
-		mtlNode< mtlReference<type_t> > *n = m_tracker->GetFirst();
+		mtlItem< mtlReference<type_t> > *n = m_tracker->GetFirst();
 		while (n != NULL) {
 			n->GetItem().m_reference = NULL;
 			n->GetItem().m_trackerItem = NULL;
@@ -268,7 +268,7 @@ class mtlReference
 	friend class mtlExclusive<type_t>;
 private:
 	type_t							*m_reference;
-	mtlNode< mtlReference<type_t> >	*m_trackerItem;
+	mtlItem< mtlReference<type_t> >	*m_trackerItem;
 public:
 	mtlReference( void );
 	mtlReference(const mtlReference &ref);

@@ -32,7 +32,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 			++vn;
 		} else if (param.Compare("usemtl")) {
 			missingDefaultMaterial = false;
-			mtlNode<mtlString> *node = materials.GetFirst();
+			mtlItem<mtlString> *node = materials.GetFirst();
 			while (node != NULL) {
 				if (node->GetItem().Compare(line)) {
 					break;
@@ -101,7 +101,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 				param = line.ReadWord();
 				mtlList<mtlChars> facetPoint;
 				param.SplitByChar(facetPoint, "/");
-				mtlNode<mtlChars> *facetIndexStr = facetPoint.GetLast();
+				mtlItem<mtlChars> *facetIndexStr = facetPoint.GetLast();
 				FacetIndex facetIndex = { -1, 0, 0 };
 				switch (facetPoint.GetSize()) {
 					case 3:
@@ -159,8 +159,8 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 					++currentM;
 					currentMaterial = &m_materials[0];
 				}
-				mtlNode<FacetIndex> *i = facet.GetFirst()->GetNext();
-				mtlNode<FacetIndex> *j = i->GetNext();
+				mtlItem<FacetIndex> *i = facet.GetFirst()->GetNext();
+				mtlItem<FacetIndex> *j = i->GetNext();
 				while (j != NULL) {
 					mglFacet f;
 					f.v1 = facet.GetFirst()->GetItem().v;
@@ -352,7 +352,7 @@ void mglModel::CalculateBounds( void )
 void mglModel::CalculateFacetNormals( void )
 {
 	for (int i = 0; i < m_materials.GetSize(); ++i) {
-		mtlNode<mglFacet> *facet = m_materials[i].m_facets.GetFirst();
+		mtlItem<mglFacet> *facet = m_materials[i].m_facets.GetFirst();
 		while (facet != NULL) {
 			facet->GetItem().normal = mmlSurfaceNormal(m_vertices[facet->GetItem().v1], m_vertices[facet->GetItem().v2], m_vertices[facet->GetItem().v3]);
 			facet = facet->GetNext();
@@ -374,7 +374,7 @@ void mglModel::CreateEdgeListAndMainFacetList( void )
 	int f = 0;
 	int e = 0;
 	for (int m = 0; m < m_materials.GetSize(); ++m) {
-		mtlNode<mglFacet> *facet = m_materials[m].m_facets.GetFirst();
+		mtlItem<mglFacet> *facet = m_materials[m].m_facets.GetFirst();
 		while (facet != NULL) {
 
 			facet->GetItem().e1 = e;
@@ -421,8 +421,8 @@ void mglModel::CheckIfClosed( void )
 		edgeList.AddLast(m_edges[i]);
 	}
 	while (edgeList.GetSize() > 0) {
-		mtlNode<mglFacetEdge> *front = edgeList.GetFirst();
-		mtlNode<mglFacetEdge> *cmp = front->GetNext();
+		mtlItem<mglFacetEdge> *front = edgeList.GetFirst();
+		mtlItem<mglFacetEdge> *cmp = front->GetNext();
 		while (cmp != NULL) {
 			// does not treat the following situations properly
 			// 1) edges that are shared between 3 or more facets
@@ -547,7 +547,7 @@ float mglModel::GetFacetArea(int v1, int v2, int v3) const
 	// allows model to make some quality settings (texture samling, lighting model) that only affect the model currently rendered
 }*/
 
-mtlNode<mglStaticModel::Triangle> *mglStaticModel::FindBestSplittingTriangle(mglStaticModel::Node *node)
+mtlItem<mglStaticModel::Triangle> *mglStaticModel::FindBestSplittingTriangle(mglStaticModel::Node *node)
 {
 	return node->triangles.GetFirst();
 }
@@ -558,10 +558,10 @@ void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int de
 	m_depth = mmlMax2(m_depth, depth);
 	node->front = new Node(node);
 	node->back = new Node(node);
-	mtlNode<Triangle> *splitTri = FindBestSplittingTriangle(node);
+	mtlItem<Triangle> *splitTri = FindBestSplittingTriangle(node);
 	node->plane = mglPlane(mmlVector<3>::Cast(&splitTri->GetItem().a), splitTri->GetItem().normal);
 	const mglPlane backPlane(node->plane.GetPosition(), -node->plane.GetNormal());
-	mtlNode<Triangle> *tri = node->triangles.GetFirst();
+	mtlItem<Triangle> *tri = node->triangles.GetFirst();
 	while (tri != NULL) {
 		switch (node->plane.DetermineClipping(mmlVector<3>::Cast(&tri->GetItem().a), mmlVector<3>::Cast(&tri->GetItem().b), mmlVector<3>::Cast(&tri->GetItem().c)))
 		{
@@ -644,7 +644,7 @@ void mglStaticModel::GenerateBSP( void )
 	if (GetVertexCount() <= 0) { return; }
 	m_root = new Node(NULL);
 	for (int i = 0; i < GetMaterialCount(); ++i) {
-		const mtlNode<mglFacet> *facet = GetMaterial(i).GetFacets();
+		const mtlItem<mglFacet> *facet = GetMaterial(i).GetFacets();
 		while (facet != NULL) {
 			const mmlVector<3> av = GetVertex(facet->GetItem().v1);
 			const mmlVector<3> bv = GetVertex(facet->GetItem().v2);

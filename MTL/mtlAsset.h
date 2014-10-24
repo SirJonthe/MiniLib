@@ -41,7 +41,7 @@ private:
 		bool operator==(const AssetNode &n) const { return hash.value == n.hash.value; }
 	};
 	static mtlBinaryTree<AssetNode> &GetAssetBank( void );
-	static void Purge(mtlBranch<AssetNode> *node);
+	static void Purge(mtlNode<AssetNode> *node);
 private:
 	mtlShared<Instance>	m_ref;
 public:
@@ -68,11 +68,11 @@ mtlBinaryTree<typename mtlAsset<type_t>::AssetNode> &mtlAsset<type_t>::GetAssetB
 }
 
 template < typename type_t >
-void mtlAsset<type_t>::Purge(mtlBranch<typename mtlAsset<type_t>::AssetNode> *node)
+void mtlAsset<type_t>::Purge(mtlNode<typename mtlAsset<type_t>::AssetNode> *node)
 {
 	if (node != NULL) {
 		Purge(node->GetNegative());
-		mtlNode< mtlShared<Instance> > *n = node->GetItem().assets.GetShared()->GetFirst();
+		mtlItem< mtlShared<Instance> > *n = node->GetItem().assets.GetShared()->GetFirst();
 		while (n != NULL) {
 			if (n->GetItem().GetCount() <= 1) { // should never be less than 1
 				n = n->Remove();
@@ -131,13 +131,13 @@ template < typename derived_t >
 mtlAsset<type_t> mtlAsset<type_t>::Load(const mtlChars &file)
 {
 	mtlHash hash(file);
-	mtlBranch<AssetNode> *branch = GetAssetBank().GetRoot();
+	mtlNode<AssetNode> *branch = GetAssetBank().GetRoot();
 	if (branch != NULL) {
 		branch = branch->Find(hash);
 	}
 
 	mtlAsset<type_t> asset;
-	mtlNode< mtlShared<Instance> > *node = NULL;
+	mtlItem< mtlShared<Instance> > *node = NULL;
 	if (branch != NULL) {
 		node = branch->GetItem().assets.GetShared()->GetFirst();
 		while (node != NULL) {
