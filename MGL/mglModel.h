@@ -58,7 +58,7 @@ private:
 public:
 	const mglMaterial			&GetProperties( void ) const { return m_properties; }
 	int							GetFacetCount( void ) const { return m_facets.GetSize(); }
-	const mtlNode< mglFacet >	*GetFacets( void ) const { return m_facets.GetFirst(); }
+	const mtlItem< mglFacet >	*GetFacets( void ) const { return m_facets.GetFirst(); }
 	const mglModel				*GetParentModel( void ) const { return m_parent; }
 };
 
@@ -155,7 +155,7 @@ private:
 	Node	*m_root;
 	int		m_depth;
 private:
-	mtlNode<Triangle>	*FindBestSplittingTriangle(Node *node);
+	mtlItem<Triangle>	*FindBestSplittingTriangle(Node *node);
 	void				SplitGeometryRecursively(Node *node, int depth);
 	void				GenerateBSP( void );
 public:

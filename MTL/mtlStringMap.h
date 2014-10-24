@@ -19,7 +19,7 @@ private:
 	struct HashNode
 	{
 		typedef mtlList<Entry> List;
-		typedef mtlNode<Entry> ListNode;
+		typedef mtlItem<Entry> ListNode;
 		mtlHash					hash;
 		mutable mtlShared<List>	entries;
 
@@ -31,8 +31,8 @@ private:
 private:
 	mtlBinaryTree<HashNode> m_table;
 public:
-	const mtlBranch<HashNode> *GetNode(const mtlChars &name) const;
-	mtlBranch<HashNode> *GetNode(const mtlChars &name);
+	const mtlNode<HashNode> *GetNode(const mtlChars &name) const;
+	mtlNode<HashNode> *GetNode(const mtlChars &name);
 public:
 	template < typename derived_t >
 	type_t			*CreateEntry(const mtlChars &name);
@@ -44,13 +44,13 @@ public:
 };
 
 template < typename type_t >
-const mtlBranch<typename mtlStringMap<type_t>::HashNode> *mtlStringMap<type_t>::GetNode(const mtlChars &name) const
+const mtlNode<typename mtlStringMap<type_t>::HashNode> *mtlStringMap<type_t>::GetNode(const mtlChars &name) const
 {
 	return m_table.GetRoot() != NULL ? m_table.GetRoot()->Find(mtlHash(name)) : NULL;
 }
 
 template < typename type_t >
-mtlBranch<typename mtlStringMap<type_t>::HashNode> *mtlStringMap<type_t>::GetNode(const mtlChars &name)
+mtlNode<typename mtlStringMap<type_t>::HashNode> *mtlStringMap<type_t>::GetNode(const mtlChars &name)
 {
 	return m_table.GetRoot() != NULL ? m_table.GetRoot()->Find(mtlHash(name)) : NULL;
 }
@@ -60,7 +60,7 @@ template < typename derived_t >
 type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 {
 	mtlHash hash(name);
-	const mtlBranch<HashNode> *b = m_table.GetRoot();
+	const mtlNode<HashNode> *b = m_table.GetRoot();
 	if (b != NULL) {
         b = b->Find(hash);
 	}
@@ -94,7 +94,7 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 template < typename type_t >
 void mtlStringMap<type_t>::RemoveEntry(const mtlChars &name)
 {
-	mtlBranch<HashNode> *hashNode = GetNode(name);
+	mtlNode<HashNode> *hashNode = GetNode(name);
     const typename HashNode::ListNode *node = hashNode->GetItem()->entries->GetFirst();
 	while (node != NULL) {
         if (node->GetItem()->name.Compare(name)) {
@@ -117,7 +117,7 @@ void mtlStringMap<type_t>::RemoveAll( void )
 template < typename type_t >
 const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
 {
-	const mtlBranch<HashNode> *b = GetNode(name);
+	const mtlNode<HashNode> *b = GetNode(name);
 	if (b == NULL) { return NULL; }
     typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 	while (n != NULL) {
@@ -132,7 +132,7 @@ const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
 template < typename type_t >
 type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 {
-	mtlBranch<HashNode> *b = GetNode(name);
+	mtlNode<HashNode> *b = GetNode(name);
 	if (b == NULL) { return NULL; }
     typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 	while (n != NULL) {
