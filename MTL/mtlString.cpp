@@ -326,7 +326,9 @@ char *mtlString::NewPool(int p_size)
 	const int actualSize = p_size + 1;
 	if (actualSize > m_pool) {
 		m_pool = ((actualSize / m_growth) + 1) * m_growth;
-		return new char[m_pool];
+		char *chars = new char[m_pool];
+		chars[m_pool] = '\0';
+		return chars;
 	}
 	return NULL;
 }
@@ -350,7 +352,6 @@ void mtlString::NewPoolPreserve(int p_size)
 		delete [] m_str;
 		m_str = newPool;
 	}
-	m_str[p_size] = '\0';
 }
 
 void mtlString::SetSize(int p_size)
@@ -401,28 +402,21 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 		m_str[i + m_size] = p_str.GetChars()[i];
 	}
 	m_size += p_str.GetSize();
-	m_str[m_size] = '\0';
 	return *this;
 }
 
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
-	const int p_num = p_str.GetSize();
-	const int newSize = p_at + p_num;
-	char *newPool = NewPool(newSize);
-	if (newPool != NULL) {
-		const int to = m_size < p_at ? m_size : p_at;
-		for (int i = 0; i < to; ++i) {
-			newPool[i] = m_str[i];
-		}
-		delete [] m_str;
-		m_str = newPool;
-		m_size = newSize;
+	if (p_at > m_size) { return; }
+
+	const int num = p_str.GetSize();
+	const int newSize = num + p_at;
+	const char *str = p_str.GetChars();
+	NewPoolPreserve(newSize);
+	for (int i = 0; i < num; ++i) {
+		m_str[p_at+i] = str[i];
 	}
-	for (int i = 0; i < p_num; ++i) {
-		m_str[i + p_at] = p_str.GetChars()[i];
-	}
-	m_str[m_size] = '\0';
+	m_size = m_size > newSize ? m_size : newSize;
 }
 
 void mtlString::Remove(int p_begin, int p_num)

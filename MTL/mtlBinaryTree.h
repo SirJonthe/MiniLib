@@ -146,13 +146,13 @@ mtlNode<type_t> *mtlNode<type_t>::Find(mtlNode<type_t> *node, const compare_t &i
 
 // Find	a more efficient way of traversing...
 template < typename type_t >
-bool mtlBranch<type_t>::IsBalanced(const mtlBranch<type_t> *node, int permittedDifference)
+bool mtlNode<type_t>::IsBalanced(const mtlNode<type_t> *node, int permittedDifference)
 {
 	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
 }
 
 template < typename type_t >
-mtlBranch<type_t> *mtlBranch<type_t>::Remove( void )
+mtlNode<type_t> *mtlNode<type_t>::Remove( void )
 {
 	return m_tree->Remove(this);
 }
@@ -197,22 +197,6 @@ mtlNode<type_t> *mtlNode<type_t>::FindMax( void )
 	return n;
 }
 
-<<<<<<< HEAD
-=======
-// Find	a more efficient way of traversing...
-template < typename type_t >
-bool mtlNode<type_t>::IsBalanced(const mtlNode<type_t> *node, int permittedDifference)
-{
-	return node == NULL || (IsBalanced(node->m_left) && IsBalanced(node->m_right) && (abs(GetHeight(node->m_left, 0) - GetHeight(node->m_right, 0)) <= permittedDifference));
-}
-
-template < typename type_t >
-mtlNode<type_t> *mtlNode<type_t>::Remove( void )
-{
-	return m_tree->Remove(this);
-}
-
->>>>>>> dcf7a5a8835c9c67e6cb69a8a7f81b4acf17c671
 template < typename type_t >
 class mtlBinaryTree
 {
