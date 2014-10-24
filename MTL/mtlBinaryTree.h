@@ -209,21 +209,17 @@ private:
 	mtlBinaryTree &operator=(const mtlBinaryTree&) { return *this; }
 	mtlBinaryTree(const mtlBinaryTree&) {}
 	mtlNode<type_t> *Insert(mtlNode<type_t> *parent, mtlNode<type_t> *&node, const type_t &item);
-	void ToList(mtlList<type_t> &list, const mtlNode<type_t> *node) const;
-	void ToListReversed(mtlList<type_t> &list, const mtlNode<type_t> *node) const;
 	void Delete(mtlNode<type_t> *node);
 
 public:
 	mtlBinaryTree( void );
 	~mtlBinaryTree( void );
-	const mtlNode<type_t> *GetRoot( void ) const { return m_root; }
-	mtlNode<type_t>		*GetRoot( void ) { return m_root; }
-	mtlNode<type_t>		*Insert(const type_t &item);
+	const mtlNode<type_t>	*GetRoot( void ) const { return m_root; }
+	mtlNode<type_t>			*GetRoot( void ) { return m_root; }
+	mtlNode<type_t>			*Insert(const type_t &item);
 	void					RemoveAll( void );
 	int						GetSize( void ) const { return m_size; }
-	void					ToList(mtlList<type_t> &list) const;
-	void					ToListReversed(mtlList<type_t> &list) const;
-	mtlNode<type_t>		*Remove(mtlNode<type_t> *node);
+	mtlNode<type_t>			*Remove(mtlNode<type_t> *node);
 	bool					IsEmpty( void ) const;
 	// rebalance
 };
@@ -239,30 +235,6 @@ mtlNode<type_t> *mtlBinaryTree<type_t>::Insert(mtlNode<type_t> *parent, mtlNode<
 	if (node->m_item == item) { return node; }
 	if (node->m_item > item) { return Insert(node, node->m_left, item); }
 	return Insert(node, node->m_right, item);
-}
-
-template < typename type_t >
-void mtlBinaryTree<type_t>::ToList(mtlList<type_t> &list, const mtlNode<type_t> *node) const
-{
-	if (node->m_left != NULL) {
-		ToList(list, node->m_left);
-	}
-	list.AddBack(node->m_item);
-	if (node->m_right != NULL) {
-		ToList(list, node->m_right);
-	}
-}
-
-template < typename type_t >
-void mtlBinaryTree<type_t>::ToListReversed(mtlList<type_t> &list, const mtlNode<type_t> *node) const
-{
-	if (node->m_right != NULL) {
-		ToList(list, node->m_right);
-	}
-	list.AddBack(node->m_item);
-	if (node->m_left != NULL) {
-		ToList(list, node->m_left);
-	}
 }
 
 template < typename type_t >
@@ -301,80 +273,75 @@ void mtlBinaryTree<type_t>::RemoveAll( void )
 }
 
 template < typename type_t >
-void mtlBinaryTree<type_t>::ToList(mtlList<type_t> &list) const
-{
-	list.RemoveAll();
-	if (m_root == NULL) { return; }
-	ToList(list, m_root);
-}
-
-template < typename type_t >
-void mtlBinaryTree<type_t>::ToListReversed(mtlList<type_t> &list) const
-{
-	list.RemoveAll();
-	if (m_root == NULL) { return; }
-	ToListReversed(list, m_root);
-}
-
-template < typename type_t >
 mtlNode<type_t> *mtlBinaryTree<type_t>::Remove(mtlNode<type_t> *node)
 {
 	if (node == NULL || node->m_tree != this) { return NULL; }
 
 	// return the address of the node that assumes this place
-	mtlNode<type_t> *returnBranch = NULL; // the node that takes the place of the removed one
-	mtlNode<type_t> **childPointer = NULL; //
+	mtlNode<type_t> *returnNode = NULL; // the node that takes the place of the removed one
+	mtlNode<type_t> **childNodePointer = NULL; // points to the left or right parent pointer corresponding to the node to be removed
 	if (node->m_parent != NULL) {
 		if (node->m_parent->m_left == node) {
-			childPointer = &node->m_parent->m_left;
+			childNodePointer = &node->m_parent->m_left;
 		} else {
-			childPointer = &node->m_parent->m_right;
+			childNodePointer = &node->m_parent->m_right;
 		}
 	}
 
 	if (node->m_left == NULL) {
 		if (node->m_right == NULL) {
-			returnBranch = NULL;
+			returnNode = NULL;
 		} else {
-			returnBranch = node->m_left;
+			returnNode = node->m_left;
 		}
 	} else if (node->m_right == NULL) {
-		returnBranch = node->m_right;
+		returnNode = node->m_right;
 	} else { // positive and negative are guaranteed to be non-null
-		// based on the address of the node, pick a "random" subtree to remove from (don't use LSB as it is unlikely to be 1)
+
+		// What sub-tree do we take a node from and insert in the removed node's location?
+		// If we only take from one side all the time the tree will become unbalanced.
+		// In this case we try to analytically randomize what subtree we pick by using the removed node's address as the determining factor.
+		// Don't use LSB as it is unlikely to be 1 due to address alignment.
 		mtlNode<type_t> *side = NULL;
 		if (((unsigned long long)node & (1<<4))) {
-			returnBranch = node->m_right->FindMin();
-			side = returnBranch->m_left;
+			returnNode = node->m_right->FindMin();
+			side = returnNode->m_right;
 		} else {
-			returnBranch = node->m_left->FindMax();
-			side = returnBranch->m_right;
+			returnNode = node->m_left->FindMax();
+			side = returnNode->m_left;
 		}
 
-		if (returnBranch->m_parent != node) {
-			// only the smallest node's right side may be non-null/largest node's left side (otherwise it would not be smallest/largest)
-			if (returnBranch->m_parent->m_left == returnBranch) {
-				returnBranch->m_parent->m_left = side;
+		if (returnNode->m_parent != node) {
+			if (returnNode->m_parent->m_left == returnNode) {
+				returnNode->m_parent->m_left = side;
 			} else {
-				returnBranch->m_parent->m_right = side;
+				returnNode->m_parent->m_right = side;
+			}
+		} else {
+			if (node->m_left == returnNode) {
+				node->m_left = returnNode->m_left;
+			} else {
+				node->m_right = returnNode->m_right;
 			}
 		}
 
-		returnBranch->m_left = node->m_left;
-		returnBranch->m_right = node->m_right;
+		returnNode->m_left = node->m_left;
+		returnNode->m_right = node->m_right;
+		if (returnNode->m_left != NULL) { returnNode->m_left->m_parent = returnNode; }
+		if (returnNode->m_right != NULL) { returnNode->m_right->m_parent = returnNode; }
 	}
 
-	if(returnBranch != NULL) {
-		returnBranch->m_parent = node->m_parent;
+	if(returnNode != NULL) {
+		returnNode->m_parent = node->m_parent;
 	}
 
 	if (node == m_root) {
-		m_root = returnBranch;
-	} else if (childPointer != NULL) {
-		*childPointer = returnBranch;
+		m_root = returnNode;
+	} else if (childNodePointer != NULL) {
+		*childNodePointer = returnNode;
 	}
 	delete node;
-	return returnBranch;
+	return returnNode;
 }
 
 template < typename type_t >
