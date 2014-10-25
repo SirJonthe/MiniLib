@@ -114,14 +114,17 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	};
 	
 	int opIndex = -1;
+
+	// NOTE: Maybe parse everything in right-to-left? Don't think it will affect +- at all
+	// NOTE: 4/3 * pi * r^3 does not work when parsing left-to-right (does not parse as (4/3)*pi*r^3, but as 4 / (3*pi*r^3))
 	
 	for (int i = 0; i < OperationClasses; ++i) {
 		mtlChars ops = mtlChars::FromDynamic(Operations[i]);
-		if (!ops.Compare("^")) {
-			opIndex = FindOperation(ops, expression);
-		} else { // exponents are parsed top-down (exception from PEMDAS)
-			opIndex = FindOperationReverse(ops, expression);
-		}
+		//if (ops.Compare("+-")) {
+		//	opIndex = FindOperation(ops, expression);
+		//} else { // exponents are parsed top-down (exception from PEMDAS)
+		opIndex = FindOperationReverse(ops, expression);
+		//}
 		if (opIndex != -1) {
 			break;
 		}
