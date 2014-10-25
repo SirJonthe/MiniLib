@@ -25,10 +25,9 @@ private:
 private:
 	mtlArray< mtlList<typename Entry> >	m_table;
 	int									m_num_entries;
-	// when m_num_entries / m_table.get_size() > 0.7 then allocate more table entries
 
 private:
-	int GetIndex(mtlHash hash) const;
+	int GetIndex(mtlHash hash, int size) const;
 	void ResizeTable(int size);
 
 public:
@@ -40,22 +39,22 @@ public:
 };
 
 template < typename type_t >
-int mtlHashTable::GetIndex(mtlHash hash) const
+int mtlHashTable::GetIndex(mtlHash hash, int size) const
 {
-	return hash.value & (m_table.GetSize() - 1);
+	return hash.value & (size - 1);
 }
 
 template < typename type_t >
 void mtlHashTable::ResizeTable(int size)
 {
-	/*mtlArray< mtlList<type_t> > new_table(size);
+	mtlArray< mtlList<type_t> > new_table(size);
 	for (int i = 0; i < m_table.GetSize(); ++i) {
 		mtlItem<type_t> *node = m_table[i].GetFirst();
 		while (node != NULL) {
-			node = node->GetNext();
+			node = node->Transfer(new_table[GetIndex(node->GetItem().hash, new_table.GetSize())], NULL);
 		}
 	}
-	m_table.Copy(new_table);*/
+	m_table.Copy(new_table);
 }
 
 template < typename type_t >
@@ -65,7 +64,7 @@ mtlHashTable::mtlHashTable( void ) : m_table(128), m_num_entries(0)
 template < typename type_t >
 const type_t *mtlHashTable::Find(mtlHash hash) const
 {
-	const mtlItem<typename Entry> *i = &m_table[GetIndex(hash)].GetFirst();
+	const mtlItem<typename Entry> *i = &m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {
 		i = i->GetNext();
 	}
@@ -75,7 +74,7 @@ const type_t *mtlHashTable::Find(mtlHash hash) const
 template < typename type_t >
 type_t *mtlHashTable::Find(mtlHash hash)
 {
-	mtlItem<typename Entry> *i = m_table[GetIndex(hash)].GetFirst();
+	mtlItem<typename Entry> *i = m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {
 		i = i->GetNext();
 	}
@@ -86,7 +85,7 @@ template < typename type_t >
 void mtlHashTable::Insert(const type_t &item)
 {
 	mtlHash hash = item.ToHash();
-	int index = GetIndex(hash);
+	int index = GetIndex(hash, m_table.GetSize());
 
 	mtlItem<typename Entry> *i = m_table[index].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {

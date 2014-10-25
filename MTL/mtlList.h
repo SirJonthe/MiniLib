@@ -21,7 +21,6 @@ private:
 					mtlItem(const mtlItem<type_t>&) {}
 	mtlItem<type_t>	&operator=(const mtlItem<type_t>&) { return *this; }
 					mtlItem(const type_t &p_item, mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
-					~mtlItem( void );
 
 public:
 	inline explicit					mtlItem(const type_t &p_item);
@@ -34,7 +33,10 @@ public:
 	inline mtlItem<type_t>			*Remove( void );
 	inline const type_t				&GetItem( void ) const;
 	inline type_t					&GetItem( void );
-	inline void						Insert(const type_t *p_item) { m_parent->Insert(p_item); }
+	inline mtlItem<type_t>			*Insert(const type_t &p_data);
+	inline mtlItem<type_t>			*Insert(mtlItem<type_t> *p_item);
+	inline mtlItem<type_t>			*Insert(mtlList<type_t> &src);
+	inline void						Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at);
 };
 
 template < typename type_t >
@@ -57,16 +59,16 @@ public:
 	type_t							&AddFirst( void );
 	void							RemoveLast( void );
 	void							RemoveFirst( void );
-	mtlItem<type_t>					*Insert(const type_t &p_value, mtlItem<type_t> *p_node);
-	mtlItem<type_t>					*Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_node);
-	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_node);
+	mtlItem<type_t>					*Insert(const type_t &p_value, mtlItem<type_t> *p_at);
+	mtlItem<type_t>					*Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at);
+	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_at);
 	mtlItem<type_t>					*InsertSort(const type_t &p_value);
-	mtlItem<type_t>					*InsertSort(mtlItem<type_t> *p_node);
-	mtlItem<type_t>					*Remove(mtlItem<type_t> *p_node);
+	mtlItem<type_t>					*InsertSort(mtlItem<type_t> *p_item);
+	mtlItem<type_t>					*Remove(mtlItem<type_t> *p_item);
 	void							Split(mtlItem<type_t> *p_begin, int p_num, mtlList<type_t> &p_out);
 	static void						Swap(mtlItem<type_t> *p_a, mtlItem<type_t> *p_b);
-	void							Promote(mtlItem<type_t> *p_node);
-	void							Demote(mtlItem<type_t> *p_node);
+	void							Promote(mtlItem<type_t> *p_item);
+	void							Demote(mtlItem<type_t> *p_item);
 	void							Copy(const mtlList<type_t> &p_list);
 	void							RemoveAll( void );
 	inline int						GetSize( void ) const;
@@ -87,11 +89,6 @@ m_item(p_item), m_parent(p_parent), m_next(p_next), m_prev(p_prev)
 {
 	if (m_prev != NULL) { m_prev->m_next = this; }
 	if (m_next != NULL) { m_next->m_prev = this; }
-}
-
-template < typename type_t >
-mtlItem<type_t>::~mtlItem( void )
-{
 }
 
 template < typename type_t >
@@ -151,6 +148,32 @@ template < typename type_t >
 type_t &mtlItem<type_t>::GetItem( void )
 {
 	return m_item;
+}
+
+template < typename type_t >
+mtlItem<type_t> *mtlItem<type_t>::Insert(const type_t &p_data)
+{
+	return m_parent->Insert(p_data);
+}
+
+template < typename type_t >
+mtlItem<type_t> *mtlItem<type_t>::Insert(mtlItem<type_t> *p_item)
+{
+	return m_parent->Insert(p_item);
+}
+
+template < typename type_t >
+mtlItem<type_t> *mtlItem<type_t>::Insert(mtlList<type_t> &src)
+{
+	return m_parent->Insert(src);
+}
+
+template < typename type_t >
+mtlItem<type_t> *mtlItem<type_t>::Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at)
+{
+	mtlItem<type_t> *next = GetNext();
+	dst.Insert(this, at);
+	return next;
 }
 
 template < typename type_t >
@@ -229,27 +252,27 @@ void mtlList<type_t>::RemoveFirst( void )
 }
 
 template < typename type_t >
-mtlItem<type_t> *mtlList<type_t>::Insert(const type_t &p_value, mtlItem<type_t> *p_node)
+mtlItem<type_t> *mtlList<type_t>::Insert(const type_t &p_value, mtlItem<type_t> *p_at)
 {
-	if (p_node == NULL) {
+	if (p_at == NULL) {
 		AddLast(p_value);
 		return m_last;
-	} else if (p_node->m_parent != this) {
+	} else if (p_at->m_parent != this) {
 		return NULL;
-	} else if (p_node == m_first) {
+	} else if (p_at == m_first) {
 		AddFirst(p_value);
 		return m_first;
 	}
-	mtlItem<type_t> *node = new mtlItem<type_t>(p_value, this, p_node, p_node->m_prev);
+	mtlItem<type_t> *node = new mtlItem<type_t>(p_value, this, p_at, p_at->m_prev); // Looks like error, but list now references this memory
 	++m_size;
-	return p_node->m_prev;
+	return p_at->m_prev;
 }
 
 template < typename type_t >
-mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_node)
+mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at)
 {
 	mtlItem<type_t> *retNode = p_list.m_first;
-	if (p_node == NULL) {
+	if (p_at == NULL) {
 		if (m_first == NULL) {
 			m_first = p_list->m_first;
 			m_last = p_list->m_last;
@@ -257,16 +280,16 @@ mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t
 			m_last->m_next = p_list.m_first;
 			m_last = p_list.m_last;
 		}
-	} else if (p_node->m_parent != this) {
+	} else if (p_at->m_parent != this) {
 		return NULL;
-	} else if (p_node == m_first) {
+	} else if (p_at == m_first) {
 		m_first->m_prev = p_list.m_last;
 		p_list.m_last->m_next = m_first;
 		m_first = p_list.m_first;
 	} else {
-		p_node->m_next = p_list.m_first;
-		p_list.m_first->m_prev = p_node;
-		p_list.m_last->m_next = p_node->m_next;
+		p_at->m_next = p_list.m_first;
+		p_list.m_first->m_prev = p_at;
+		p_list.m_last->m_next = p_at->m_next;
 	}
 	m_size += p_list.m_size;
 	p_list.m_first = p_list->m_last = NULL;
@@ -275,11 +298,11 @@ mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t
 }
 
 template < typename type_t >
-mtlItem<type_t> *mtlList<type_t>::Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_node)
+mtlItem<type_t> *mtlList<type_t>::Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_at)
 {
 	mtlList<type_t> out;
 	p_item->GetParent()->Split(p_item, 1, out);
-	return Insert(out, p_node);
+	return Insert(out, p_at);
 }
 
 template < typename type_t >
@@ -293,25 +316,25 @@ mtlItem<type_t> *mtlList<type_t>::InsertSort(const type_t &p_value)
 }
 
 template < typename type_t >
-mtlItem<type_t> *mtlList<type_t>::InsertSort(mtlItem<type_t> *p_node)
+mtlItem<type_t> *mtlList<type_t>::InsertSort(mtlItem<type_t> *p_item)
 {
 	mtlItem<type_t> *node = m_first;
-	while (node != NULL && node->m_item < p_node->m_item) {
+	while (node != NULL && node->m_item < p_item->m_item) {
 		node = node->GetNext();
 	}
-	return Insert(node, p_node);
+	return Insert(p_item, node);
 }
 
 template < typename type_t >
-mtlItem<type_t> *mtlList<type_t>::Remove(mtlItem<type_t> *p_node)
+mtlItem<type_t> *mtlList<type_t>::Remove(mtlItem<type_t> *p_item)
 {
-	if (p_node->m_parent != this) { return NULL; }
-	mtlItem<type_t> *next = p_node->m_next;
-	if (p_node == m_last) { m_last = m_last->m_prev; }
-	if (p_node == m_first) { m_first = m_first->m_next; }
-	if (p_node->m_next != NULL) { p_node->m_next->m_prev = p_node->m_prev; }
-	if (p_node->m_prev != NULL) { p_node->m_prev->m_next = p_node->m_next; }
-	delete p_node;
+	if (p_item->m_parent != this) { return NULL; }
+	mtlItem<type_t> *next = p_item->m_next;
+	if (p_item == m_last) { m_last = m_last->m_prev; }
+	if (p_item == m_first) { m_first = m_first->m_next; }
+	if (p_item->m_next != NULL) { p_item->m_next->m_prev = p_item->m_prev; }
+	if (p_item->m_prev != NULL) { p_item->m_prev->m_next = p_item->m_next; }
+	delete p_item;
 	--m_size;
 	return next;
 }
@@ -367,29 +390,29 @@ void mtlList<type_t>::Swap(mtlItem<type_t> *p_a, mtlItem<type_t> *p_b)
 }
 
 template < typename type_t >
-void mtlList<type_t>::Promote(mtlItem<type_t> *p_node)
+void mtlList<type_t>::Promote(mtlItem<type_t> *p_item)
 {
-	if (p_node->m_parent != this) { return; }
-	if (p_node == m_last)		{ m_last = p_node->m_prev; }
-	if (p_node->m_next != NULL)	{ p_node->m_next->m_prev = p_node->m_prev; }
-	if (p_node->m_prev != NULL)	{ p_node->m_prev->m_next = p_node->m_next; }
-	m_first->m_prev = p_node;
-	p_node->m_next = m_first;
-	p_node->m_prev = NULL;
-	m_first = p_node;
+	if (p_item->m_parent != this) { return; }
+	if (p_item == m_last)		{ m_last = p_item->m_prev; }
+	if (p_item->m_next != NULL)	{ p_item->m_next->m_prev = p_item->m_prev; }
+	if (p_item->m_prev != NULL)	{ p_item->m_prev->m_next = p_item->m_next; }
+	m_first->m_prev = p_item;
+	p_item->m_next = m_first;
+	p_item->m_prev = NULL;
+	m_first = p_item;
 }
 
 template < typename type_t >
-void mtlList<type_t>::Demote(mtlItem<type_t> *p_node)
+void mtlList<type_t>::Demote(mtlItem<type_t> *p_item)
 {
-	if (p_node->m_parent != this) { return; }
-	if (p_node == m_first)		{ m_first = m_first->m_next; }
-	if (p_node->m_next != NULL)	{ p_node->m_next->m_prev = p_node->m_prev; }
-	if (p_node->m_prev != NULL)	{ p_node->m_prev->m_next = p_node->m_next; }
-	m_last->m_next = p_node;
-	p_node->m_next = NULL;
-	p_node->m_prev = m_last;
-	m_last = p_node;
+	if (p_item->m_parent != this) { return; }
+	if (p_item == m_first)		{ m_first = m_first->m_next; }
+	if (p_item->m_next != NULL)	{ p_item->m_next->m_prev = p_item->m_prev; }
+	if (p_item->m_prev != NULL)	{ p_item->m_prev->m_next = p_item->m_next; }
+	m_last->m_next = p_item;
+	p_item->m_next = NULL;
+	p_item->m_prev = m_last;
+	m_last = p_item;
 }
 
 template < typename type_t >
