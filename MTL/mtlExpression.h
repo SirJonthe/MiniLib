@@ -51,6 +51,7 @@ private:
 	bool	GenerateTermTree(TermNode *& node, const mtlChars &expression);
 	int		FindOperation(const mtlChars &operation, const mtlChars &expression) const;
 	int		FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const;
+	bool	IsLegalNameConvention(const mtlChars &name) const;
 	
 public:
 					mtlExpression( void );

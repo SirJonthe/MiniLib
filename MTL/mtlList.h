@@ -36,7 +36,7 @@ public:
 	inline mtlItem<type_t>			*Insert(const type_t &p_data);
 	inline mtlItem<type_t>			*Insert(mtlItem<type_t> *p_item);
 	inline mtlItem<type_t>			*Insert(mtlList<type_t> &src);
-	inline void						Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at);
+	inline mtlItem<type_t>			*Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at);
 };
 
 template < typename type_t >

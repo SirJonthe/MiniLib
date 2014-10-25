@@ -112,8 +112,6 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	static const char *Operations[OperationClasses] = {
 		"+-", "*/", "^"
 	};
-
-	// NOTE: a top-down convention is used for exponents, meaning I have to search the string in reverse when looking for ^
 	
 	int opIndex = -1;
 	
@@ -121,7 +119,7 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		mtlChars ops = mtlChars::FromDynamic(Operations[i]);
 		if (!ops.Compare("^")) {
 			opIndex = FindOperation(ops, expression);
-		} else {
+		} else { // exponents are parsed top-down (exception from PEMDAS)
 			opIndex = FindOperationReverse(ops, expression);
 		}
 		if (opIndex != -1) {
@@ -198,20 +196,27 @@ int mtlExpression::FindOperationReverse(const mtlChars &operations, const mtlCha
 	return -1;
 }
 
-void mtlExpression::SetConstant(const mtlChars &name, float value)
+bool mtlExpression::IsLegalNameConvention(const mtlChars &name) const
 {
 	if (name.GetSize() == 0) {
-		return;
+		return false;
 	}
 	for (int i = 1; i < name.GetSize(); ++i) {
 		char ch = name.GetChars()[i];
-		if (!mtlChars::IsAlphanumeric(ch) && ch != '_') { return; }
+		if (!mtlChars::IsAlphanumeric(ch) && ch != '_') { return false; }
 	}
 	char ch = name.GetChars()[0];
 	if (!mtlChars::IsAlpha(ch) && ch != '_') {
-		return;
+		return false;
 	}
-	(*m_constants.CreateEntry(name)) = value;
+	return true;
+}
+
+void mtlExpression::SetConstant(const mtlChars &name, float value)
+{
+	if (IsLegalNameConvention(name)) {
+		(*m_constants.CreateEntry(name)) = value;
+	}
 }
 
 float mtlExpression::GetConstant(const mtlChars &name) const

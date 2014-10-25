@@ -98,7 +98,7 @@ void mtlHashTable::Insert(const type_t &item)
 	m_table[index].GetLast()->GetItem().hash = hash;
 
 	++m_num_entries;
-	if (float(m_num_entries) / float(m_table.GetSize()) > 0.7f) {
+	if (float(m_num_entries) / float(m_table.GetSize()) > 0.7f) { // at 70% capacity the risk of collisions gets too high
 		ResizeTable(m_table.GetSize() * 2);
 	}
 }
