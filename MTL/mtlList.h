@@ -271,11 +271,16 @@ mtlItem<type_t> *mtlList<type_t>::Insert(const type_t &p_value, mtlItem<type_t> 
 template < typename type_t >
 mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at)
 {
+	mtlItem<type_t> *i = p_list.m_first;
+	while (i != NULL) {
+		i->m_parent = this;
+		i = i->GetNext();
+	}
 	mtlItem<type_t> *retNode = p_list.m_first;
 	if (p_at == NULL) {
 		if (m_first == NULL) {
-			m_first = p_list->m_first;
-			m_last = p_list->m_last;
+			m_first = p_list.m_first;
+			m_last = p_list.m_last;
 		} else {
 			m_last->m_next = p_list.m_first;
 			m_last = p_list.m_last;
@@ -287,12 +292,13 @@ mtlItem<type_t> *mtlList<type_t>::Insert(mtlList<type_t> &p_list, mtlItem<type_t
 		p_list.m_last->m_next = m_first;
 		m_first = p_list.m_first;
 	} else {
+		mtlItem<type_t> *temp_next = p_at->m_next;
 		p_at->m_next = p_list.m_first;
 		p_list.m_first->m_prev = p_at;
-		p_list.m_last->m_next = p_at->m_next;
+		p_list.m_last->m_next = temp_next;
 	}
 	m_size += p_list.m_size;
-	p_list.m_first = p_list->m_last = NULL;
+	p_list.m_first = p_list.m_last = NULL;
 	p_list.m_size = 0;
 	return retNode;
 }
