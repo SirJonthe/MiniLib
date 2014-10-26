@@ -120,11 +120,11 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 	
 	for (int i = 0; i < OperationClasses; ++i) {
 		mtlChars ops = mtlChars::FromDynamic(Operations[i]);
-		//if (ops.Compare("+-")) {
-		//	opIndex = FindOperation(ops, expression);
-		//} else { // exponents are parsed top-down (exception from PEMDAS)
-		opIndex = FindOperationReverse(ops, expression);
-		//}
+		if (!ops.Compare("^")) {
+			opIndex = FindOperationReverse(ops, expression);
+		} else { // exponents are parsed top-down (exception from PEMDAS)
+			opIndex = FindOperation(ops, expression);
+		}
 		if (opIndex != -1) {
 			break;
 		}
