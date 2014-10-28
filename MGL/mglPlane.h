@@ -16,23 +16,29 @@ class mglPlane
 private:
 	mmlVector<3> m_position;
 	mmlVector<3> m_normal;
+
 private:
 	float GetSignedDistance(const mmlVector<3> &point) const { return mmlDot(point - m_position, m_normal); }
 	mglClip DetermineSide(float dist) const;
 	bool IsBehind(float dist) const;
 	bool IsInFront(float dist) const;
 	bool IsCoinciding(float dist) const;
+
 public:
 	mglPlane( void ) {} // do nothing
 	mglPlane(const mmlVector<3> &p_position, const mmlVector<3> &p_normal);
 	mglPlane(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c);
+
 	template < int n > int Clip(const mmlVector<n> &a, const mmlVector<n> &b, const mmlVector<n> &c, mmlVector<n> (&out)[4]) const;
 	template < int n > int ReverseClip(const mmlVector<n> &a, const mmlVector<n> &b, const mmlVector<n> &c, mmlVector<n> (&out)[4]) const;
+
 	mglClip DetermineClipping(const mmlVector<3> &a, const mmlVector<3> &b, const mmlVector<3> &c) const;
 	mglClip DetermineSide(const mmlVector<3> &point) const;
+
 	bool IsBehind(const mmlVector<3> &point) const;
 	bool IsInFront(const mmlVector<3> &point) const;
 	bool IsCoinciding(const mmlVector<3> &point) const;
+
 	const mmlVector<3> &GetPosition( void ) const { return m_position; }
 	const mmlVector<3> &GetNormal( void ) const { return m_normal; }
 };
