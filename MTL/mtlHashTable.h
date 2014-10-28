@@ -5,7 +5,7 @@
 #include "mtlArray.h"
 #include "mtlString.h"
 
-class mtlHashable
+class mtlHashInterface
 {
 public:
 	virtual mtlHash ToHash( void ) = 0;

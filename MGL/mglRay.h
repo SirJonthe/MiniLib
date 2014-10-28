@@ -13,6 +13,7 @@ public:
 	mmlVector<3>	origin;
 	mmlVector<3>	direction;
 	unsigned int	mask;
+
 public:
 	mglRay( void ) : origin(), direction(), mask(0xffffffff) {}
 };
@@ -39,19 +40,25 @@ private:
 	int				m_xyz[3];
 	int				m_step[3];
 	int				m_side;
+
 public:
 						mglDifferentialAnalyzer( void ) : m_side(0) {}
 	explicit			mglDifferentialAnalyzer(const mglRay &p_ray) { SetInitialState(p_ray); }
+
 	void				SetInitialState(const mglRay &p_ray);
+
 	void				Step( void );
 	int					GetX( void ) const { return m_xyz[0]; }
 	int					GetY( void ) const { return m_xyz[1]; }
 	int					GetZ( void ) const { return m_xyz[2]; }
+
 	int					GetIndex(int axis) const { return m_xyz[axis]; }
+
 	int					GetImpactAxis( void ) const { return m_side; }
 	float				GetImpactDistance( void ) const { return fabs((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]); }
 	mmlVector<3>		GetImpactPosition( void ) const { return m_origin + m_direction * GetImpactDistance(); }
 	mmlVector<2>		GetImpactUV( void ) const;
+
 	const mmlVector<3>	&GetOrigin( void ) const { return m_origin; }
 };
 
