@@ -7,10 +7,17 @@ typedef unsigned long long TypeID;
 
 class mtlBase
 {
+private:
+	void * const m_objectPointer;
+
 protected:
 	static bool IsType(TypeID id) { return (GetClassType() == id); }
+	void *GetObjectPointer(TypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
+	virtual void *GetVirtualObjectPointer(TypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
 
 public:
+	mtlBase(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
+
 	static TypeID GetClassType( void ) { return 0; }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
@@ -23,6 +30,11 @@ public:
 	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }
 	template < typename other_t >
 	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
+
+	template < typename cast_t >
+	cast_t *Cast( void ) { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
+	template < typename cast_t >
+	const cast_t *Cast( void ) const { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
 };
 
 //
@@ -33,6 +45,8 @@ public:
 //
 // class Object : public mtlInherit<BaseObject, Object>
 // ...
+// Object( void ) : mtlInherit<BaseObject, Object>(this) {/*...*/}
+// Object(const Object &o) : mtlInherit<Object, Object>(this) {/*...*/}
 //
 
 template < typename base_t, typename type_t = int >
@@ -47,10 +61,16 @@ private:
 	// &mtlInherit<someClass, child1>::m_typeAddress == &mtlInherit<someClass, child2>::m_typeAddress
 	static type_t *m_typeAddress;
 
+	void * const m_objectPointer;
+
 protected:
 	static bool IsType(TypeID id) { return (GetClassType() != id) ? base_t::IsType(id) : true; }
+	void *GetObjectPointer(TypeID id) const { return (GetClassType() != id) ? GetBaseObjectPointer(id) : m_objectPointer; }
+	virtual void *GetVirtualObjectPointer(TypeID id) const { return (GetClassType() != id) ? base_t::GetBaseObjectPointer(id) : m_objectPointer; }
 
 public:
+	explicit mtlInherit(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
+
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
@@ -63,6 +83,11 @@ public:
 	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }
 	template < typename other_t >
 	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
+
+	template < typename cast_t >
+	cast_t *Cast( void ) { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
+	template < typename cast_t >
+	const cast_t *Cast( void ) const { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
 };
 
 template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL; // we don't care about initialization order since we are not interested in it's value
