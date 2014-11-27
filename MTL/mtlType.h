@@ -65,8 +65,8 @@ private:
 
 protected:
 	static bool IsType(TypeID id) { return (GetClassType() != id) ? base_t::IsType(id) : true; }
-	void *GetObjectPointer(TypeID id) const { return (GetClassType() != id) ? GetBaseObjectPointer(id) : m_objectPointer; }
-	virtual void *GetVirtualObjectPointer(TypeID id) const { return (GetClassType() != id) ? base_t::GetBaseObjectPointer(id) : m_objectPointer; }
+	void *GetObjectPointer(TypeID id) const { return (GetClassType() != id) ? base_t::GetObjectPointer(id) : m_objectPointer; }
+	virtual void *GetVirtualObjectPointer(TypeID id) const { return (GetClassType() != id) ? base_t::GetObjectPointer(id) : m_objectPointer; }
 
 public:
 	explicit mtlInherit(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
