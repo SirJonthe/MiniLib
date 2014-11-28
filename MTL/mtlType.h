@@ -32,9 +32,9 @@ public:
 	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
 
 	template < typename cast_t >
-	cast_t *Cast( void ) { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
+	cast_t *Cast( void ) { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
 	template < typename cast_t >
-	const cast_t *Cast( void ) const { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
+	const cast_t *Cast( void ) const { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
 };
 
 //
@@ -74,20 +74,20 @@ public:
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
-	bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
-	template < typename other_t >
-	bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
+	//virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
+	//bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
+	//template < typename other_t >
+	//bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
 
 	static bool IsClassType(TypeID id) { return IsType(id); }
 	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }
 	template < typename other_t >
 	static bool IsClassType( void ) { return IsType(other_t::GetClassType()); }
 
-	template < typename cast_t >
-	cast_t *Cast( void ) { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
-	template < typename cast_t >
-	const cast_t *Cast( void ) const { return (cast_t*)GetVirtualObjectPointer(cast_t::GetClassType()); }
+	//template < typename cast_t >
+	//cast_t *Cast( void ) { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
+	//template < typename cast_t >
+	//const cast_t *Cast( void ) const { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
 };
 
 template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL; // we don't care about initialization order since we are not interested in it's value
