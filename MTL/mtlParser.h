@@ -35,13 +35,14 @@ private:
 	int			m_reader;
 
 private:
-	bool				IsEndOfFile(int i) const { return i >= m_buffer.GetSize() || i < 0; }
+	bool				IsEnd(int i) const { return i >= m_buffer.GetSize() || i < 0; }
 	ExpressionResult	VerifyInputExpression(const mtlChars &expr) const;
 
 public:
 					mtlParser( void );
 	explicit		mtlParser(const mtlChars &p_buffer);
 
+	const mtlChars &GetBuffer( void ) const;
 	void			SetBuffer(const mtlChars &p_buffer);
 	static bool		BufferFile(const mtlDirectory &p_file, mtlString &p_buffer);
 
@@ -68,7 +69,7 @@ public:
 	mtlChars		PeekToAny(const mtlChars &p_chars);
 	void			BackToAny(const mtlChars &p_chars);
 
-	bool			IsEndOfFile( void ) const { return IsEndOfFile(m_reader); }
+	bool			IsEnd( void ) const { return IsEnd(m_reader); }
 	int				GetCharCount( void ) const { return m_buffer.GetSize(); }
 	int				GetCurrentPosition( void ) const { return m_reader; }
 	int				GetCharsLeft( void ) const { return m_buffer.GetSize() - m_reader; }

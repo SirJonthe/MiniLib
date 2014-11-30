@@ -76,6 +76,11 @@ mtlParser::mtlParser(const mtlChars &p_buffer) : m_buffer(), m_reader(0)
 	SetBuffer(p_buffer);
 }
 
+const mtlChars &mtlParser::GetBuffer( void ) const
+{
+	return m_buffer;
+}
+
 void mtlParser::SetBuffer(const mtlChars &p_buffer)
 {
 	m_buffer = p_buffer;
@@ -95,7 +100,7 @@ bool mtlParser::BufferFile(const mtlDirectory &p_file, mtlString &p_buffer)
 char mtlParser::ReadChar(bool skipWhite)
 {
 	if (skipWhite) {
-		while (!IsEndOfFile(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
+		while (!IsEnd(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
 			++m_reader;
 		}
 	}
@@ -106,7 +111,7 @@ char mtlParser::PeekChar(bool skipWhite) const
 {
 	int i = m_reader;
 	if (skipWhite) {
-		while (!IsEndOfFile(i) && IsWhite(m_buffer.GetChars()[i])) {
+		while (!IsEnd(i) && IsWhite(m_buffer.GetChars()[i])) {
 			++i;
 		}
 	}
@@ -116,7 +121,7 @@ char mtlParser::PeekChar(bool skipWhite) const
 void mtlParser::SkipChar(bool skipWhite)
 {
 	if (skipWhite) {
-		while (!IsEndOfFile(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
+		while (!IsEnd(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
 			++m_reader;
 		}
 	}
@@ -127,7 +132,7 @@ void mtlParser::SkipChar(bool skipWhite)
 void mtlParser::BackChar(bool skipWhite)
 {
 	if (skipWhite) {
-		while (!IsEndOfFile(m_reader-1) && IsWhite(m_buffer.GetChars()[m_reader-1])) {
+		while (!IsEnd(m_reader-1) && IsWhite(m_buffer.GetChars()[m_reader-1])) {
 			--m_reader;
 		}
 	}
@@ -136,11 +141,11 @@ void mtlParser::BackChar(bool skipWhite)
 
 mtlChars mtlParser::ReadWord( void )
 {
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 	int start = m_reader;
-	while (!IsEndOfFile() && !IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 	return mtlChars(m_buffer, start, m_reader);
@@ -149,11 +154,11 @@ mtlChars mtlParser::ReadWord( void )
 mtlChars mtlParser::PeekWord( void ) const
 {
 	int i = m_reader;
-	while (!IsEndOfFile(i) && IsWhite(m_buffer.GetChars()[i])) {
+	while (!IsEnd(i) && IsWhite(m_buffer.GetChars()[i])) {
 		++i;
 	}
 	int start = i;
-	while (!IsEndOfFile(i) && !IsWhite(m_buffer.GetChars()[i])) {
+	while (!IsEnd(i) && !IsWhite(m_buffer.GetChars()[i])) {
 		++i;
 	}
 	return mtlChars(m_buffer, start, i);
@@ -162,36 +167,36 @@ mtlChars mtlParser::PeekWord( void ) const
 void mtlParser::BackWord( void )
 {
 	int r = m_reader;
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	while (!IsEndOfFile() && !IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	if (IsEndOfFile() && r != m_reader+1) { ++m_reader; } // in order to make the first word in file readable only once
+	if (IsEnd() && r != m_reader+1) { ++m_reader; } // in order to make the first word in file readable only once
 }
 
 void mtlParser::SkipWord( void )
 {
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
-	while (!IsEndOfFile() && !IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 }
 
 mtlChars mtlParser::ReadLine( void )
 {
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 	int start = m_reader;
-	while (!IsEndOfFile() && !IsNewl(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsNewl(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 	int end = m_reader;
-	while (!IsEndOfFile(end-1) && IsWhite(m_buffer.GetChars()[end-1])) {
+	while (!IsEnd(end-1) && IsWhite(m_buffer.GetChars()[end-1])) {
 		--end;
 	}
 	return mtlChars(m_buffer, start, end);
@@ -200,14 +205,14 @@ mtlChars mtlParser::ReadLine( void )
 mtlChars mtlParser::PeekLine( void ) const
 {
 	int i = m_reader;
-	while (!IsEndOfFile(i) && IsWhite(m_buffer.GetChars()[i])) {
+	while (!IsEnd(i) && IsWhite(m_buffer.GetChars()[i])) {
 		++i;
 	}
 	int start = i;
-	while (!IsEndOfFile(i) && !IsNewl(m_buffer.GetChars()[i])) {
+	while (!IsEnd(i) && !IsNewl(m_buffer.GetChars()[i])) {
 		++i;
 	}
-	while (!IsEndOfFile(i-1) && IsWhite(m_buffer.GetChars()[i-1])) {
+	while (!IsEnd(i-1) && IsWhite(m_buffer.GetChars()[i-1])) {
 		--i;
 	}
 	return mtlChars(m_buffer, start, i);
@@ -216,21 +221,21 @@ mtlChars mtlParser::PeekLine( void ) const
 void mtlParser::BackLine( void )
 {
 	int r = m_reader;
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	while (!IsEndOfFile() && !IsNewl(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsNewl(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	if (IsEndOfFile() && r != m_reader+1) { ++m_reader; } // in order to make the first line in file readable only once
+	if (IsEnd() && r != m_reader+1) { ++m_reader; } // in order to make the first line in file readable only once
 }
 
 void mtlParser::SkipLine( void )
 {
-	while (!IsEndOfFile() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
-	while (!IsEndOfFile() && !IsNewl(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd() && !IsNewl(m_buffer.GetChars()[m_reader])) {
 		++m_reader;
 	}
 }
@@ -238,7 +243,7 @@ void mtlParser::SkipLine( void )
 mtlChars mtlParser::ReadTo(const mtlChars &p_str)
 {
 	int start = m_reader;
-	while (!IsEndOfFile() && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+m_reader, p_str.GetSize())) {
+	while (!IsEnd() && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+m_reader, p_str.GetSize())) {
 		++m_reader;
 	}
 	if (GetCharsLeft() < p_str.GetSize()) {
@@ -250,7 +255,7 @@ mtlChars mtlParser::ReadTo(const mtlChars &p_str)
 mtlChars mtlParser::PeekTo(const mtlChars &p_str)
 {
 	int i = m_reader;
-	while (!IsEndOfFile(i) && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+i, p_str.GetSize())) {
+	while (!IsEnd(i) && p_str.GetSize() <= GetCharsLeft() && !mtlChars::SameAsAll(p_str.GetChars(), m_buffer.GetChars()+i, p_str.GetSize())) {
 		++i;
 	}
 	if (GetCharsLeft() < p_str.GetSize()) {
@@ -262,7 +267,7 @@ mtlChars mtlParser::PeekTo(const mtlChars &p_str)
 mtlChars mtlParser::ReadToAny(const mtlChars &p_chars)
 {
 	int start = m_reader;
-	while (!IsEndOfFile() && mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
+	while (!IsEnd() && mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
 		++m_reader;
 	}
 	return mtlChars(m_buffer, start, m_reader);
@@ -271,7 +276,7 @@ mtlChars mtlParser::ReadToAny(const mtlChars &p_chars)
 mtlChars mtlParser::PeekToAny(const mtlChars &p_chars)
 {
 	int i = m_reader;
-	while (!IsEndOfFile(i) && mtlChars::SameAsAny(m_buffer[i], p_chars.GetChars(), p_chars.GetSize())) {
+	while (!IsEnd(i) && mtlChars::SameAsAny(m_buffer[i], p_chars.GetChars(), p_chars.GetSize())) {
 		++i;
 	}
 	return mtlChars(m_buffer, m_reader, i);
@@ -279,7 +284,7 @@ mtlChars mtlParser::PeekToAny(const mtlChars &p_chars)
 
 void mtlParser::BackToAny(const mtlChars &p_chars)
 {
-	while (!IsEndOfFile() && !mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
+	while (!IsEnd() && !mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
 		--m_reader;
 	}
 }
@@ -299,7 +304,7 @@ void mtlParser::JumpToEndLine( void )
 bool mtlParser::JumpToChar(const mtlChars &p_chars)
 {
 	const int count = p_chars.GetSize();
-	while (!IsEndOfFile()) {
+	while (!IsEnd()) {
 		char c = m_buffer.GetChars()[m_reader++];
 		for (int i = 0; i < count; ++i) {
 			if (c == p_chars.GetChars()[i]) {
@@ -313,7 +318,7 @@ bool mtlParser::JumpToChar(const mtlChars &p_chars)
 bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 {
 	const int count = p_chars.GetSize();
-	while (!IsEndOfFile()) {
+	while (!IsEnd()) {
 		char c = m_buffer.GetChars()[m_reader--];
 		for (int i = 0; i < count; ++i) {
 			if (c == p_chars.GetChars()[i]) {
@@ -326,7 +331,7 @@ bool mtlParser::JumpToCharBack(const mtlChars &p_chars)
 
 void mtlParser::ConsumeWhitespaces( void )
 {
-	while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+	while (!IsEnd() && IsWhite(m_buffer[m_reader])) {
 		++m_reader;
 	}
 }
@@ -363,7 +368,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 	ExpressionResult result = VerifyInputExpression(expr);
 
-	while (!IsEndOfFile() && exprReader < expr.GetSize() && result == ExpressionValid) {
+	while (!IsEnd() && exprReader < expr.GetSize() && result == ExpressionValid) {
 
 		char ech = expr[exprReader++];
 
@@ -444,7 +449,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				// read until delimiter, or if a delimiter does not exist space
 				ConsumeWhitespaces(); // remove all white spaces prior to word
 				int start = m_reader;
-				while (!IsEndOfFile()) {
+				while (!IsEnd()) {
 					if ((delimiterFound && m_buffer[m_reader] == delimiter) || IsWhite(m_buffer[m_reader])) { break; }
 					++m_reader;
 				}
@@ -521,7 +526,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					m_reader = m_buffer.GetSize();
 				} else {
 					int start = m_reader;
-					while (!IsEndOfFile() && m_buffer[m_reader] != delimiter) {
+					while (!IsEnd() && m_buffer[m_reader] != delimiter) {
 						++m_reader;
 					}
 					variable = mtlChars(m_buffer, start, m_reader);
@@ -549,7 +554,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			case 'n': // Newline (makes sure there is a newline in the matched expression)
 			{
 				bool foundNewl = false;
-				while (!IsEndOfFile() && IsWhite(m_buffer[m_reader]) && !foundNewl) {
+				while (!IsEnd() && IsWhite(m_buffer[m_reader]) && !foundNewl) {
 					if (IsNewl(m_buffer[m_reader])) {
 						foundNewl = true;
 					}
@@ -564,7 +569,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				if (!IsWhite(m_buffer[m_reader])) {
 					result = ExpressionNotFound;
 				} else {
-					while (!IsEndOfFile() && IsWhite(m_buffer[m_reader])) {
+					while (!IsEnd() && IsWhite(m_buffer[m_reader])) {
 						++m_reader;
 					}
 				}
