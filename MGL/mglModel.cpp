@@ -15,7 +15,7 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 	mtlList<mtlString> materials;
 	bool missingDefaultMaterial = true;
 
-	while (!parser.IsEndOfFile()) {
+	while (!parser.IsEnd()) {
 		param = parser.ReadWord();
 		mtlChars line = parser.ReadLine();
 		if (param.GetSize() == 0 || param.GetChars()[0] == '#') { continue; }
@@ -89,7 +89,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 	m_normals[0] = mmlVector<3>(0.0f, 0.0f, 0.0f); // default normal (for models that don't contain normals)
 	mtlString error;
 
-	while (!parser.IsEndOfFile()) {
+	while (!parser.IsEnd()) {
 		param = parser.ReadWord();
 		mtlParser line(parser.ReadLine());
 		
@@ -97,7 +97,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 		
 		if (param.Compare("f")) {
 			mtlList<FacetIndex> facet;
-			while (!line.IsEndOfFile()) {
+			while (!line.IsEnd()) {
 				param = line.ReadWord();
 				mtlList<mtlChars> facetPoint;
 				param.SplitByChar(facetPoint, "/");
@@ -182,7 +182,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			}
 		} else if (param.Compare("v")) {
 			int n = 0;
-			while (!line.IsEndOfFile()) {
+			while (!line.IsEnd()) {
 				param = line.ReadWord();
 				if (n > 4) {
 					SetError("Too many arguments in v");
@@ -202,7 +202,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			++currentV;
 		} else if (param.Compare("vt")) {
 			int n = 0;
-			while (!line.IsEndOfFile()) {
+			while (!line.IsEnd()) {
 				param = line.ReadWord();
 				if (n > 3) {
 					SetError("Too many arguments in vt");
@@ -222,7 +222,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			++currentT;
 		} else if (param.Compare("vn")) {
 			int n = 0;
-			while (!line.IsEndOfFile()) {
+			while (!line.IsEnd()) {
 				param = line.ReadWord();
 				if (n > 3) {
 					SetError("Too many arguments in vn");
@@ -262,9 +262,9 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			}
 			mtlParser mtlFile(mtlContents);
 			int newmtl = -1;
-			while (!mtlFile.IsEndOfFile()) {
+			while (!mtlFile.IsEnd()) {
 				mtlParser mtlLine(mtlFile.ReadLine());
-				while (!mtlLine.IsEndOfFile()) {
+				while (!mtlLine.IsEnd()) {
 					param = mtlLine.ReadWord();
 					if (param.Compare("newmtl")) {
 						param = mtlLine.ReadLine();
@@ -272,7 +272,7 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 						++newmtl;
 					} else if (param.Compare("Kd")) {
 						int n = 0;
-						while (!mtlLine.IsEndOfFile()) {
+						while (!mtlLine.IsEnd()) {
 							param = mtlLine.ReadWord();
 							if (n >= 3) {
 								SetError("Too many arguments in Kd");
