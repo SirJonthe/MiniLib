@@ -132,6 +132,10 @@ public:
 		for (int j = 0; j < n; ++j) e[j] *= r;
 		return *this;
 	}
+	mmlVector<n> &operator/=(float r)
+	{
+		return *this *= (1.0f / r);
+	}
 	mmlVector<n> &operator/=(const mmlVector<n> &r)
 	{
 		for (int j = 0; j < n; ++j) e[j] /= r.e[j];
@@ -161,6 +165,18 @@ public:
 	{
 		for (int i = 0; i < n; ++i) {
 			e[i] = floor(e[i] + 0.5f);
+		}
+	}
+	void Floor( void )
+	{
+		for (int i = 0; i < n; ++i) {
+			e[i] = floor(e[i]);
+		}
+	}
+	void Ceil( void )
+	{
+		for (int i = 0; i < n; ++i) {
+			e[i] = ceil(e[i]);
 		}
 	}
 	void SnapInt( void )
@@ -250,6 +266,12 @@ public:
 		e[i] = e[j];
 		e[j] = t;
 	}
+	void Abs( void )
+	{
+		for (int j = 0; j < n; ++j) {
+			e[j] = fabs(e[j]);
+		}
+	}
 };
 
 //
@@ -260,6 +282,7 @@ template < int n > inline mmlVector<n> operator-(mmlVector<n> l, const mmlVector
 template < int n > inline mmlVector<n> operator*(mmlVector<n> l, const mmlVector<n> &r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(mmlVector<n> l, float r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(float l, mmlVector<n> r) { return (r*=l); }
+template < int n > inline mmlVector<n> operator/(mmlVector<n> l, float r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator/(mmlVector<n> l, const mmlVector<n> &r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 	for (int j = 0; j < n; ++j) { v[j] = -v[j]; }
@@ -305,6 +328,14 @@ inline mmlVector<3> mmlCross(const mmlVector<3> &u, const mmlVector<3> &v)
 	res[1] = u[2]*v[0] - u[0]*v[2];
 	res[2] = u[0]*v[1] - u[1]*v[0];
 	return res;
+}
+
+//
+// mmlCross2
+//
+inline float mmlCross2(const mmlVector<2> &v, const mmlVector<2> &w)
+{
+	return v[0]*w[1] - v[1]*w[0];
 }
 
 //
@@ -464,6 +495,26 @@ inline bool mmlRefract(const mmlVector<3> &incident, const mmlVector<3> &surface
 	}
 	outRefraction = n * incident - (n + sqrt(1.0f - sin)) * surfaceNormal;
 	return true;
+}
+
+//
+// mmlTangent
+//
+inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
+{
+	mmlVector<2> tan;
+	tan[0] = normal[1];
+	tan[1] = normal[0];
+	return tan;
+}
+//
+// mmlAbs
+//
+template < int n >
+inline mmlVector<n> mmlAbs(mmlVector<n> v)
+{
+	v.Abs();
+	return v;
 }
 
 #endif

@@ -146,6 +146,19 @@ public:
 		ident.SetIdentity();
 		return ident;
 	}
+	//
+	// ScaleMatrix
+	//
+	static mmlMatrix<rows, columns> ScaleMatrix(float scale)
+	{
+		mmlMatrix<rows,columns> m;
+		for (int p_row = 0; p_row < rows; ++p_row) {
+			for (int p_column = 0; p_column < columns; ++p_column) {
+				m.e[p_row][p_column] = (float)(p_row == p_column) * scale;
+			}
+		}
+		return m;
+	}
 };
 
 //
@@ -338,7 +351,7 @@ mmlMatrix<rows,rows> &operator*=(mmlMatrix<rows,rows> &l, mmlMatrix<rows,rows> r
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		const mmlVector<rows> li = l[p_row]; // current l vector
 		for (int p_column = 0; p_column < rows; ++p_column) {
-			l[p_row][p_column] = Dot(li, r[p_column]);
+			l[p_row][p_column] = mmlDot(li, r[p_column]);
 		}
 	}
 	return l;
@@ -518,6 +531,16 @@ inline mmlMatrix<4,4> mmlZRotationMatrix(float zrad)
 		);
 }
 
+inline mmlMatrix<2,2> mml2DRotationMatrix(float rad)
+{
+	const float SIN = sin(rad);
+	const float COS = cos(rad);
+	mmlMatrix<2,2> m;
+	m[0][0] = COS; m[0][1] = -SIN;
+	m[1][0] = SIN; m[1][1] = COS;
+	return m;
+}
+
 //
 // mmlEulerRotationMatrix
 //
@@ -585,13 +608,23 @@ inline mmlMatrix<4,4> mmlViewMatrix(const mmlVector<3> &p_up, const mmlVector<3>
 }
 
 // Do not use this for perspective transform matrices
-inline mmlMatrix<4,4> mmlToOpenGLTransform(const mmlMatrix<4,4> &p_transform)
+inline mmlMatrix<4,4> mmlToOpenGLTransform3D(const mmlMatrix<4,4> &p_transform)
 {
 	return mmlMatrix<4,4>(
 		p_transform[0][0], p_transform[0][1], p_transform[0][2], 0.0f,
 		p_transform[1][0], p_transform[1][1], p_transform[1][2], 0.0f,
 		p_transform[2][0], p_transform[2][1], p_transform[2][2], 0.0f,
 		p_transform[0][3], p_transform[1][3], p_transform[2][3], 1.0f
+	);
+}
+
+inline mmlMatrix<4,4> mmlToOpenGLTransform2D(const mmlMatrix<3,3> &p_transform)
+{
+	return mmlMatrix<4,4>(
+		p_transform[0][0], p_transform[0][1], 0.0f, 0.0f,
+		p_transform[1][0], p_transform[1][1], 0.0f, 0.0f,
+		0.0f,              0.0f,              1.0f, 0.0f,
+		p_transform[0][2], p_transform[1][2], 0.0f, 1.0f
 	);
 }
 
