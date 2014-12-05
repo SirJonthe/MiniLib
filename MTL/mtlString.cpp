@@ -326,8 +326,8 @@ char *mtlString::NewPool(int p_size)
 	const int actualSize = p_size + 1;
 	if (actualSize > m_pool) {
 		m_pool = ((actualSize / m_growth) + 1) * m_growth;
-		char *chars = new char[m_pool+1];
-		chars[m_pool] = '\0';
+		char *chars = new char[m_pool];
+		chars[m_pool-1] = '\0';
 		return chars;
 	}
 	return NULL;
