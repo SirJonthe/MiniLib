@@ -395,13 +395,14 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 
 mtlString &mtlString::Append(const mtlChars &p_str)
 {
-	if (m_size + p_str.GetSize() > m_pool) {
+	if (m_size + p_str.GetSize() >= m_pool) {
 		NewPoolPreserve(m_size + p_str.GetSize());
 	}
 	for (int i = 0; i < p_str.GetSize(); ++i) {
 		m_str[i + m_size] = p_str.GetChars()[i];
 	}
 	m_size += p_str.GetSize();
+	m_str[m_size] = '\0';
 	return *this;
 }
 
@@ -416,6 +417,7 @@ void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 		m_str[p_at+i] = str[i];
 	}
 	m_size = m_size > newSize ? m_size : newSize;
+	m_str[m_size] = '\0';
 }
 
 void mtlString::Remove(int p_begin, int p_num)
@@ -424,6 +426,7 @@ void mtlString::Remove(int p_begin, int p_num)
 		m_str[i] = m_str[i + p_num];
 	}
 	m_size -= p_num;
+	m_str[m_size] = '\0';
 }
 
 void mtlString::Free( void )
