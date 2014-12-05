@@ -237,6 +237,9 @@ void mtlList<type_t>::RemoveLast( void )
 	mtlItem<type_t> *node = m_last;
 	m_last = m_last->m_prev;
 	if (m_last == NULL) { m_first = NULL; }
+	else {
+		m_last->m_next = NULL;
+	}
 	delete node;
 	--m_size;
 }
@@ -247,6 +250,9 @@ void mtlList<type_t>::RemoveFirst( void )
 	mtlItem<type_t> *node = m_first;
 	m_first = m_first->m_next;
 	if (m_first == NULL) { m_last = NULL; }
+	else {
+		m_first->m_prev = NULL;
+	}
 	delete node;
 	--m_size;
 }
