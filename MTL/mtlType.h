@@ -78,10 +78,10 @@ public:
 	static TypeID GetClassType( void ) { static const TypeID id = mtlBase::GetNextTypeID(); return id; }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 
-	//virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
-	//bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
-	//template < typename other_t >
-	//bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
+	virtual bool IsInstanceType(TypeID id) const { return IsType(id); }
+	bool IsInstanceType(const mtlBase &base) const { return IsInstanceType(base.GetInstanceType()); }
+	template < typename other_t >
+	bool IsInstanceType( void ) const { return IsInstanceType(other_t::GetClassType()); }
 
 	static bool IsClassType(TypeID id) { return IsType(id); }
 	static bool IsClassType(const mtlBase &base) { return IsType(base.GetInstanceType()); }

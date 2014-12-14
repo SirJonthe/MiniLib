@@ -82,7 +82,7 @@ inline int mmlX86TruncCast(double x)
 	return (int)b.i;
 }
 
-inline bool mmlIsNAN(float x)
+/*inline bool mmlIsNAN(float x)
 {
 	union bits32
 	{
@@ -119,6 +119,6 @@ inline bool mmlIsInfNeg(float x)
 	static const bits32 ninf = -1.0f / 0.0f;
 	const bits32 f = x;
 	return f.i == ninf.i;
-}
+}*/
 
 #endif
