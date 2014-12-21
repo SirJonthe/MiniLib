@@ -21,6 +21,7 @@ private:
 					mtlItem(const mtlItem<type_t>&) {}
 	mtlItem<type_t>	&operator=(const mtlItem<type_t>&) { return *this; }
 					mtlItem(const type_t &p_item, mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
+					mtlItem(mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
 
 public:
 	inline explicit					mtlItem(const type_t &p_item);
@@ -86,6 +87,14 @@ m_item(), m_parent(NULL), m_next(NULL), m_prev(NULL)
 template < typename type_t >
 mtlItem<type_t>::mtlItem(const type_t &p_item, mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev) :
 m_item(p_item), m_parent(p_parent), m_next(p_next), m_prev(p_prev)
+{
+	if (m_prev != NULL) { m_prev->m_next = this; }
+	if (m_next != NULL) { m_next->m_prev = this; }
+}
+
+template < typename type_t >
+mtlItem<type_t>::mtlItem(mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev) :
+m_item(), m_parent(p_parent), m_next(p_next), m_prev(p_prev)
 {
 	if (m_prev != NULL) { m_prev->m_next = this; }
 	if (m_next != NULL) { m_next->m_prev = this; }
@@ -199,14 +208,10 @@ void mtlList<type_t>::AddLast(const type_t &p_value)
 template < typename type_t >
 type_t &mtlList<type_t>::AddLast( void )
 {
-	mtlItem<type_t> *node = new mtlItem<type_t>;
-	node->m_parent = this;
-	node->m_next = NULL;
-	node->m_prev = m_last;
+	mtlItem<type_t> *node = new mtlItem<type_t>(this, NULL, m_last);
 	m_last = node;
 	if (m_first == NULL) { m_first = m_last; }
 	++m_size;
-	return node->m_item;
 }
 
 template < typename type_t >
@@ -221,14 +226,10 @@ void mtlList<type_t>::AddFirst(const type_t &p_value)
 template < typename type_t >
 type_t &mtlList<type_t>::AddFirst( void )
 {
-	mtlItem<type_t> *node = new mtlItem<type_t>;
-	node->m_parent = this;
-	node->m_next = m_first;
-	node->m_prev = NULL;
+	mtlItem<type_t> *node = new mtlItem<type_t>(this, m_first, NULL);
 	m_first = node;
 	if (m_last == NULL) { m_last = m_first; }
 	++m_size;
-	return node->m_item;
 }
 
 template < typename type_t >
