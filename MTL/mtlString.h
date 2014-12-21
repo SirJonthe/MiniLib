@@ -200,7 +200,7 @@ char mtlChars::ToLower(char ch)
 char mtlChars::ToUpper(char ch)
 {
 	if (ch >= 'a' && ch <= 'z') {
-		ch -= 'a' - 'Z';
+		ch -= 'a' - 'A';
 	}
 	return ch;
 }
