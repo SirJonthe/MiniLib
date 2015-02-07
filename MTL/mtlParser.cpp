@@ -289,6 +289,42 @@ void mtlParser::BackToAny(const mtlChars &p_chars)
 	}
 }
 
+mtlChars mtlParser::ReadRest( void )
+{
+	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
+		++m_reader;
+	}
+	int start = m_reader;
+	while (!IsEnd()) {
+		++m_reader;
+	}
+	return mtlChars(m_buffer, start, m_reader);
+}
+
+mtlChars mtlParser::PeekRest( void ) const
+{
+	int start = m_reader;
+	while (!IsEnd(start) && IsWhite(m_buffer.GetChars()[start])) {
+		++start;
+	}
+	int end = start;
+	while (!IsEnd(end)) {
+		++end;
+	}
+	return mtlChars(m_buffer, start, end);
+}
+
+int mtlParser::GetLineNumber( void ) const
+{
+	int line_number = 1;
+	for (int i = m_reader - 1; i > -1; --i) {
+		if (IsNewl(m_buffer[i])) {
+			++line_number;
+		}
+	}
+	return line_number;
+}
+
 void mtlParser::JumpToEndWord( void )
 {
 	JumpToEndChar();
@@ -356,6 +392,30 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 {
 	// implement case sensitivity (I'm not using the case state, only setting it to a value)
 
+	// parse expr using an mtlParser (should simplify code a lot)
+
+	// parsing expression with parser:
+	// read word
+	// if word starts with % then variable
+		// next letter gives what type of variable
+		// if next letter is unknown variable or end of character stream then expression error
+		// if there is another letter in the word (that is not %) then that is the delimiter
+	// matching w, b, i, f:
+		// read whole string to delimiter
+		// trim string
+		// search for whitespace in string, no match if a whitespace is found
+		// check for success on conversion to desired type, mismatch if conversion failure
+		// if case sensitivity is off, convert to lower case
+		// store in out
+	// matching s:
+		// read whole string to delimiter (spaces can not be delimiters)
+		// trim string if this is not a quote section
+		// if case sensitivity is off, convert to lower case
+		// store in out
+	// constant matching:
+		// word for word matching (with or without case sensitivity)
+		// number of spaces are irrelevant unless this is a quote section
+
 	out.RemoveAll();
 
 	if (expr.GetSize() == 0) { return ExpressionFound; }
@@ -388,26 +448,30 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					ConsumeWhitespaces();
 
 					while (exprReader < expr.GetSize() && IsWhite(ech)) {
-						ech = expr[++exprReader];
+						ech = expr[exprReader++];
 					}
 				}
 
-				char bufchar = m_buffer[m_reader++];
+				if (ech != var) {
+					char bufchar = m_buffer[m_reader++];
 
-				if (caseSensitive && bufchar != ech) {
-					result = ExpressionNotFound;
-				} else if (!caseSensitive && mtlChars::ToLower(bufchar) != mtlChars::ToLower(ech)) {
-					result = ExpressionNotFound;
-				} else {
+					if (caseSensitive && bufchar != ech) {
+						result = ExpressionNotFound;
+					} else if (!caseSensitive && mtlChars::ToLower(bufchar) != mtlChars::ToLower(ech)) {
+						result = ExpressionNotFound;
+					} else {
 
-					if (quoteChar == 0) {
-						if (ech == '\'' || ech == '\"') { // opening quote
-							quoteChar = ech;
+						if (quoteChar == 0) {
+							if (ech == '\'' || ech == '\"') { // opening quote
+								quoteChar = ech;
+							}
+						} else if (quoteChar == ech) { // closing quote
+							quoteChar = 0;
 						}
-					} else if (quoteChar == ech) { // closing quote
-						quoteChar = 0;
-					}
 
+					}
+				} else {
+					readState = Variable;
 				}
 			}
 		}
@@ -435,7 +499,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					// look for a non-white character
 					char ch = expr[i];
 					if (ch == var && !escape) {
-						i += 1;
+						delimiter = ' '; // there is no delimiter, only whitespaces
+						delimiterFound = true;
 					} else if (ch == esc) {
 						escape = true;
 						continue;
@@ -450,7 +515,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				ConsumeWhitespaces(); // remove all white spaces prior to word
 				int start = m_reader;
 				while (!IsEnd()) {
-					if ((delimiterFound && m_buffer[m_reader] == delimiter) || IsWhite(m_buffer[m_reader])) { break; }
+					char c = m_buffer[m_reader];
+					if ((delimiterFound && c == delimiter) || IsWhite(c)) { break; }
 					++m_reader;
 				}
 				mtlChars variable(m_buffer, start, m_reader);
@@ -486,22 +552,6 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			case 's': // String (Broken by delimiter)
 			{
-				/*char delimiter = 0;
-				bool escape = false;
-				bool delimiterFound = false;
-				for (int i = exprReader; i < expr.GetSize(); ++i) {
-					if (!escape && expr[i] == esc) {
-						escape = true;
-						continue;
-					}
-					if (!IsWhite(expr[i]) && (!escape || expr[i] != var)) {
-						delimiter = expr[i];
-						delimiterFound = true;
-						break;
-					}
-					escape = false;
-				}*/
-
 				bool delimiterFound = false;
 				char delimiter = 0;
 				bool escape = false;
@@ -509,7 +559,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					// look for a non-white character
 					char ch = expr[i];
 					if (ch == var && !escape) {
-						i += 1;
+						continue;
 					} else if (ch == esc) {
 						escape = true;
 						continue;
@@ -536,7 +586,11 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					variable.Trim();
 				}
 
-				out.AddLast(variable);
+				if (variable.GetSize() > 0) {
+					out.AddLast(variable);
+				} else {
+					result = ExpressionNotFound;
+				}
 
 				break;
 			}

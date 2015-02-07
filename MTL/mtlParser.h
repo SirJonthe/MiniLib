@@ -69,10 +69,14 @@ public:
 	mtlChars		PeekToAny(const mtlChars &p_chars);
 	void			BackToAny(const mtlChars &p_chars);
 
+	mtlChars		ReadRest( void );
+	mtlChars		PeekRest( void ) const;
+
 	bool			IsEnd( void ) const { return IsEnd(m_reader); }
 	int				GetCharCount( void ) const { return m_buffer.GetSize(); }
 	int				GetCurrentPosition( void ) const { return m_reader; }
 	int				GetCharsLeft( void ) const { return m_buffer.GetSize() - m_reader; }
+	int				GetLineNumber( void ) const;
 
 	void			JumpToStart( void ) { m_reader = 0; }
 	void			JumpToEndChar( void ) { m_reader = m_buffer.GetSize() - 1; }
