@@ -1,6 +1,8 @@
 #ifndef MTL_ARRAY_H_INCLUDED__
 #define MTL_ARRAY_H_INCLUDED__
 
+#include "mtlMemory.h"
+
 template < typename type_t >
 class mtlArray
 {
@@ -104,9 +106,7 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array)
 {
 	if (this != &p_array) {
 		Create(p_array.m_size);
-		for (int i = 0; i < m_size; ++i) {
-			m_arr[i] = p_array.m_arr[i];
-		}
+		mtlCopy(m_arr, p_array.m_arr, m_size);
 	}
 }
 
@@ -114,9 +114,7 @@ template < typename type_t >
 void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array, int p_begin, int p_num)
 {
 	Create(p_num);
-	for (int i = 0; i < m_size; ++i) {
-		m_arr[i] = p_array[i+p_begin];
-	}
+	mtlCopy(m_arr, p_array.m_arr+p_begin, m_size);
 }
 
 template < typename type_t >
@@ -144,9 +142,7 @@ void mtlArray<type_t>::Resize(int p_size)
 			const unsigned int minSize = (p_size < m_size) ? p_size : m_size;
 			type_t *data = m_arr;
 			m_arr = new type_t[(unsigned int)p_size];
-			for (unsigned int i = 0; i < minSize; ++i) {
-				m_arr[i] = data[i];
-			}
+			mtlCopy(m_arr, data, minSize);
 			delete [] data;
 		} else if (!poolMemory) {
 			delete m_arr;
