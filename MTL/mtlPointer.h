@@ -170,6 +170,81 @@ mtlShared<type_t> mtlShared<type_t>::Create( void )
 }
 
 template < typename type_t >
+class mtlExclusive
+{
+	friend class mtlReference<type_t>;
+
+private:
+	type_t	*m_obj;
+	int		*m_watchers;
+
+private:
+	mtlExclusive(const mtlExclusive&) : m_obj(NULL), m_watchers(NULL) {}
+	mtlExclusive &operator=(const mtlExclusive&) { return *this; }
+
+public:
+	mtlExclusive( void );
+	~mtlExclusive( void );
+
+	type_t *GetExclusive( void ) { return m_obj; }
+	const type_t *GetExclusive( void ) const { return m_obj; }
+	type_t *operator->( void ) { return m_obj; }
+	const type_t *operator->( void ) const { return m_obj; }
+
+	template < typename derived_t >
+	void New( void );
+	void New( void );
+	void Delete( void );
+
+	bool IsNull( void ) const;
+};
+
+template < typename type_t >
+mtlExclusive<type_t>::mtlExclusive( void ) : m_obj(NULL), m_watchers(NULL)
+{}
+
+template < typename type_t >
+mtlExclusive<type_t>::~mtlExclusive( void )
+{
+	Delete();
+}
+
+template < typename type_t >
+template < typename derived_t >
+void mtlExclusive<type_t>::New( void )
+{
+	Delete();
+	m_obj = new type_t;
+	m_watchers = new int;
+	*m_watchers = 0;
+}
+
+template < typename type_t >
+void mtlExclusive<type_t>::New( void )
+{
+	New<type_t>();
+}
+
+template < typename type_t >
+void mtlExclusive<type_t>::Delete( void )
+{
+	if (m_obj != NULL) {
+		delete m_obj;
+		if (*m_watchers == 0) {
+			delete m_watchers;
+		}
+	}
+	m_obj = NULL;
+	m_watchers = NULL;
+}
+
+template < typename type_t >
+bool mtlExclusive<type_t>::IsNull( void ) const
+{
+	return m_obj == NULL;
+}
+
+template < typename type_t >
 class mtlReference
 {
 private:
@@ -208,6 +283,32 @@ public:
 		return *this;
 	}
 	mtlReference &operator=(const mtlShared<type_t> &shared);
+
+	template < typename derived_t >
+	mtlReference(const mtlExclusive<derived_t> &excl) : m_obj(NULL), m_count(NULL), m_watchers(NULL)
+	{
+		if (!excl.IsNull()) {
+			m_obj = excl.m_obj;
+			m_count = excl.m_watchers;
+			m_watchers = excl.m_watchers;
+			++(*m_watchers);
+		}
+	}
+	mtlReference(const mtlExclusive<type_t> &excl);
+
+	template < typename derived_t >
+	mtlReference &operator=(const mtlExclusive<derived_t> &excl)
+	{
+		if (m_watchers != excl.m_watchers) {
+			Delete();
+			m_obj = excl.m_obj;
+			m_count = excl.m_watchers;
+			m_watchers = excl.m_watchers;
+			if (!IsNull()) { ++(*m_watchers); }
+		}
+		return *this;
+	}
+	mtlReference &operator=(const mtlExclusive<type_t> &excl);
 
 	template < typename derived_t >
 	mtlReference(const mtlReference<derived_t> &ref) : m_obj(NULL), m_count(NULL), m_watchers(NULL)
@@ -277,6 +378,30 @@ mtlReference<type_t> &mtlReference<type_t>::operator=(const mtlShared<type_t> &s
 		m_obj = shared.m_obj;
 		m_count = shared.m_count;
 		m_watchers = shared.m_watchers;
+		if (!IsNull()) { ++(*m_watchers); }
+	}
+	return *this;
+}
+
+template < typename type_t >
+mtlReference<type_t>::mtlReference(const mtlExclusive<type_t> &excl) : m_obj(NULL), m_count(NULL), m_watchers(NULL)
+{
+	if (!excl.IsNull()) {
+		m_obj = excl.m_obj;
+		m_count = excl.m_watchers;
+		m_watchers = excl.m_watchers;
+		++(*m_watchers);
+	}
+}
+
+template < typename type_t >
+mtlReference<type_t> &mtlReference<type_t>::operator=(const mtlExclusive<type_t> &excl)
+{
+	if (m_obj != excl.m_obj) {
+		Delete();
+		m_obj = excl.m_obj;
+		m_count = excl.m_watchers;
+		m_watchers = excl.m_watchers;
 		if (!IsNull()) { ++(*m_watchers); }
 	}
 	return *this;
