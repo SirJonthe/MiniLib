@@ -344,6 +344,13 @@ void mtlString::SetSize(int p_size)
 	m_size = p_size >= 0 ? p_size : 0;
 }
 
+void mtlString::Reserve(int p_size)
+{
+	int old_size = m_size;
+	SetSize(p_size);
+	SetSize(old_size);
+}
+
 void mtlString::Insert(const mtlChars &p_str, int p_at)
 {
 	if (p_at >= m_size) {

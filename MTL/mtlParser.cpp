@@ -526,7 +526,16 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				bool bi = false;
 
 				if (ech == 'w') {
-					out.AddLast(variable);
+					bool valid = true;
+					for (int i = 0; i < variable.GetSize() && valid; ++i) {
+						if (!mtlChars::IsAlpha(variable.GetChars()[i])) {
+							valid = false;
+							result = ExpressionTypeMismatch;
+						}
+					}
+					if (valid) {
+						out.AddLast(variable);
+					}
 				} else if (ech == 'i') {
 					if (variable.ToInt(ti)) {
 						out.AddLast(variable);

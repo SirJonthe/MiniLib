@@ -103,6 +103,8 @@ public:
 	inline int			GetSize( void ) const;
 	void				SetSize(int p_size);
 
+	void				Reserve(int p_size);
+
 	inline void			SetPoolGrowth(int p_growth);
 
 	void				Insert(const mtlChars &p_str, int p_at);
