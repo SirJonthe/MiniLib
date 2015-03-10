@@ -264,6 +264,34 @@ mtlChars mtlParser::PeekTo(const mtlChars &p_str)
 	return mtlChars(m_buffer, m_reader, i);
 }
 
+int mtlParser::IndexOf(const mtlChars &p_chars, bool caseSensitive) const
+{
+	int start = m_reader;
+
+	while (!IsEnd(start)) {
+		int i;
+		for (i = 0; i < p_chars.GetSize(); ++i) {
+			char c1 = m_buffer.GetChars()[i+start];
+			char c2 = p_chars.GetChars()[i];
+			if (caseSensitive) {
+				c1 = mtlChars::ToLower(c1);
+				c2 = mtlChars::ToLower(c2);
+			}
+			if (c1 != c2) {
+				break;
+			}
+		}
+
+		if (i == p_chars.GetSize()) {
+			break;
+		}
+
+		++start;
+	}
+
+	return start;
+}
+
 mtlChars mtlParser::ReadToAny(const mtlChars &p_chars)
 {
 	int start = m_reader;
@@ -287,6 +315,15 @@ void mtlParser::BackToAny(const mtlChars &p_chars)
 	while (!IsEnd() && !mtlChars::SameAsAny(m_buffer[m_reader], p_chars.GetChars(), p_chars.GetSize())) {
 		--m_reader;
 	}
+}
+
+int mtlParser::IndexOfAny(const mtlChars &p_chars, bool caseSensitive) const
+{
+	int i = m_reader;
+	while (!IsEnd(i) && p_chars.SameAsAny(m_buffer.GetChars()[i], caseSensitive)) {
+		++i;
+	}
+	return i;
 }
 
 mtlChars mtlParser::ReadRest( void )
@@ -528,7 +565,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				if (ech == 'w') {
 					bool valid = true;
 					for (int i = 0; i < variable.GetSize() && valid; ++i) {
-						if (!mtlChars::IsAlpha(variable.GetChars()[i])) {
+						char ch = variable.GetChars()[i];
+						if (!mtlChars::IsAlpha(ch) && ch != '_') {
 							valid = false;
 							result = ExpressionTypeMismatch;
 						}

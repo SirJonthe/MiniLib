@@ -64,10 +64,12 @@ public:
 	mtlChars		ReadTo(const mtlChars &p_str);
 	mtlChars		PeekTo(const mtlChars &p_str);
 	//void			BackTo(const mtlChars &p_str);
+	int				IndexOf(const mtlChars &p_chars, bool caseSensitive=false) const;
 
 	mtlChars		ReadToAny(const mtlChars &p_chars);
 	mtlChars		PeekToAny(const mtlChars &p_chars);
 	void			BackToAny(const mtlChars &p_chars);
+	int				IndexOfAny(const mtlChars &p_chars, bool caseSensitive=false) const;
 
 	mtlChars		ReadRest( void );
 	mtlChars		PeekRest( void ) const;

@@ -18,8 +18,11 @@ private:
 
 public:
 	static bool				SameAsAny(char a, const char *b, int num = -1);
+	static bool				SameAsAnyNoCase(char a, const char *b, int num = -1);
 	static int				SameAsWhich(char a, const char *b, int num = -1);
+	static int				SameAsWhichNoCase(char a, const char *b, int num = -1);
 	static bool				SameAsAll(const char *a, const char *b, int num);
+	static bool				SameAsAllNoCase(const char *a, const char *b, int num);
 	static int				GetDynamicSize(const char *str);
 	template < int t_size >
 	static int				GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
@@ -73,8 +76,8 @@ public:
 	inline char				operator[](int i) const;
 
 	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
-	inline bool				SameAsAny(char ch) const;
-	inline int				SameAsWhich(char ch) const;
+	inline bool				SameAsAny(char ch, bool caseSensitive = false) const;
+	inline int				SameAsWhich(char ch, bool caseSensitive = false) const;
 	inline bool				operator==(const mtlChars &str) const;
 	inline bool				operator!=(const mtlChars &str) const;
 };
@@ -292,14 +295,14 @@ char mtlChars::operator[](int i) const
 	return m_str[i];
 }
 
-bool mtlChars::SameAsAny(char ch) const
+bool mtlChars::SameAsAny(char ch, bool caseSensitive) const
 {
-	return SameAsAny(ch, m_str, m_size);
+	return caseSensitive ? SameAsAnyNoCase(ch, m_str, m_size) : SameAsAny(ch, m_str, m_size);
 }
 
-int mtlChars::SameAsWhich(char ch) const
+int mtlChars::SameAsWhich(char ch, bool caseSensitive) const
 {
-	return SameAsWhich(ch, m_str, m_size);
+	return caseSensitive ? SameAsWhichNoCase(ch, m_str, m_size) : SameAsWhich(ch, m_str, m_size);
 }
 
 bool mtlChars::operator==(const mtlChars &p_str) const

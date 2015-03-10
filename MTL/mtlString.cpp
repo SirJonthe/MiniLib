@@ -15,6 +15,17 @@ bool mtlChars::SameAsAny(char a, const char *b, int num)
 	return false;
 }
 
+bool mtlChars::SameAsAnyNoCase(char a, const char *b, int num)
+{
+	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
+	for (int i = 0; i < num; ++i) {
+		if (ToLower(a) == ToLower(b[i])) {
+			return true;
+		}
+	}
+	return false;
+}
+
 int mtlChars::SameAsWhich(char a, const char *b, int num)
 {
 	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
@@ -26,9 +37,30 @@ int mtlChars::SameAsWhich(char a, const char *b, int num)
 	return -1;
 }
 
+int mtlChars::SameAsWhichNoCase(char a, const char *b, int num)
+{
+	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
+	for (int i = 0; i < num; ++i) {
+		if (ToLower(a) == ToLower(b[i])) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 bool mtlChars::SameAsAll(const char *a, const char *b, int num)
 {
 	return mtlCompare(a, b, num);
+}
+
+bool mtlChars::SameAsAllNoCase(const char *a, const char *b, int num)
+{
+	for (int i = 0; i < num; ++i) {
+		if (ToLower(a[i]) != ToLower(b[i])) {
+			return false;
+		}
+	}
+	return true;
 }
 
 int mtlChars::GetDynamicSize(const char *str)
@@ -295,16 +327,7 @@ int mtlChars::FindLastString(const mtlChars &p_str) const
 bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	if (p_str.m_size != m_size) { return false; }
-	if (p_caseSensitive) {
-		return mtlCompare(m_str, p_str.m_str, m_size);
-	} else {
-		for (int i = 0; i < m_size; ++i) {
-			if (mtlChars::ToLower(m_str[i]) != mtlChars::ToLower(p_str.m_str[i])) {
-				return false;
-			}
-		}
-	}
-	return true;
+	return p_caseSensitive ? mtlChars::SameAsAllNoCase(m_str, p_str.m_str, m_size) : mtlChars::SameAsAll(m_str, p_str.m_str, m_size);
 }
 
 char *mtlString::NewPool(int p_size)
@@ -429,16 +452,7 @@ void mtlString::Copy(const mtlChars &p_str)
 
 bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
-	const int p_num = p_str.GetSize();
-	if (m_size != p_num) { return false; }
-	if (p_caseSensitive) {
-		return mtlCompare(m_str, p_str.GetChars(), m_size);
-	} else {
-		for (int i = 0; i < m_size; ++i) {
-			if (mtlChars::ToLower(m_str[i]) != mtlChars::ToLower(p_str.GetChars()[i])) { return false; }
-		}
-	}
-	return true;
+	return p_str.Compare(*this, p_caseSensitive);
 }
 
 bool mtlString::FromBool(bool b)
