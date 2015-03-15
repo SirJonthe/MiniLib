@@ -4,60 +4,58 @@
 #include "mtlString.h"
 #include "mtlMemory.h"
 
-bool mtlChars::SameAsAny(char a, const char *b, int num)
+bool mtlChars::SameAsAny(char a, const char *b, int num, bool caseSensitive)
 {
 	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
-	for (int i = 0; i < num; ++i) {
-		if (a == b[i]) {
-			return true;
+	if (caseSensitive) {
+		for (int i = 0; i < num; ++i) {
+			if (a == b[i]) {
+				return true;
+			}
+		}
+	} else {
+		for (int i = 0; i < num; ++i) {
+			if (ToLower(a) == ToLower(b[i])) {
+				return true;
+			}
 		}
 	}
 	return false;
 }
 
-bool mtlChars::SameAsAnyNoCase(char a, const char *b, int num)
+int mtlChars::SameAsWhich(char a, const char *b, int num, bool caseSensitive)
 {
 	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
-	for (int i = 0; i < num; ++i) {
-		if (ToLower(a) == ToLower(b[i])) {
-			return true;
+	if (caseSensitive) {
+		for (int i = 0; i < num; ++i) {
+			if (a == b[i]) {
+				return i;
+			}
 		}
-	}
-	return false;
-}
-
-int mtlChars::SameAsWhich(char a, const char *b, int num)
-{
-	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
-	for (int i = 0; i < num; ++i) {
-		if (a == b[i]) {
-			return i;
+	} else {
+		for (int i = 0; i < num; ++i) {
+			if (ToLower(a) == ToLower(b[i])) {
+				return i;
+			}
 		}
 	}
 	return -1;
 }
 
-int mtlChars::SameAsWhichNoCase(char a, const char *b, int num)
+bool mtlChars::SameAsNone(char a, const char *b, int num, bool caseSensitive)
 {
-	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
-	for (int i = 0; i < num; ++i) {
-		if (ToLower(a) == ToLower(b[i])) {
-			return i;
-		}
-	}
-	return -1;
+	return !SameAsAny(a, b, num, caseSensitive);
 }
 
-bool mtlChars::SameAsAll(const char *a, const char *b, int num)
+bool mtlChars::SameAsAll(const char *a, const char *b, int num, bool caseSensitive)
 {
-	return mtlCompare(a, b, num);
-}
-
-bool mtlChars::SameAsAllNoCase(const char *a, const char *b, int num)
-{
-	for (int i = 0; i < num; ++i) {
-		if (ToLower(a[i]) != ToLower(b[i])) {
-			return false;
+	if (caseSensitive) {
+		return mtlCompare(a, b, num);
+	} else {
+		for (int i = 0; i < num; ++i) {
+			if (ToLower(a[i]) != ToLower(b[i])) {
+				return false;
+			}
 		}
 	}
 	return true;
@@ -327,7 +325,7 @@ int mtlChars::FindLastString(const mtlChars &p_str) const
 bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	if (p_str.m_size != m_size) { return false; }
-	return p_caseSensitive ? mtlChars::SameAsAllNoCase(m_str, p_str.m_str, m_size) : mtlChars::SameAsAll(m_str, p_str.m_str, m_size);
+	return mtlChars::SameAsAll(m_str, p_str.m_str, m_size, p_caseSensitive);
 }
 
 char *mtlString::NewPool(int p_size)

@@ -137,10 +137,10 @@ void mtlShared<type_t>::Delete( void )
 		--(*m_count);
 		if ((*m_count) == 0) {
 			delete m_obj;
-		}
-		if ((*m_watchers) == 0) {
-			delete m_count;
-			delete m_watchers;
+			if ((*m_watchers) == 0) {
+				delete m_count;
+				delete m_watchers;
+			}
 		}
 	}
 	m_obj = NULL;
@@ -166,6 +166,14 @@ mtlShared<type_t> mtlShared<type_t>::Create( void )
 {
 	mtlShared<type_t> a;
 	a.New<derived_t>();
+	return a;
+}
+
+template < typename type_t >
+mtlShared<type_t> mtlShared<type_t>::Create( void )
+{
+	mtlShared<type_t> a;
+	a.New<type_t>();
 	return a;
 }
 

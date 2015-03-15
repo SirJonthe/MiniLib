@@ -17,12 +17,10 @@ private:
 	static int				GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
 
 public:
-	static bool				SameAsAny(char a, const char *b, int num = -1);
-	static bool				SameAsAnyNoCase(char a, const char *b, int num = -1);
-	static int				SameAsWhich(char a, const char *b, int num = -1);
-	static int				SameAsWhichNoCase(char a, const char *b, int num = -1);
-	static bool				SameAsAll(const char *a, const char *b, int num);
-	static bool				SameAsAllNoCase(const char *a, const char *b, int num);
+	static bool				SameAsAny(char a, const char *b, int num = -1, bool caseSensitive = false);
+	static int				SameAsWhich(char a, const char *b, int num = -1, bool caseSensitive = false);
+	static bool				SameAsNone(char a, const char *b, int num = -1, bool caseSensitive = false);
+	static bool				SameAsAll(const char *a, const char *b, int num, bool caseSensitive = false);
 	static int				GetDynamicSize(const char *str);
 	template < int t_size >
 	static int				GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
@@ -78,6 +76,7 @@ public:
 	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
 	inline bool				SameAsAny(char ch, bool caseSensitive = false) const;
 	inline int				SameAsWhich(char ch, bool caseSensitive = false) const;
+	inline bool				SameAsNone(char ch, bool caseSensitive = false) const;
 	inline bool				operator==(const mtlChars &str) const;
 	inline bool				operator!=(const mtlChars &str) const;
 };
@@ -297,12 +296,17 @@ char mtlChars::operator[](int i) const
 
 bool mtlChars::SameAsAny(char ch, bool caseSensitive) const
 {
-	return caseSensitive ? SameAsAnyNoCase(ch, m_str, m_size) : SameAsAny(ch, m_str, m_size);
+	return SameAsAny(ch, m_str, m_size, caseSensitive);
 }
 
 int mtlChars::SameAsWhich(char ch, bool caseSensitive) const
 {
-	return caseSensitive ? SameAsWhichNoCase(ch, m_str, m_size) : SameAsWhich(ch, m_str, m_size);
+	return SameAsWhich(ch, m_str, m_size, caseSensitive);
+}
+
+bool mtlChars::SameAsNone(char ch, bool caseSensitive) const
+{
+	return SameAsNone(ch, m_str, m_size, caseSensitive);
 }
 
 bool mtlChars::operator==(const mtlChars &p_str) const

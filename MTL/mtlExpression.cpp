@@ -231,6 +231,7 @@ float mtlExpression::GetConstant(const mtlChars &name) const
 bool mtlExpression::SetExpression(const mtlChars &expression)
 {
 	DestroyTermTree(m_root);
+	m_root = NULL;
 
 	m_expression.Copy(expression);
 	SanitizeExpression();
