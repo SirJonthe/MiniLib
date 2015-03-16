@@ -457,7 +457,7 @@ void mtlParser::BackRaw(int count)
 	m_reader -= count;
 }
 
-mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlChars> &out)
+mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail)
 {
 	out.RemoveAll();
 
@@ -564,7 +564,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 		result = ExpressionFound;
 	} else {
 		out.RemoveAll();
-		m_reader = start;
+		if (revert_on_fail) { m_reader = start; }
 	}
 	return result;
 }

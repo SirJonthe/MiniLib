@@ -3,6 +3,7 @@
 #include <cstdio>
 #include "mtlString.h"
 #include "mtlMemory.h"
+#include "mtlParser.h"
 
 bool mtlChars::SameAsAny(char a, const char *b, int num, bool caseSensitive)
 {
@@ -228,12 +229,12 @@ void mtlChars::Substring(int p_start, int p_end)
 	*this = mtlChars(*this, p_start, p_end);
 }
 
-void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+/*void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace) const
 {
-	const int num = p_str.m_size;
+	const int num = p_chars.m_size;
 	int start = 0;
 	for (int i = 0; i < m_size; ++i) {
-		if (mtlChars::SameAsAny(m_str[i], p_str.m_str, num)) {
+		if (mtlChars::SameAsAny(m_str[i], p_chars.m_str, num)) {
 			//if (i - start > 0) {
 			mtlChars str(*this, start, i);
 			if (p_ignoreWhiteSpace) {
@@ -251,9 +252,48 @@ void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool
 	}
 	p_out.AddLast(str);
 	//}
+}*/
+
+void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace, bool p_braceScoping) const
+{
+	p_out.RemoveAll();
+
+	mtlList<int> brace_stack;
+	int start = 0;
+
+	for (int i = 0; i < m_size; ++i) {
+		char ch = m_str[i];
+		if (p_braceScoping) {
+			int o = mtlChars::SameAsWhich(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr));
+			if (o >= 0) {
+				brace_stack.AddLast(o);
+			} else if (brace_stack.GetSize() > 0) {
+				int c = mtlChars::SameAsWhich(ch, mtlClosedBracesStr, sizeof(mtlClosedBracesStr));
+				if (brace_stack.GetLast()->GetItem() == c) {
+					brace_stack.RemoveLast();
+				}
+			}
+		}
+		if (brace_stack.GetSize() == 0 && mtlChars::SameAsAny(ch, p_chars.m_str, p_chars.m_size)) {
+			mtlChars str(*this, start, i);
+			if (p_ignoreWhitespace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
+			start = i + 1;
+		}
+	}
+
+	if (brace_stack.GetSize() == 0 || !p_braceScoping) {
+		mtlChars str(*this, start, m_size);
+		if (p_ignoreWhitespace) {
+			str.Trim();
+		}
+		p_out.AddLast(str);
+	}
 }
 
-void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+/*void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
 {
 	int start = 0;
 	const int num = p_str.m_size;
@@ -276,6 +316,44 @@ void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bo
 	}
 	p_out.AddLast(str);
 	//}
+}*/
+
+void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhitespace, bool p_braceScoping) const
+{
+	p_out.RemoveAll();
+
+	mtlList<int> brace_stack;
+	int start = 0;
+	for (int i = 0; i < m_size; ++i) {
+		char ch = m_str[i];
+		if (p_braceScoping) {
+			int o = mtlChars::SameAsWhich(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr));
+			if (o >= 0) {
+				brace_stack.AddLast(o);
+			} else if (brace_stack.GetSize() > 0) {
+				int c = mtlChars::SameAsWhich(ch, mtlClosedBracesStr, sizeof(mtlClosedBracesStr));
+				if (brace_stack.GetLast()->GetItem() == c) {
+					brace_stack.RemoveLast();
+				}
+			}
+		}
+		if (p_str.GetSize() == 0 && mtlChars::SameAsAll(m_str+i, p_str.m_str, p_str.m_size)) {
+			mtlChars str(*this, start, i);
+			if (p_ignoreWhitespace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
+			start = i + p_str.m_size;
+		}
+	}
+
+	if (brace_stack.GetSize() == 0 || !p_braceScoping) {
+		mtlChars str(*this, start, m_size);
+		if (p_ignoreWhitespace) {
+			str.Trim();
+		}
+		p_out.AddLast(str);
+	}
 }
 
 int mtlChars::FindFirstChar(const mtlChars &p_chars) const

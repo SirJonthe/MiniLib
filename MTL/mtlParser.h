@@ -130,7 +130,7 @@ public:
 	mtlChars		PeekRaw(int count) const;
 	void			BackRaw(int count);
 
-	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out);
+	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail = true);
 };
 
 #endif

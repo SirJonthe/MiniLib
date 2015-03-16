@@ -20,9 +20,12 @@ private:
 	int			m_file0;
 	int			m_file1;
 	int			m_ext0;
+	// now I can just represent this using an mtlList<mtlChars> that's split by "/" or "\"
+	// this will also make it super simple to make a directory relative to another
 private:
 	void CalculateComponents( void );
 public:
+					mtlDirectory( void );
 					mtlDirectory(const mtlChars &p_directory);
 					mtlDirectory(const mtlString &p_directory);
 					mtlDirectory(const mtlDirectory &p_directory);

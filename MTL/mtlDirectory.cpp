@@ -37,6 +37,9 @@ void mtlDirectory::CalculateComponents( void )
 	}
 }
 
+mtlDirectory::mtlDirectory( void ) : m_dir(), m_file0(0), m_file1(0), m_ext0(0)
+{}
+
 mtlDirectory::mtlDirectory(const mtlChars &p_directory)
 {
 	m_dir.Copy(p_directory);

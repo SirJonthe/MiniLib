@@ -57,8 +57,8 @@ public:
 	void					Trim( void );
 	void					Substring(int p_start, int p_end);
 
-	void					SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace = true) const;
-	void					SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
+	void					SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true, bool p_braceScoping = false) const;
+	void					SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	int						FindFirstChar(const mtlChars &p_chars) const;
 	int						FindLastChar(const mtlChars &p_chars) const;
@@ -126,8 +126,8 @@ public:
 	inline char			operator[](int i) const;
 	inline char			&operator[](int i);
 
-	inline void			SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
-	inline void			SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
+	inline void			SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
+	inline void			SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	inline int			FindFirstChar(const mtlChars &p_str) const;
 	inline int			FindLastChar(const mtlChars &p_str) const;
@@ -387,14 +387,14 @@ char &mtlString::operator[](int i)
 	return m_str[i];
 }
 
-void mtlString::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+void mtlString::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace, bool p_braceScoping) const
 {
-	mtlChars(*this).SplitByChar(p_out, p_str, p_ignoreWhiteSpace);
+	mtlChars(*this).SplitByChar(p_out, p_chars, p_ignoreWhiteSpace, p_braceScoping);
 }
 
-void mtlString::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
+void mtlString::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace, bool p_braceScoping) const
 {
-	mtlChars(*this).SplitByString(p_out, p_str, p_ignoreWhiteSpace);
+	mtlChars(*this).SplitByString(p_out, p_str, p_ignoreWhiteSpace, p_braceScoping);
 }
 
 int mtlString::FindFirstChar(const mtlChars &p_chars) const
