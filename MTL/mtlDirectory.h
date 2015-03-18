@@ -11,6 +11,7 @@
 #define MTL_DIRECTORY_H_INCLUDED__
 
 #include "mtlString.h"
+//#include "mtlList.h"
 
 class mtlDirectory
 {
@@ -37,5 +38,34 @@ public:
 	mtlChars		GetFolders( void ) const;
 	const mtlString	&GetDirectory( void ) const { return m_dir; }
 };
+
+/*class mtlDirectory
+{
+private:
+	mtlString			m_directory;
+	mtlList<mtlChars>	m_segments;
+	bool				m_has_ext;
+	bool				m_is_folder;
+
+public:
+	mtlDirectory( void );
+	mtlDirectory(const mtlChars &dir);
+	mtlDirectory(const mtlDirectory &dir);
+
+	mtlDirectory &operator=(const mtlChars &dir);
+	mtlDirectory &operator=(const mtlDirectory &dir);
+
+	mtlChars GetFolders( void ) const;
+	mtlChars GetFilename( void ) const;
+	mtlChars GetExtension( void ) const;
+	mtlChars GetDirectory( void ) const;
+
+	void GetFolders(mtlList<mtlChars> &out_folders);
+
+	bool IsFolder( void ) const;
+	bool IsFile( void ) const;
+
+	mtlDirectory GetRelativeDirectory(const mtlDirectory &ref_point) const;
+};*/
 
 #endif
