@@ -16,6 +16,7 @@ private:
 		Entry( void ) : name(), entry() {}
 		Entry(const Entry &e) : entry(e.entry) { name.Copy(e.name); }
 	};
+
 	struct HashNode
 	{
 		typedef mtlList<Entry> List;
@@ -28,11 +29,14 @@ private:
 		bool operator>(const HashNode &r) const { return hash > r.hash; }
 		bool operator==(const HashNode &r) const { return hash == r.hash; }
 	};
+
 private:
 	mtlBinaryTree<HashNode> m_table;
+
 public:
 	const mtlNode<HashNode> *GetNode(const mtlChars &name) const;
 	mtlNode<HashNode> *GetNode(const mtlChars &name);
+
 public:
 	template < typename derived_t >
 	type_t			*CreateEntry(const mtlChars &name);
@@ -41,6 +45,7 @@ public:
 	void			RemoveAll( void );
 	const type_t	*GetEntry(const mtlChars &name) const;
 	type_t			*GetEntry(const mtlChars &name);
+	void			Copy(const mtlStringMap &map);
 };
 
 template < typename type_t >
@@ -142,6 +147,12 @@ type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 		n = n->GetNext();
 	}
 	return NULL;
+}
+
+template < typename type_t >
+void mtlStringMap::Copy(const mtlStringMap &map)
+{
+	m_table.Copy(map.m_table);
 }
 
 #endif // MTL_STRINGMAP_INCLUDED__

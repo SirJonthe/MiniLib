@@ -102,13 +102,20 @@ mtlChars mtlChars::GetTrimmed( void ) const
 	return s;
 }
 
+mtlChars mtlChars::GetTrimmedBraces( void ) const
+{
+	mtlChars s(*this);
+	s.TrimBraces();
+	return s;
+}
+
 bool mtlChars::ToBool(bool &p_out) const
 {
-	if (Compare("true", false)) {
+	if (Compare("true")) {
 		p_out = true;
 		return true;
 	}
-	if (Compare("false", false)) {
+	if (Compare("false")) {
 		p_out = false;
 		return true;
 	}
@@ -224,6 +231,19 @@ void mtlChars::Trim( void )
 	}
 }
 
+void mtlChars::TrimBraces( void )
+{
+	Trim();
+	if (GetSize() >= 2) {
+		int b1 = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
+		int b2 = SameAsWhich(m_str[GetSize()-1], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true);
+		if (b1 == b2 && b1 > -1) {
+			++m_str;
+			--m_size;
+		}
+	}
+}
+
 void mtlChars::Substring(int p_start, int p_end)
 {
 	*this = mtlChars(*this, p_start, p_end);
@@ -291,6 +311,12 @@ void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bo
 		}
 		p_out.AddLast(str);
 	}
+}
+
+void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace, bool p_braceScoping) const
+{
+	char chars[1] = { p_ch };
+	SplitByChar(p_out, chars, p_ignoreWhitespace, p_braceScoping);
 }
 
 /*void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
@@ -529,6 +555,16 @@ void mtlString::Copy(const mtlChars &p_str)
 bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	return p_str.Compare(*this, p_caseSensitive);
+}
+
+bool mtlString::operator==(const mtlChars &p_str) const
+{
+	return p_str.Compare(p_str, true);
+}
+
+bool mtlString::operator!=(const mtlChars &p_str) const
+{
+	return !p_str.Compare(p_str, true);
 }
 
 bool mtlString::FromBool(bool b)

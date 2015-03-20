@@ -11,61 +11,34 @@
 #define MTL_DIRECTORY_H_INCLUDED__
 
 #include "mtlString.h"
-//#include "mtlList.h"
+#include "mtlList.h"
 
 class mtlDirectory
 {
 	//static mtlDirectory m_workingDirectory;
 private:
-	mtlString	m_dir;
-	int			m_file0;
-	int			m_file1;
-	int			m_ext0;
+	mtlString			m_dir;
+	int					m_file0;
+	int					m_file1;
+	int					m_ext0;
+	//mtlList<mtlChars>	m_dirs;
 	// now I can just represent this using an mtlList<mtlChars> that's split by "/" or "\"
 	// this will also make it super simple to make a directory relative to another
 private:
 	void CalculateComponents( void );
 public:
-					mtlDirectory( void );
-					mtlDirectory(const mtlChars &p_directory);
-					mtlDirectory(const mtlString &p_directory);
-					mtlDirectory(const mtlDirectory &p_directory);
-	mtlDirectory	&operator=(const mtlChars &p_directory);
-	mtlDirectory	&operator=(const mtlString &p_directory);
-	mtlDirectory	&operator=(const mtlDirectory &p_directory);
-	mtlChars		GetFilename( void ) const;
-	mtlChars		GetExtension( void ) const;
-	mtlChars		GetFolders( void ) const;
-	const mtlString	&GetDirectory( void ) const { return m_dir; }
+							mtlDirectory( void );
+							mtlDirectory(const mtlChars &p_directory);
+							mtlDirectory(const mtlString &p_directory);
+							mtlDirectory(const mtlDirectory &p_directory);
+	mtlDirectory			&operator=(const mtlChars &p_directory);
+	mtlDirectory			&operator=(const mtlString &p_directory);
+	mtlDirectory			&operator=(const mtlDirectory &p_directory);
+	mtlChars				GetFilename( void ) const;
+	mtlChars				GetExtension( void ) const;
+	mtlChars				GetFolders( void ) const;
+	const mtlString			&GetDirectory( void ) const { return m_dir; }
+	//const mtlList<mtlChars> &GetDirectories( void ) const { return m_dirs; }
 };
-
-/*class mtlDirectory
-{
-private:
-	mtlString			m_directory;
-	mtlList<mtlChars>	m_segments;
-	bool				m_has_ext;
-	bool				m_is_folder;
-
-public:
-	mtlDirectory( void );
-	mtlDirectory(const mtlChars &dir);
-	mtlDirectory(const mtlDirectory &dir);
-
-	mtlDirectory &operator=(const mtlChars &dir);
-	mtlDirectory &operator=(const mtlDirectory &dir);
-
-	mtlChars GetFolders( void ) const;
-	mtlChars GetFilename( void ) const;
-	mtlChars GetExtension( void ) const;
-	mtlChars GetDirectory( void ) const;
-
-	void GetFolders(mtlList<mtlChars> &out_folders);
-
-	bool IsFolder( void ) const;
-	bool IsFile( void ) const;
-
-	mtlDirectory GetRelativeDirectory(const mtlDirectory &ref_point) const;
-};*/
 
 #endif

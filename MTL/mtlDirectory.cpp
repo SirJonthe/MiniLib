@@ -35,6 +35,19 @@ void mtlDirectory::CalculateComponents( void )
 		m_file1 = m_dir.GetSize();
 		m_ext0 = m_file1;
 	}
+
+	/*for (int i = 0; i < m_dir.GetSize(); ++i) {
+		if (m_dir[i] == '\\') {
+			m_dir[i] = '/';
+		}
+	}
+	m_dirs.RemoveAll();
+	m_dir.SplitByChar(m_dirs, "/", false);
+	mtlItem<mtlChars> *dir = m_dirs.GetFirst();
+	while (dir != NULL) {
+
+		dir = dir->GetNext();
+	}*/
 }
 
 mtlDirectory::mtlDirectory( void ) : m_dir(), m_file0(0), m_file1(0), m_ext0(0)

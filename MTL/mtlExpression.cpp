@@ -251,6 +251,11 @@ const mtlString &mtlExpression::GetExpression( void ) const
 	return m_expression;
 }
 
+void mtlExpression::CopyConstants(const mtlExpression &expr)
+{
+	m_constants.Copy(expr.m_constants);
+}
+
 float mtlExpression::Evaluate( void ) const
 {
 	float result = 0.0f;

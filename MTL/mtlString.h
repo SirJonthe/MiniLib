@@ -50,14 +50,17 @@ public:
 
 	mtlChars				GetSubstring(int p_start, int p_end = -1) const;
 	mtlChars				GetTrimmed( void ) const;
+	mtlChars				GetTrimmedBraces( void ) const;
 	bool					ToBool(bool &p_out) const;
 	bool					ToInt(int &p_out) const;
 	bool					ToFloat(float &p_out) const;
 
 	void					Trim( void );
+	void					TrimBraces( void );
 	void					Substring(int p_start, int p_end);
 
 	void					SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true, bool p_braceScoping = false) const;
+	void					SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace = true, bool p_braceScoping = false) const;
 	void					SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	int						FindFirstChar(const mtlChars &p_chars) const;
@@ -73,7 +76,7 @@ public:
 
 	inline char				operator[](int i) const;
 
-	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
+	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
 	inline bool				SameAsAny(char ch, bool caseSensitive = false) const;
 	inline int				SameAsWhich(char ch, bool caseSensitive = false) const;
 	inline bool				SameAsNone(char ch, bool caseSensitive = false) const;
@@ -119,6 +122,7 @@ public:
 	inline void			ToLower( void );
 	inline void			ToUpper( void );
 	inline mtlChars		GetTrimmed( void ) const;
+	inline mtlChars		GetTrimmedBraces( void ) const;
 	inline mtlChars		GetSubstring(int p_start, int p_end = -1) const;
 
 	inline const char	*GetChars( void ) const;
@@ -127,6 +131,7 @@ public:
 	inline char			&operator[](int i);
 
 	inline void			SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
+	inline void			SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 	inline void			SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	inline int			FindFirstChar(const mtlChars &p_str) const;
@@ -141,7 +146,7 @@ public:
 	bool				FromInt(int i);
 	bool				FromFloat(float f);
 
-	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
+	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
 	bool				operator==(const mtlChars &p_str) const;
 	bool				operator!=(const mtlChars &p_str) const;
 };
@@ -311,12 +316,12 @@ bool mtlChars::SameAsNone(char ch, bool caseSensitive) const
 
 bool mtlChars::operator==(const mtlChars &p_str) const
 {
-	return Compare(p_str);
+	return Compare(p_str, true);
 }
 
 bool mtlChars::operator!=(const mtlChars &p_str) const
 {
-	return !Compare(p_str);
+	return !Compare(p_str, true);
 }
 
 mtlString::mtlString( void ) :
@@ -359,6 +364,11 @@ mtlChars mtlString::GetTrimmed( void ) const
 	return mtlChars(*this, 0, m_size).GetTrimmed();
 }
 
+mtlChars mtlString::GetTrimmedBraces( void ) const
+{
+	return mtlChars(*this, 0, m_size).GetTrimmedBraces();
+}
+
 mtlChars mtlString::GetSubstring(int p_start, int p_end) const
 {
 	if (p_end < 0) {
@@ -390,6 +400,11 @@ char &mtlString::operator[](int i)
 void mtlString::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace, bool p_braceScoping) const
 {
 	mtlChars(*this).SplitByChar(p_out, p_chars, p_ignoreWhiteSpace, p_braceScoping);
+}
+
+void mtlString::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhiteSpace, bool p_braceScoping) const
+{
+	mtlChars(*this).SplitByChar(p_out, p_ch, p_ignoreWhiteSpace, p_braceScoping);
 }
 
 void mtlString::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace, bool p_braceScoping) const

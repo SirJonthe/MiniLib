@@ -63,6 +63,8 @@ public:
 	bool			SetExpression(const mtlChars &expression);
 	const mtlString	&GetExpression( void ) const;
 	
+	void			CopyConstants(const mtlExpression &expr);
+
 	float			Evaluate( void ) const;
 };
 

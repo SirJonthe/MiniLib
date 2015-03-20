@@ -27,33 +27,33 @@ private:
 	template < typename compare_t >
 	static const mtlNode<type_t>	*Find(const mtlNode<type_t> *node, const compare_t &item, bool closest);
 	template < typename compare_t >
-	static mtlNode<type_t>		*Find(mtlNode<type_t> *node, const compare_t &item, bool closest);
+	static mtlNode<type_t>			*Find(mtlNode<type_t> *node, const compare_t &item, bool closest);
 	static bool						IsBalanced(const mtlNode<type_t> *node, int permittedDifference);
 
 public:
 	const type_t			&GetItem( void ) const { return m_item; }
 	const mtlNode<type_t>	*GetParent( void ) const { return m_parent; }
-	mtlNode<type_t>		*GetParent( void ) { return m_parent; }
+	mtlNode<type_t>			*GetParent( void ) { return m_parent; }
 	const mtlNode<type_t>	*GetRight( void ) const { return m_right; }
-	mtlNode<type_t>		*GetRight( void ) { return m_right; }
+	mtlNode<type_t>			*GetRight( void ) { return m_right; }
 	const mtlNode<type_t>	*GetLeft( void ) const { return m_left; }
-	mtlNode<type_t>		*GetLeft( void ) { return m_left; }
+	mtlNode<type_t>			*GetLeft( void ) { return m_left; }
 	int						GetDepth( void ) const { return GetDepth(this, 0); }
 	int						GetHeight( void ) const { return GetHeight(this, 0); }
 	template < typename compare_t >
 	const mtlNode<type_t>	*Find(const compare_t &item) const { return Find(this, item, false); }
 	template < typename compare_t >
-	mtlNode<type_t>		*Find(const compare_t &item) { return Find(this, item, false); }
+	mtlNode<type_t>			*Find(const compare_t &item) { return Find(this, item, false); }
 	template < typename compare_t >
 	const mtlNode<type_t>	*FindClosest(const compare_t &item) const { return Find(this, item, true); }
 	template < typename compare_t >
-	mtlNode<type_t>		*FindClosest(const compare_t &item) { return Find(this, item, true); }
+	mtlNode<type_t>			*FindClosest(const compare_t &item) { return Find(this, item, true); }
 	const mtlNode<type_t>	*FindMin( void ) const;
-	mtlNode<type_t>		*FindMin( void );
+	mtlNode<type_t>			*FindMin( void );
 	const mtlNode<type_t>	*FindMax( void ) const;
-	mtlNode<type_t>		*FindMax( void );
+	mtlNode<type_t>			*FindMax( void );
 	bool					IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
-	mtlNode<type_t>		*Remove( void );
+	mtlNode<type_t>			*Remove( void );
 	template < typename func_t >
 	void InOrder(const func_t &fn) const
 	{
@@ -65,9 +65,9 @@ public:
 	template < typename func_t >
 	void InReverseOrder(const func_t &fn) const
 	{
-		if (m_right != NULL) { m_right->InOrder(fn); }
+		if (m_right != NULL) { m_right->InReverseOrder(fn); }
 		fn(m_item);
-		if (m_left != NULL) { m_left->InOrder(fn); }
+		if (m_left != NULL) { m_left->InReverseOrder(fn); }
 	}
 	template < typename func_t >
 	void InBreadth(const func_t &fn) const
@@ -209,6 +209,7 @@ private:
 	mtlBinaryTree(const mtlBinaryTree&) {}
 	mtlNode<type_t> *Insert(mtlNode<type_t> *parent, mtlNode<type_t> *&node, const type_t &item);
 	void Delete(mtlNode<type_t> *node);
+	void Copy(mtlNode<type_t> *parent, mtlNode<type_t> *&dst, const mtlNode<type_t> *src);
 
 public:
 	mtlBinaryTree( void );
@@ -220,6 +221,7 @@ public:
 	int						GetSize( void ) const { return m_size; }
 	mtlNode<type_t>			*Remove(mtlNode<type_t> *node);
 	bool					IsEmpty( void ) const;
+	void					Copy(const mtlBinaryTree<type_t> &tree);
 	// rebalance
 };
 
@@ -243,6 +245,18 @@ void mtlBinaryTree<type_t>::Delete(mtlNode<type_t> *node)
 		Delete(node->m_left);
 		Delete(node->m_right);
 		delete node;
+	}
+}
+
+template < typename type_t >
+void mtlBinaryTree<type_t>::Copy(mtlNode<type_t> *parent, mtlNode<type_t> *&dst, const mtlNode<type_t> *src)
+{
+	if (src != NULL) {
+		dst = new mtlNode<type_t>(src->GetItem(), parent, this);
+		Copy(dst, dst->m_left, src->m_left);
+		Copy(dst, dst->m_right, src->m_right);
+	} else {
+		dst = NULL;
 	}
 }
 
@@ -342,6 +356,13 @@ template < typename type_t >
 bool mtlBinaryTree<type_t>::IsEmpty( void ) const
 {
 	return m_root == NULL;
+}
+
+template < typename type_t >
+void mtlBinaryTree<type_t>::Copy(const mtlBinaryTree<type_t> &tree)
+{
+	Delete();
+	Copy(NULL, m_root, tree.m_root);
 }
 
 #endif
