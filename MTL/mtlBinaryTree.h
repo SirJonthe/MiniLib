@@ -361,7 +361,7 @@ bool mtlBinaryTree<type_t>::IsEmpty( void ) const
 template < typename type_t >
 void mtlBinaryTree<type_t>::Copy(const mtlBinaryTree<type_t> &tree)
 {
-	Delete();
+	RemoveAll();
 	Copy(NULL, m_root, tree.m_root);
 }
 

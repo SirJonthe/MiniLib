@@ -393,6 +393,12 @@ int mtlChars::FindFirstChar(const mtlChars &p_chars) const
 	return -1;
 }
 
+int mtlChars::FindFirstChar(char p_ch) const
+{
+	const char ch[1] = { p_ch };
+	return FindFirstChar(ch);
+}
+
 int mtlChars::FindLastChar(const mtlChars &p_chars) const
 {
 	const int num = p_chars.m_size;
@@ -402,6 +408,12 @@ int mtlChars::FindLastChar(const mtlChars &p_chars) const
 		}
 	}
 	return -1;
+}
+
+int mtlChars::FindLastChar(char p_ch) const
+{
+	const char ch[1] = { p_ch };
+	return FindLastChar(ch);
 }
 
 int mtlChars::FindFirstString(const mtlChars &p_str) const

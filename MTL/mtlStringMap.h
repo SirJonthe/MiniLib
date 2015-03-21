@@ -45,7 +45,7 @@ public:
 	void			RemoveAll( void );
 	const type_t	*GetEntry(const mtlChars &name) const;
 	type_t			*GetEntry(const mtlChars &name);
-	void			Copy(const mtlStringMap &map);
+	void			Copy(const mtlStringMap<type_t> &map);
 };
 
 template < typename type_t >
@@ -150,7 +150,7 @@ type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 }
 
 template < typename type_t >
-void mtlStringMap::Copy(const mtlStringMap &map)
+void mtlStringMap<type_t>::Copy(const mtlStringMap<type_t> &map)
 {
 	m_table.Copy(map.m_table);
 }

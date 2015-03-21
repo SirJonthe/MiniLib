@@ -64,7 +64,9 @@ public:
 	void					SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	int						FindFirstChar(const mtlChars &p_chars) const;
+	int						FindFirstChar(char p_ch) const;
 	int						FindLastChar(const mtlChars &p_chars) const;
+	int						FindLastChar(char p_ch) const;
 	int						FindFirstString(const mtlChars &p_str) const;
 	int						FindLastString(const mtlChars &p_str) const;
 
@@ -135,7 +137,9 @@ public:
 	inline void			SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true, bool p_braceScoping = false) const;
 
 	inline int			FindFirstChar(const mtlChars &p_str) const;
+	inline int			FindFirstChar(char p_ch) const;
 	inline int			FindLastChar(const mtlChars &p_str) const;
+	inline int			FindLastChar(char p_ch) const;
 	inline int			FindFirstString(const mtlChars &p_str) const;
 	inline int			FindLastString(const mtlChars &p_str) const;
 
@@ -417,9 +421,19 @@ int mtlString::FindFirstChar(const mtlChars &p_chars) const
 	return mtlChars(*this).FindFirstChar(p_chars);
 }
 
+int mtlString::FindFirstChar(char p_ch) const
+{
+	return mtlChars(*this).FindFirstChar(p_ch);
+}
+
 int mtlString::FindLastChar(const mtlChars &p_chars) const
 {
 	return mtlChars(*this).FindLastChar(p_chars);
+}
+
+int mtlString::FindLastChar(char p_ch) const
+{
+	return mtlChars(*this).FindLastChar(p_ch);
 }
 
 int mtlString::FindFirstString(const mtlChars &p_str) const
