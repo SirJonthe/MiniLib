@@ -436,10 +436,10 @@ void mtlList<type_t>::Copy(const mtlList<type_t> &p_list)
 		m_size = p_list.m_size;
 		mtlItem<type_t> *src = p_list.m_first;
 		if (src != NULL) {
-			m_last = m_first = new mtlItem<type_t>(src->value, this, NULL, NULL);
+			m_last = m_first = new mtlItem<type_t>(src->m_item, this, NULL, NULL);
 			src = src->m_next;
 			while (src != NULL) {
-				m_last = new mtlItem<type_t>(src->value, this, NULL, m_last);
+				m_last = new mtlItem<type_t>(src->m_item, this, NULL, m_last);
 				src = src->m_next;
 			}
 		}

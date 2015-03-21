@@ -109,6 +109,7 @@ public:
 	mtlChars		PeekRest( void ) const;
 
 	bool			IsEnd( void ) const				{ return IsEnd(m_reader); }
+	bool			IsFormattedEnd( void );
 	int				GetCharCount( void ) const		{ return m_buffer.GetSize(); }
 	int				GetCurrentIndex( void ) const	{ return m_reader; }
 	int				GetCharsLeft( void ) const		{ return m_buffer.GetSize() - m_reader; }
@@ -131,6 +132,7 @@ public:
 	void			BackRaw(int count);
 
 	ExpressionResult Match(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail = true);
+	ExpressionResult MatchAll(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail = true);
 };
 
 #endif

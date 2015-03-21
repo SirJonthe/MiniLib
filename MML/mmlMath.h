@@ -24,12 +24,16 @@
 
 /* general mathematical functions
  ========================================*/
-inline float mmlDegToRad(float pDeg)	{ return pDeg *((mmlRAD_QUAD*2.f)/(mmlDEG_QUAD*2.f)); }
-inline float mmlRadToDeg(float pRad)	{ return pRad *((mmlDEG_QUAD*2.f)/(mmlRAD_QUAD*2.f)); }
-inline float mmlUnitToRad(float pUnit)	{ return pUnit * mmlRAD_MAX; }
-inline float mmlRadToUnit(float pRad)	{ return pRad / mmlRAD_MAX; }
-inline float mmlUnitToDeg(float pUnit)	{ return pUnit * mmlDEG_MAX; }
-inline float mmlDegToUnit(float pDeg)	{ return pDeg / mmlDEG_MAX; }
+inline float mmlDegToRad(float pDeg)		{ return pDeg *((mmlRAD_QUAD*2.f)/(mmlDEG_QUAD*2.f)); }
+inline float mmlRadToDeg(float pRad)		{ return pRad *((mmlDEG_QUAD*2.f)/(mmlRAD_QUAD*2.f)); }
+inline float mmlUnitToRad(float pUnit)		{ return pUnit * mmlRAD_MAX; }
+inline float mmlRadToUnit(float pRad)		{ return pRad / mmlRAD_MAX; }
+inline float mmlUnitToDeg(float pUnit)		{ return pUnit * mmlDEG_MAX; }
+inline float mmlDegToUnit(float pDeg)		{ return pDeg / mmlDEG_MAX; }
+inline bool mmlIsPow2(unsigned char x)		{ return (x != 0) && !(x & (x - 1)); }
+inline bool mmlIsPow2(unsigned short x)		{ return (x != 0) && !(x & (x - 1)); }
+inline bool mmlIsPow2(unsigned int x)		{ return (x != 0) && !(x & (x - 1)); }
+inline bool mmlIsPow2(unsigned long long x)	{ return (x != 0) && !(x & (x - 1)); }
 template < typename T > inline T mmlMin2(const T &pA, const T &pB) { return (pA < pB) ? (pA) : (pB); }
 template < typename T > inline T mmlMax2(const T &pA, const T &pB) { return (pA > pB) ? (pA) : (pB); }
 template < typename T > inline T mmlMin3(const T &pA, const T &pB, const T &pC) { return mmlMin2(Min2(pA,pB),pC); }
