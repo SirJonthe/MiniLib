@@ -108,8 +108,7 @@ public:
 	mtlChars		ReadRest( void );
 	mtlChars		PeekRest( void ) const;
 
-	bool			IsEnd( void ) const				{ return IsEnd(m_reader); }
-	bool			IsFormattedEnd( void );
+	bool			IsEnd( void );
 	int				GetCharCount( void ) const		{ return m_buffer.GetSize(); }
 	int				GetCurrentIndex( void ) const	{ return m_reader; }
 	int				GetCharsLeft( void ) const		{ return m_buffer.GetSize() - m_reader; }

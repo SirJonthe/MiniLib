@@ -191,7 +191,7 @@ bool mtlParser::BufferFile(const mtlDirectory &p_file, mtlString &p_buffer)
 char mtlParser::ReadChar( void )
 {
 	SkipWhitespaces();
-	return (!IsEnd()) ? m_buffer[m_reader++] : 0;
+	return (!IsEnd(m_reader)) ? m_buffer[m_reader++] : 0;
 }
 
 char mtlParser::PeekChar( void ) const
@@ -215,7 +215,7 @@ void mtlParser::BackChar( void )
 mtlChars mtlParser::ReadCharStr( void )
 {
 	SkipWhitespaces();
-	return (!IsEnd()) ? mtlChars(m_buffer, m_reader, ++m_reader) : mtlChars(m_buffer, m_reader, m_reader);
+	return (!IsEnd(m_reader)) ? mtlChars(m_buffer, m_reader, ++m_reader) : mtlChars(m_buffer, m_reader, m_reader);
 }
 
 mtlChars mtlParser::PeekCharStr( void ) const
@@ -240,25 +240,25 @@ mtlChars mtlParser::PeekWord( void ) const
 void mtlParser::BackWord( void )
 {
 	/*int r = m_reader;
-	while (!IsEnd() && IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd(m_reader) && IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	while (!IsEnd() && !IsWhite(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd(m_reader) && !IsWhite(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	if (IsEnd() && r != m_reader+1) { ++m_reader; }*/ // in order to make the first word in file readable only once
+	if (IsEnd(m_reader) && r != m_reader+1) { ++m_reader; }*/ // in order to make the first word in file readable only once
 
 	int r = m_reader;
 	BackWhitespaces();
 	m_reader = BackNonWhitespaces(m_reader);
-	if (IsEnd() && r != m_reader+1) { ++m_reader; } // in order to make the first word in file readable only once
+	if (IsEnd(m_reader) && r != m_reader+1) { ++m_reader; } // in order to make the first word in file readable only once
 }
 
 mtlChars mtlParser::ReadFormat(const mtlChars &format, bool caseSensitive)
 {
 	SkipWhitespaces();
 	int start = m_reader;
-	while (!IsEnd() && mtlChars::SameAsAny(m_buffer[m_reader], format.GetChars(), format.GetSize(), caseSensitive)) {
+	while (!IsEnd(m_reader) && mtlChars::SameAsAny(m_buffer[m_reader], format.GetChars(), format.GetSize(), caseSensitive)) {
 		++m_reader;
 	}
 	if (m_reader - start == 0) { ++m_reader; }
@@ -293,13 +293,13 @@ mtlChars mtlParser::PeekLine( void ) const
 void mtlParser::BackLine( void )
 {
 	int r = m_reader;
-	while (!IsEnd() && mtlChars::IsWhitespace(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd(m_reader) && mtlChars::IsWhitespace(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	while (!IsEnd() && !mtlChars::IsNewline(m_buffer.GetChars()[m_reader])) {
+	while (!IsEnd(m_reader) && !mtlChars::IsNewline(m_buffer.GetChars()[m_reader])) {
 		--m_reader;
 	}
-	if (IsEnd() && r != m_reader+1) { ++m_reader; } // in order to make the first line in file readable only once
+	if (IsEnd(m_reader) && r != m_reader+1) { ++m_reader; } // in order to make the first line in file readable only once
 }
 
 mtlChars mtlParser::ReadTo(const mtlChars &p_str, bool caseSensitive)
@@ -407,10 +407,10 @@ mtlChars mtlParser::PeekRest( void ) const
 	return mtlChars(m_buffer, m_reader, m_buffer.GetSize()).GetTrimmed();
 }
 
-bool mtlParser::IsFormattedEnd( void )
+bool mtlParser::IsEnd( void )
 {
 	SkipWhitespaces();
-	return IsEnd();
+	return IsEnd(m_reader);
 }
 
 int mtlParser::GetLineNumber( void ) const
@@ -578,5 +578,5 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 mtlParser::ExpressionResult mtlParser::MatchAll(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail)
 {
 	ExpressionResult result = Match(expr, out, revert_on_fail);
-	return (IsFormattedEnd()) ? result : ExpressionNotFound;
+	return (IsEnd()) ? result : ExpressionNotFound;
 }
