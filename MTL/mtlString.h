@@ -57,6 +57,7 @@ public:
 
 	void					Trim( void );
 	void					TrimBraces( void );
+	bool					IsBraced( void ) const;
 	void					Substring(int p_start, int p_end);
 
 	void					SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true, bool p_braceScoping = false) const;
@@ -79,6 +80,7 @@ public:
 	inline char				operator[](int i) const;
 
 	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
+	bool					Compare(char ch, bool p_caseSensitive = false) const;
 	inline bool				SameAsAny(char ch, bool caseSensitive = false) const;
 	inline int				SameAsWhich(char ch, bool caseSensitive = false) const;
 	inline bool				SameAsNone(char ch, bool caseSensitive = false) const;
@@ -125,6 +127,7 @@ public:
 	inline void			ToUpper( void );
 	inline mtlChars		GetTrimmed( void ) const;
 	inline mtlChars		GetTrimmedBraces( void ) const;
+	inline bool			IsBraced( void ) const;
 	inline mtlChars		GetSubstring(int p_start, int p_end = -1) const;
 
 	inline const char	*GetChars( void ) const;
@@ -150,9 +153,10 @@ public:
 	bool				FromInt(int i);
 	bool				FromFloat(float f);
 
-	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
-	bool				operator==(const mtlChars &p_str) const;
-	bool				operator!=(const mtlChars &p_str) const;
+	inline bool			Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
+	inline bool			Compare(char ch, bool p_caseSensitive = false) const;
+	inline bool			operator==(const mtlChars &p_str) const;
+	inline bool			operator!=(const mtlChars &p_str) const;
 };
 
 template <unsigned int N, unsigned int I>
@@ -177,7 +181,7 @@ public:
 	mtlHash(const mtlString &p_str);
 	mtlHash(const mtlChars &p_str); // THIS MIGHT PREVENT TEMPLATE CONSTRUCTOR FROM EVER GETTING CALLED
 	template < int N >
-	mtlHash(const char (&p_str)[N]) : value(mtlFNVConstHasher<N,N>::Hash(p_str)) {}
+	mtlHash(const char (&p_str)[N]) : value(mtlFNVConstHasher<N,N>::Hash(p_str)) {} // generates hash at compile time
 	bool operator==(mtlHash h) const { return value == h.value; }
 	bool operator!=(mtlHash h) const { return value != h.value; }
 	bool operator<(mtlHash h) const { return value < h.value; }
@@ -373,6 +377,11 @@ mtlChars mtlString::GetTrimmedBraces( void ) const
 	return mtlChars(*this, 0, m_size).GetTrimmedBraces();
 }
 
+bool mtlString::IsBraced( void ) const
+{
+	return mtlChars(*this, 0, m_size).IsBraced();
+}
+
 mtlChars mtlString::GetSubstring(int p_start, int p_end) const
 {
 	if (p_end < 0) {
@@ -459,6 +468,27 @@ bool mtlString::ToInt(int &p_out) const
 bool mtlString::ToFloat(float &p_out) const
 {
 	return mtlChars(*this).ToFloat(p_out);
+}
+
+bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
+{
+	return p_str.Compare(*this, p_caseSensitive);
+}
+
+bool mtlString::Compare(char ch, bool p_caseSensitive) const
+{
+	if (m_size != 1) { return false; }
+	return p_caseSensitive ? m_str[0] == ch : mtlChars::ToLower(m_str[0]) == mtlChars::ToLower(ch);
+}
+
+bool mtlString::operator==(const mtlChars &p_str) const
+{
+	return p_str.Compare(p_str, true);
+}
+
+bool mtlString::operator!=(const mtlChars &p_str) const
+{
+	return !p_str.Compare(p_str, true);
 }
 
 #endif

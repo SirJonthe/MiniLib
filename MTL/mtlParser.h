@@ -19,18 +19,10 @@
 class mtlParser
 {
 private:
-	/*static const char space = ' ';
-	static const char tab = '\t';
-	static const char newl = '\n';
-	static const char cret = '\r';*/
 	static const char esc = '\\';
 	static const char var = '%';
 
 public:
-	/*static bool IsWhite(char c) { return c == space || c == tab || c == newl || c == cret; }
-	static bool IsNewl(char c) { return c == newl || c == cret; }
-	static bool IsLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }*/
-
 	enum ExpressionResult
 	{
 		ExpressionNotFound,

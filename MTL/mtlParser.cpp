@@ -488,7 +488,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			//case 'n': // makes sure there's a newline
 			//case '_': // makes sure there's a white space
 
-			if (e.Compare("%")) {
+			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
 				mtlChars delimiter = exprParser.PeekCharStr();

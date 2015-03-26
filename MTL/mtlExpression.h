@@ -42,6 +42,8 @@ private:
 	float				m_result;
 	TermNode			*m_root;
 	mtlStringMap<float>	m_constants;
+	// mtlReference to parent constants (this implements scopes)
+	// requires mtlStringMap<float> to be a mtlShared<mtlStringMap<float>>
 
 private:
 	void	SanitizeExpression( void );

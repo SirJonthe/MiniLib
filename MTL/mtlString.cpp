@@ -244,6 +244,17 @@ void mtlChars::TrimBraces( void )
 	}
 }
 
+bool mtlChars::IsBraced( void ) const
+{
+	mtlChars trimmed = GetTrimmed();
+	if (trimmed.GetSize() >= 2) {
+		int open = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
+		int close = SameAsWhich(m_str[m_size - 1], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true);
+		return open > -1 && open == close;
+	}
+	return false;
+}
+
 void mtlChars::Substring(int p_start, int p_end)
 {
 	*this = mtlChars(*this, p_start, p_end);
@@ -444,6 +455,12 @@ bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 	return mtlChars::SameAsAll(m_str, p_str.m_str, m_size, p_caseSensitive);
 }
 
+bool mtlChars::Compare(char ch, bool p_caseSensitive) const
+{
+	if (m_size != 1) { return false; }
+	return p_caseSensitive ? m_str[0] == ch : ToLower(m_str[0]) == ToLower(ch);
+}
+
 char *mtlString::NewPool(int p_size)
 {
 	const int actualSize = p_size + 1;
@@ -562,21 +579,6 @@ void mtlString::Copy(const mtlChars &p_str)
 		mtlCopy(m_str, p_str.GetChars(), m_size);
 		m_str[m_size] = '\0';
 	}
-}
-
-bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
-{
-	return p_str.Compare(*this, p_caseSensitive);
-}
-
-bool mtlString::operator==(const mtlChars &p_str) const
-{
-	return p_str.Compare(p_str, true);
-}
-
-bool mtlString::operator!=(const mtlChars &p_str) const
-{
-	return !p_str.Compare(p_str, true);
 }
 
 bool mtlString::FromBool(bool b)
