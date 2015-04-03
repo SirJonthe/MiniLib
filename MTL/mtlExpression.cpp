@@ -41,8 +41,10 @@ float mtlExpression::ValueNode::Evaluate( void ) const
 	return value;
 }
 
-mtlExpression::mtlExpression( void ) : m_expression(), m_result(0.0f), m_root(NULL)
-{}
+mtlExpression::mtlExpression( void ) : m_expression(), m_result(0.0f), m_root(NULL), m_scope_stack()
+{
+	m_scope_stack.AddLast();
+}
 
 mtlExpression::~mtlExpression( void )
 {
@@ -228,6 +230,68 @@ float mtlExpression::GetConstant(const mtlChars &name) const
 	return value != NULL ? *value : 0.0f;
 }
 
+/*bool mtlExpression::SetConstant(const mtlChars &name, float value)
+{
+	mtlItem<Scope> *i = m_scope_stack.GetLast();
+	float *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_constants.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	if (found_value != NULL) {
+		*found_value = value;
+	} else {
+		*m_scope_stack.GetLast()->GetItem().m_constants.CreateEntry(name) = value;
+	}
+}
+
+bool mtlExpression::GetConstant(const mtlChars &name, float &value) const
+{
+	mtlItem<Scope> *i = m_scope_stack.GetLast();
+	float *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_constants.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	if (found_value != NULL) {
+		value = *found_value;
+	}
+	return (found_value != NULL);
+}*/
+
+bool mtlExpression::SetVariable(const mtlChars &name, float value)
+{
+	mtlItem<Scope> *i = m_scope_stack.GetLast();
+	float *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_variables.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	if (found_value != NULL) {
+		*found_value = value;
+	} else {
+		*m_scope_stack.GetLast()->GetItem().m_variables.CreateEntry(name) = value;
+	}
+}
+
+bool mtlExpression::GetVariable(const mtlChars &name, float &value)
+{
+	mtlItem<Scope> *i = m_scope_stack.GetLast();
+	float *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_variables.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	if (found_value != NULL) {
+		value = *found_value;
+	}
+	return (found_value != NULL);
+}
+
 bool mtlExpression::SetExpression(const mtlChars &expression)
 {
 	DestroyTermTree(m_root);
@@ -254,6 +318,31 @@ const mtlString &mtlExpression::GetExpression( void ) const
 void mtlExpression::CopyConstants(const mtlExpression &expr)
 {
 	m_constants.Copy(expr.m_constants);
+}
+
+void mtlExpression::PushScope( void )
+{
+	m_scope_stack.AddLast();
+}
+
+void mtlExpression::PopScope( void )
+{
+	if (m_scope_stack.GetSize() > 1) {
+		m_scope_stack.RemoveLast();
+	}
+}
+
+void mtlExpression::ClearAllScopes( void )
+{
+	m_scope_stack.RemoveAll();
+	m_scope_stack.AddLast();
+}
+
+void mtlExpression::ClearLocalScopes( void )
+{
+	while (m_scope_stack.GetSize() > 1) {
+		m_scope_stack.RemoveLast();
+	}
 }
 
 float mtlExpression::Evaluate( void ) const
