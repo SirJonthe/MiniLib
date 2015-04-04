@@ -449,6 +449,26 @@ int mtlChars::FindLastString(const mtlChars &p_str) const
 	return -1;
 }
 
+int mtlChars::CountChars(char ch, bool p_caseSensitive) const
+{
+	int count = 0;
+	if (p_caseSensitive) {
+		for (int i = 0; i < m_size; ++i) {
+			if (m_str[i] == ch) {
+				++count;
+			}
+		}
+	} else {
+		ch = ToLower(ch);
+		for (int i = 0; i < m_size; ++i) {
+			if (ToLower(m_str[i]) == ch) {
+				++count;
+			}
+		}
+	}
+	return count;
+}
+
 bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	if (p_str.m_size != m_size) { return false; }

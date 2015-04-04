@@ -71,6 +71,8 @@ public:
 	int						FindFirstString(const mtlChars &p_str) const;
 	int						FindLastString(const mtlChars &p_str) const;
 
+	int						CountChars(char ch, bool p_caseSensitive = false) const;
+
 	inline const char		*GetChars( void ) const;
 	inline int				GetSize( void ) const;
 
@@ -145,6 +147,8 @@ public:
 	inline int			FindLastChar(char p_ch) const;
 	inline int			FindFirstString(const mtlChars &p_str) const;
 	inline int			FindLastString(const mtlChars &p_str) const;
+
+	inline int			CountChars(char ch, bool p_caseSensitive = false) const;
 
 	inline bool			ToBool(bool &p_out) const;
 	inline bool			ToInt(int &p_out) const;
@@ -453,6 +457,11 @@ int mtlString::FindFirstString(const mtlChars &p_str) const
 int mtlString::FindLastString(const mtlChars &p_str) const
 {
 	return mtlChars(*this).FindLastString(p_str);
+}
+
+int mtlString::CountChars(char ch, bool p_caseSensitive) const
+{
+	return mtlChars(*this).CountChars(ch, p_caseSensitive);
 }
 
 bool mtlString::ToBool(bool &p_out) const
