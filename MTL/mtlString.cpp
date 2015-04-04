@@ -234,12 +234,24 @@ void mtlChars::Trim( void )
 void mtlChars::TrimBraces( void )
 {
 	Trim();
-	if (GetSize() >= 2) {
-		int b1 = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
-		int b2 = SameAsWhich(m_str[GetSize()-1], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true);
-		if (b1 == b2 && b1 > -1) {
-			++m_str;
-			--m_size;
+	if (GetSize() >= 1) {
+		int brace_counter = 0;
+		int brace_type = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
+		if (brace_type > -1) {
+			++brace_counter;
+			int i = 1;
+			for (; i < m_size; ++i) {
+				if (SameAsWhich(m_str[i], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true) == brace_type) {
+					++brace_counter;
+				} else if (SameAsWhich(m_str[i], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true) == brace_type) {
+					--brace_counter;
+					if (brace_counter == 0) { break; }
+				}
+			}
+			if (brace_counter == 0 && i == m_size-1) {
+				++m_str;
+				m_size -= 2;
+			}
 		}
 	}
 }

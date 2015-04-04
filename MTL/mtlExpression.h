@@ -56,34 +56,39 @@ private:
 	mtlList<Scope>		m_scope_stack;
 
 private:
-	//void		SanitizeExpression( void );
-	bool		IsBraceBalanced(const mtlChars &expression) const;
-	bool		IsLegalChars(const mtlChars &expression) const;
-	void		DestroyTermTree(TermNode *node);
-	bool		GenerateTermTree(TermNode *& node, const mtlChars &expression);
-	int			FindOperation(const mtlChars &operation, const mtlChars &expression) const;
-	int			FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const;
-	bool		IsLegalNameConvention(const mtlChars &name) const;
+	//void			SanitizeExpression( void );
+	bool			IsBraceBalanced(const mtlChars &expression) const;
+	bool			IsLegalChars(const mtlChars &expression) const;
+	void			DestroyTermTree(TermNode *node);
+	bool			GenerateTermTree(TermNode *& node, const mtlChars &expression);
+	int				FindOperation(const mtlChars &operation, const mtlChars &expression) const;
+	int				FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const;
+	bool			IsLegalNameConvention(const mtlChars &name) const;
+	Symbol			*GetSymbol(const mtlChars &name);
+	const Symbol	*GetSymbol(const mtlChars &name) const;
 	
 public:
 					mtlExpression( void );
-					~mtlExpression( void );
+	//				~mtlExpression( void );
 
 	//void			SetConstant(const mtlChars &name, float value);
 	//float			GetConstant(const mtlChars &name) const;
 
+	float			*GetValue(const mtlChars &name);
+	const float		*GetValue(const mtlChars &name) const;
+
 	bool			SetConstant(const mtlChars &name, float value);
-	bool			GetConstant(const mtlChars &name, float &value);
+	bool			GetConstant(const mtlChars &name, float &value) const;
 
 	bool			SetVariable(const mtlChars &name, float value);
-	bool			GetVariable(const mtlChars &name, float &value);
+	bool			GetVariable(const mtlChars &name, float &value) const;
 
 	bool			Evaluate(const mtlChars &expression, float &value);
 
 	//bool			SetExpression(const mtlChars &expression);
 	//const mtlString	&GetExpression( void ) const;
 	
-	void			CopyConstants(const mtlExpression &expr);
+	//void			CopyConstants(const mtlExpression &expr);
 
 	void			PushScope( void );
 	void			PopScope( void );

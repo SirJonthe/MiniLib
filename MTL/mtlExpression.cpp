@@ -41,15 +41,15 @@ float mtlExpression::ValueNode::Evaluate( void ) const
 	return value;
 }
 
-mtlExpression::mtlExpression( void ) : m_expression(), m_result(0.0f), m_root(NULL), m_scope_stack()
+mtlExpression::mtlExpression( void ) : /*m_expression(), m_result(0.0f), m_root(NULL),*/ m_scope_stack()
 {
 	m_scope_stack.AddLast();
 }
 
-mtlExpression::~mtlExpression( void )
+/*mtlExpression::~mtlExpression( void )
 {
 	DestroyTermTree(m_root);
-}
+}*/
 
 /*void mtlExpression::SanitizeExpression( void )
 {
@@ -162,7 +162,7 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		valNode->right = NULL;
 		valNode->value = 0.0f;
 		if (!expression.ToFloat(valNode->value)) {
-			const float *constant = m_constants.GetEntry(expression);
+			const float *constant = GetValue(expression);
 			if (constant != NULL) {
 				valNode->value = *constant;
 			} else {
@@ -223,6 +223,30 @@ bool mtlExpression::IsLegalNameConvention(const mtlChars &name) const
 	return true;
 }
 
+mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name)
+{
+	mtlItem<Scope> *i = m_scope_stack.GetLast();
+	Symbol *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_defs.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	return found_value;
+}
+
+const mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name) const
+{
+	const mtlItem<Scope> *i = m_scope_stack.GetLast();
+	const Symbol *found_value = NULL;
+	while (i != NULL) {
+		found_value = i->GetItem().m_defs.GetEntry(name);
+		if (found_value != NULL) { break; }
+		i = i->GetPrev();
+	}
+	return found_value;
+}
+
 /*void mtlExpression::SetConstant(const mtlChars &name, float value)
 {
 	if (IsLegalNameConvention(name)) {
@@ -236,83 +260,82 @@ float mtlExpression::GetConstant(const mtlChars &name) const
 	return value != NULL ? *value : 0.0f;
 }*/
 
+float *mtlExpression::GetValue(const mtlChars &name)
+{
+	Symbol *sym = GetSymbol(name);
+	return sym != NULL ? &sym->value : NULL;
+}
+
+const float *mtlExpression::GetValue(const mtlChars &name) const
+{
+	const Symbol *sym = GetSymbol(name);
+	return sym != NULL ? &sym->value : NULL;
+}
+
 bool mtlExpression::SetConstant(const mtlChars &name, float value)
 {
-	mtlItem<Scope> *i = m_scope_stack.GetLast();
-	Symbol *found_value = NULL;
-	while (i != NULL) {
-		found_value = i->GetItem().m_defs.GetEntry(name);
-		if (found_value != NULL) { break; }
-		i = i->GetPrev();
+	Symbol *sym = GetSymbol(name);
+	bool ret_val = false;
+	if (sym != NULL) {
+		ret_val = sym->constant;
+	} else {
+		ret_val = IsLegalNameConvention(name);
+		if (ret_val) {
+			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
+			sym->constant = true;
+		}
 	}
-	if ((found_value == NULL || !found_value->constant) && IsLegalNameConvention(name)) {
-		found_value = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
-		found_value->constant = true;
+	if (ret_val) {
+		sym->value = value;
 	}
-	bool valid_find = found_value != NULL && found_value->constant;
-	if (valid_find) {
-		found_value->value = value;
-	}
-	return valid_find;
+	return ret_val;
 }
 
 bool mtlExpression::GetConstant(const mtlChars &name, float &value) const
 {
-	mtlItem<Scope> *i = m_scope_stack.GetLast();
-	Symbol *found_value = NULL;
-	while (i != NULL) {
-		found_value = i->GetItem().m_defs.GetEntry(name);
-		if (found_value != NULL) { break; }
-		i = i->GetPrev();
+	const Symbol *sym = GetSymbol(name);
+	bool ret_val = sym != NULL && sym->constant;
+	if (ret_val) {
+		value = sym->value;
 	}
-	bool valid_find = found_value != NULL && found_value->constant;
-	if (valid_find) {
-		value = found_value->value;
-	}
-	return valid_find;
+	return ret_val;
 }
 
 bool mtlExpression::SetVariable(const mtlChars &name, float value)
 {
-	mtlItem<Scope> *i = m_scope_stack.GetLast();
-	Symbol *found_value = NULL;
-	while (i != NULL) {
-		found_value = i->GetItem().m_defs.GetEntry(name);
-		if (found_value != NULL) { break; }
-		i = i->GetPrev();
+	Symbol *sym = GetSymbol(name);
+	bool ret_val = false;
+	if (sym != NULL) {
+		ret_val = !sym->constant;
+	} else {
+		ret_val = IsLegalNameConvention(name);
+		if (ret_val) {
+			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
+			sym->constant = false;
+		}
 	}
-	if ((found_value == NULL || found_value->constant) && IsLegalNameConvention(name)) {
-		found_value = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
-		found_value->constant = false;
+	if (ret_val) {
+		sym->value = value;
 	}
-	bool valid_find = found_value != NULL && !found_value->constant;
-	if (valid_find) {
-		found_value->value = value;
-	}
-	return valid_find;
+	return ret_val;
 }
 
-bool mtlExpression::GetVariable(const mtlChars &name, float &value)
+bool mtlExpression::GetVariable(const mtlChars &name, float &value) const
 {
-	mtlItem<Scope> *i = m_scope_stack.GetLast();
-	Symbol *found_value = NULL;
-	while (i != NULL) {
-		found_value = i->GetItem().m_defs.GetEntry(name);
-		if (found_value != NULL) { break; }
-		i = i->GetPrev();
+	const Symbol *sym = GetSymbol(name);
+	bool ret_val = sym != NULL && !sym->constant;
+	if (ret_val) {
+		value = sym->value;
 	}
-	bool valid_find = found_value != NULL && !found_value->constant;
-	if (valid_find) {
-		value = found_value->value;
-	}
-	return valid_find;
+	return ret_val;
 }
 
 bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
 {
 	TermNode *term_tree;
 
-	mtlList<mtlChars> expr_sides = expression.SplitByChar('=');
+	mtlList<mtlChars> expr_sides;
+	expression.SplitByChar(expr_sides, '=');
 	mtlChars var_part;
 	mtlChars expr_part;
 	if (expr_sides.GetSize() > 1) {
@@ -328,6 +351,8 @@ bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
 		if (var_part.GetSize() > 0) {
 			success = SetVariable(var_part, value);
 		}
+	} else {
+		value = 0.0f;
 	}
 
 	DestroyTermTree(term_tree);
@@ -357,10 +382,10 @@ const mtlString &mtlExpression::GetExpression( void ) const
 	return m_expression;
 }*/
 
-void mtlExpression::CopyConstants(const mtlExpression &expr)
+/*void mtlExpression::CopyConstants(const mtlExpression &expr)
 {
 	m_constants.Copy(expr.m_constants);
-}
+}*/
 
 void mtlExpression::PushScope( void )
 {
