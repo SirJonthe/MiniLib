@@ -1,18 +1,18 @@
 //
-//  mtlExpression.h
+//  mtlMathParser.h
 //  MiniLib
 //
 //  Created by Jonathan Karlsson on 10/14/14.
 //  Copyright (c) 2014 Jonathan Karlsson. All rights reserved.
 //
 
-#ifndef MTL_EXPRESSION_H_INCLUDED__
-#define MTL_EXPRESSION_H_INCLUDED__
+#ifndef MTL_MATHPARSER_H_INCLUDED__
+#define MTL_MATHPARSER_H_INCLUDED__
 
 #include "mtlString.h"
 #include "mtlStringMap.h"
 
-class mtlExpression
+class mtlMathParser
 {
 private:
 	struct TermNode
@@ -68,8 +68,8 @@ private:
 	const Symbol	*GetSymbol(const mtlChars &name) const;
 	
 public:
-					mtlExpression( void );
-	//				~mtlExpression( void );
+					mtlMathParser( void );
+	//				~mtlMathParser( void );
 
 	//void			SetConstant(const mtlChars &name, float value);
 	//float			GetConstant(const mtlChars &name) const;
@@ -88,7 +88,7 @@ public:
 	//bool			SetExpression(const mtlChars &expression);
 	//const mtlString	&GetExpression( void ) const;
 	
-	//void			CopyConstants(const mtlExpression &expr);
+	//void			CopyConstants(const mtlMathParser &expr);
 
 	void			PushScope( void );
 	void			PopScope( void );

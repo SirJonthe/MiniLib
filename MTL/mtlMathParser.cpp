@@ -1,15 +1,15 @@
 //
-//  mtlExpression.cpp
+//  mtlMathParser.cpp
 //  MiniLib
 //
 //  Created by Jonathan Karlsson on 10/14/14.
 //  Copyright (c) 2014 Jonathan Karlsson. All rights reserved.
 //
 
-#include "mtlExpression.h"
+#include "mtlMathParser.h"
 #include <cmath>
 
-float mtlExpression::OperationNode::Evaluate( void ) const
+float mtlMathParser::OperationNode::Evaluate( void ) const
 {
 	float lval = left->Evaluate();
 	float rval = right->Evaluate();
@@ -36,22 +36,22 @@ float mtlExpression::OperationNode::Evaluate( void ) const
 	return result;
 }
 
-float mtlExpression::ValueNode::Evaluate( void ) const
+float mtlMathParser::ValueNode::Evaluate( void ) const
 {
 	return value;
 }
 
-mtlExpression::mtlExpression( void ) : /*m_expression(), m_result(0.0f), m_root(NULL),*/ m_scope_stack()
+mtlMathParser::mtlMathParser( void ) : /*m_expression(), m_result(0.0f), m_root(NULL),*/ m_scope_stack()
 {
 	m_scope_stack.AddLast();
 }
 
-/*mtlExpression::~mtlExpression( void )
+/*mtlMathParser::~mtlMathParser( void )
 {
 	DestroyTermTree(m_root);
 }*/
 
-/*void mtlExpression::SanitizeExpression( void )
+/*void mtlMathParser::SanitizeExpression( void )
 {
 	int skipped = 0;
 	for (int i = 0; i < m_expression.GetSize(); ++i) {
@@ -65,7 +65,7 @@ mtlExpression::mtlExpression( void ) : /*m_expression(), m_result(0.0f), m_root(
 	m_expression.SetSize(m_expression.GetSize() - skipped);
 }*/
 
-bool mtlExpression::IsBraceBalanced(const mtlChars &expression) const
+bool mtlMathParser::IsBraceBalanced(const mtlChars &expression) const
 {
 	int stack = 0;
 	for (int i = 0; i < expression.GetSize(); ++i) {
@@ -83,7 +83,7 @@ bool mtlExpression::IsBraceBalanced(const mtlChars &expression) const
 	return stack == 0;
 }
 
-bool mtlExpression::IsLegalChars(const mtlChars &expression) const
+bool mtlMathParser::IsLegalChars(const mtlChars &expression) const
 {
 	for (int i = 0; i < expression.GetSize(); ++i) {
 		char ch = expression.GetChars()[i];
@@ -94,7 +94,7 @@ bool mtlExpression::IsLegalChars(const mtlChars &expression) const
 	return true;
 }
 
-void mtlExpression::DestroyTermTree(mtlExpression::TermNode *node)
+void mtlMathParser::DestroyTermTree(mtlMathParser::TermNode *node)
 {
 	if (node == NULL) { return; }
 	DestroyTermTree(node->left);
@@ -102,7 +102,7 @@ void mtlExpression::DestroyTermTree(mtlExpression::TermNode *node)
 	delete node;
 }
 
-bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, mtlChars expression)
+bool mtlMathParser::GenerateTermTree(mtlMathParser::TermNode *& node, mtlChars expression)
 {
 	static const char zero_str[] = "0";
 
@@ -177,7 +177,7 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, mtlChars e
 	return retval;
 }
 
-int mtlExpression::FindOperation(const mtlChars &operations, const mtlChars &expression) const
+int mtlMathParser::FindOperation(const mtlChars &operations, const mtlChars &expression) const
 {
 	int braceStack = 0;
 	for (int i = 0; i < expression.GetSize(); ++i) {
@@ -193,7 +193,7 @@ int mtlExpression::FindOperation(const mtlChars &operations, const mtlChars &exp
 	return -1;
 }
 
-int mtlExpression::FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const
+int mtlMathParser::FindOperationReverse(const mtlChars &operations, const mtlChars &expression) const
 {
 	int braceStack = 0;
 	for (int i = expression.GetSize() - 1; i >= 0; --i) {
@@ -209,7 +209,7 @@ int mtlExpression::FindOperationReverse(const mtlChars &operations, const mtlCha
 	return -1;
 }
 
-bool mtlExpression::IsLegalNameConvention(const mtlChars &name) const
+bool mtlMathParser::IsLegalNameConvention(const mtlChars &name) const
 {
 	if (name.GetSize() == 0) {
 		return false;
@@ -225,7 +225,7 @@ bool mtlExpression::IsLegalNameConvention(const mtlChars &name) const
 	return true;
 }
 
-mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name)
+mtlMathParser::Symbol *mtlMathParser::GetSymbol(const mtlChars &name)
 {
 	mtlItem<Scope> *i = m_scope_stack.GetLast();
 	Symbol *found_value = NULL;
@@ -237,7 +237,7 @@ mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name)
 	return found_value;
 }
 
-const mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name) const
+const mtlMathParser::Symbol *mtlMathParser::GetSymbol(const mtlChars &name) const
 {
 	const mtlItem<Scope> *i = m_scope_stack.GetLast();
 	const Symbol *found_value = NULL;
@@ -249,32 +249,32 @@ const mtlExpression::Symbol *mtlExpression::GetSymbol(const mtlChars &name) cons
 	return found_value;
 }
 
-/*void mtlExpression::SetConstant(const mtlChars &name, float value)
+/*void mtlMathParser::SetConstant(const mtlChars &name, float value)
 {
 	if (IsLegalNameConvention(name)) {
 		(*m_constants.CreateEntry(name)) = value;
 	}
 }
 
-float mtlExpression::GetConstant(const mtlChars &name) const
+float mtlMathParser::GetConstant(const mtlChars &name) const
 {
 	const float *value = m_constants.GetEntry(name);
 	return value != NULL ? *value : 0.0f;
 }*/
 
-float *mtlExpression::GetValue(const mtlChars &name)
+float *mtlMathParser::GetValue(const mtlChars &name)
 {
 	Symbol *sym = GetSymbol(name);
 	return sym != NULL ? &sym->value : NULL;
 }
 
-const float *mtlExpression::GetValue(const mtlChars &name) const
+const float *mtlMathParser::GetValue(const mtlChars &name) const
 {
 	const Symbol *sym = GetSymbol(name);
 	return sym != NULL ? &sym->value : NULL;
 }
 
-bool mtlExpression::SetConstant(const mtlChars &name, float value)
+bool mtlMathParser::SetConstant(const mtlChars &name, float value)
 {
 	Symbol *sym = GetSymbol(name);
 	bool ret_val = false;
@@ -293,7 +293,7 @@ bool mtlExpression::SetConstant(const mtlChars &name, float value)
 	return ret_val;
 }
 
-bool mtlExpression::GetConstant(const mtlChars &name, float &value) const
+bool mtlMathParser::GetConstant(const mtlChars &name, float &value) const
 {
 	const Symbol *sym = GetSymbol(name);
 	bool ret_val = sym != NULL && sym->constant;
@@ -303,7 +303,7 @@ bool mtlExpression::GetConstant(const mtlChars &name, float &value) const
 	return ret_val;
 }
 
-bool mtlExpression::SetVariable(const mtlChars &name, float value)
+bool mtlMathParser::SetVariable(const mtlChars &name, float value)
 {
 	Symbol *sym = GetSymbol(name);
 	bool ret_val = false;
@@ -322,7 +322,7 @@ bool mtlExpression::SetVariable(const mtlChars &name, float value)
 	return ret_val;
 }
 
-bool mtlExpression::GetVariable(const mtlChars &name, float &value) const
+bool mtlMathParser::GetVariable(const mtlChars &name, float &value) const
 {
 	const Symbol *sym = GetSymbol(name);
 	bool ret_val = sym != NULL && !sym->constant;
@@ -332,7 +332,7 @@ bool mtlExpression::GetVariable(const mtlChars &name, float &value) const
 	return ret_val;
 }
 
-bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
+bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 {
 	TermNode *term_tree;
 
@@ -361,7 +361,7 @@ bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
 	return success;
 }
 
-/*bool mtlExpression::SetExpression(const mtlChars &expression)
+/*bool mtlMathParser::SetExpression(const mtlChars &expression)
 {
 	DestroyTermTree(m_root);
 	m_root = NULL;
@@ -379,42 +379,42 @@ bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
 	return retVal;
 }
 
-const mtlString &mtlExpression::GetExpression( void ) const
+const mtlString &mtlMathParser::GetExpression( void ) const
 {
 	return m_expression;
 }*/
 
-/*void mtlExpression::CopyConstants(const mtlExpression &expr)
+/*void mtlMathParser::CopyConstants(const mtlMathParser &expr)
 {
 	m_constants.Copy(expr.m_constants);
 }*/
 
-void mtlExpression::PushScope( void )
+void mtlMathParser::PushScope( void )
 {
 	m_scope_stack.AddLast();
 }
 
-void mtlExpression::PopScope( void )
+void mtlMathParser::PopScope( void )
 {
 	if (m_scope_stack.GetSize() > 1) {
 		m_scope_stack.RemoveLast();
 	}
 }
 
-void mtlExpression::ClearAllScopes( void )
+void mtlMathParser::ClearAllScopes( void )
 {
 	m_scope_stack.RemoveAll();
 	m_scope_stack.AddLast();
 }
 
-void mtlExpression::ClearLocalScopes( void )
+void mtlMathParser::ClearLocalScopes( void )
 {
 	while (m_scope_stack.GetSize() > 1) {
 		m_scope_stack.RemoveLast();
 	}
 }
 
-/*float mtlExpression::Evaluate( void ) const
+/*float mtlMathParser::Evaluate( void ) const
 {
 	float result = 0.0f;
 	if (m_root != NULL) {
