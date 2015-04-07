@@ -102,9 +102,11 @@ void mtlExpression::DestroyTermTree(mtlExpression::TermNode *node)
 	delete node;
 }
 
-bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlChars &expression)
+bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, mtlChars expression)
 {
 	static const char zero_str[] = "0";
+
+	expression.TrimBraces();
 
 	if (expression.GetSize() == 0) {
 		node = NULL;
@@ -141,8 +143,8 @@ bool mtlExpression::GenerateTermTree(mtlExpression::TermNode *& node, const mtlC
 		opNode->left = NULL;
 		opNode->right = NULL;
 		
-		mtlChars lexpr = mtlChars(expression, 0, opIndex).GetTrimmed().GetTrimmedBraces();
-		mtlChars rexpr = mtlChars(expression, opIndex + 1, expression.GetSize()).GetTrimmed().GetTrimmedBraces();
+		mtlChars lexpr = mtlChars(expression, 0, opIndex);
+		mtlChars rexpr = mtlChars(expression, opIndex + 1, expression.GetSize());
 
 		if (expression[opIndex] == '-' && lexpr.GetSize() == 0) {
 			lexpr = zero_str;
@@ -340,9 +342,9 @@ bool mtlExpression::Evaluate(const mtlChars &expression, float &value)
 	mtlChars expr_part;
 	if (expr_sides.GetSize() > 1) {
 		var_part = expr_sides.GetFirst()->GetItem().GetTrimmed();
-		expr_part = expr_sides.GetFirst()->GetNext()->GetItem().GetTrimmed().GetTrimmedBraces();
+		expr_part = expr_sides.GetFirst()->GetNext()->GetItem();
 	} else {
-		expr_part = expr_sides.GetFirst()->GetItem().GetTrimmed();
+		expr_part = expr_sides.GetFirst()->GetItem();
 	}
 	bool success = (expr_sides.GetSize() <= 2) && IsBraceBalanced(expr_part) && IsLegalChars(expr_part) && GenerateTermTree(term_tree, expr_part);
 
