@@ -543,9 +543,14 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					break;
 				}
 
+				case '(': {
+					mtlChars format = exprParser.ReadTo(")", true);
+					out.AddLast(ReadFormat(format, caseSensitive));
+					break;
+				}
+
 				case 's': {
-					mtlChars t = ReadTo(delimiter, caseSensitive);
-					out.AddLast(t);
+					out.AddLast(ReadTo(delimiter, caseSensitive));
 					break;
 				}
 

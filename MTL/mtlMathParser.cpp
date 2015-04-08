@@ -361,6 +361,16 @@ bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 	return success;
 }
 
+void mtlMathParser::Copy(const mtlMathParser &parser)
+{
+	const mtlItem<Scope> *i = parser.m_scope_stack.GetFirst();
+	m_scope_stack.RemoveAll();
+	while (i != NULL) {
+		m_scope_stack.AddLast().m_defs.Copy(i->GetItem().m_defs);
+		i = i->GetNext();
+	}
+}
+
 /*bool mtlMathParser::SetExpression(const mtlChars &expression)
 {
 	DestroyTermTree(m_root);
