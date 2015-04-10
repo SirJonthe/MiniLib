@@ -1,7 +1,7 @@
 #include <fstream>
 #include "mtlParser.h"
 
-#define mtlVariablesStr "cCifbswln_"
+#define mtlVariablesStr "xXcifbswln([adhm_"
 
 enum mtlReadState
 {
@@ -44,7 +44,6 @@ int mtlParser::BackNonWhitespaces(int i) const
 
 mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &expr) const
 {
-	mtlList<char> braceStack;
 	mtlReadState readState = Constant;
 
 	for (int i = 0; i < expr.GetSize(); ++i) {
@@ -58,7 +57,7 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 				readState = Variable;
 			} else if (ch == esc) {
 				readState = Escape;
-			} else {
+			}/* else {
 
 				if (mtlChars::SameAsAny(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr))) {
 
@@ -83,7 +82,7 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 						}
 					}
 				}
-			}
+			}*/
 		} else if (readState == Variable) {
 			if (!mtlChars::SameAsAny(ch, mtlVariablesStr, sizeof(mtlVariablesStr))) {
 				return ExpressionInputError;
@@ -258,15 +257,87 @@ mtlChars mtlParser::ReadFormat(const mtlChars &format, bool caseSensitive)
 {
 	SkipWhitespaces();
 	int start = m_reader;
-	while (!IsEnd(m_reader) && mtlChars::SameAsAny(m_buffer[m_reader], format.GetChars(), format.GetSize(), caseSensitive)) {
+
+	bool match = true;
+	while (!IsEnd(m_reader) && match) {
+
+		char ch = m_buffer[m_reader];
+
+		mtlParser parser(format);
+		match = false;
+
+		while (!parser.IsEnd() && !match) {
+			mtlChars word = parser.ReadWord();
+			if (word.Compare("%", true)) {
+
+				char type = parser.ReadChar();
+
+				switch (type) {
+				case 'a': {
+					match = mtlChars::IsAlpha(ch);
+					break;
+				}
+				case 'd': {
+					match = mtlChars::IsNumeric(ch);
+					break;
+				}
+				case 'b': {
+					match = mtlChars::IsBin(ch);
+					break;
+				}
+				case 'h': {
+					match = mtlChars::IsHex(ch);
+					break;
+				}
+				case '_': {
+					match = mtlChars::IsWhitespace(ch);
+					break;
+				}
+				case 'n': {
+					match = mtlChars::IsNewline(ch);
+					break;
+				}
+				case '(': {
+					mtlList<mtlChars> out;
+					if (parser.Match("%c-%c)", out, false) == mtlParser::ExpressionFound && out.GetSize() == 2) {
+						char a = out.GetFirst()->GetItem()[0];
+						char b = out.GetFirst()->GetItem()[0];
+						if (b < a) {
+							char t = a;
+							a = b;
+							b = t;
+						}
+						if (!caseSensitive) {
+							match = (ch >= mtlChars::ToLower(a) && ch <= mtlChars::ToLower(b)) || (ch >= mtlChars::ToUpper(a) && ch <= mtlChars::ToUpper(b));
+						} else {
+							match = (ch >= a && ch <= b);
+						}
+					}
+					break;
+				}
+				}
+
+			} else {
+				match = mtlChars::SameAsAny(m_buffer[m_reader], word.GetChars(), word.GetSize(), caseSensitive);
+			}
+		}
+
 		++m_reader;
 	}
-	if (m_reader - start == 0) { ++m_reader; }
+
 	Selection s = { start, m_reader };
 	return GetSubstring(s);
+
+	/*while (!IsEnd(m_reader) && mtlChars::SameAsAny(m_buffer[m_reader], format.GetChars(), format.GetSize(), caseSensitive)) {
+		++m_reader;
+	}
+	int end = m_reader;
+	if (end - start == 0) { ++end; }
+	Selection s = { start, end };
+	return GetSubstring(s);*/
 }
 
-mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive)
+/*mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive) const
 {
 	int start = SkipWhitespaces(m_reader);
 	int end = start;
@@ -276,7 +347,7 @@ mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive)
 	if (end - start == 0) { ++end; }
 	Selection s = { start, end };
 	return GetSubstring(s);
-}
+}*/
 
 mtlChars mtlParser::ReadLine( void )
 {
@@ -495,9 +566,13 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				mtlString format;
 
 				switch (var_type) {
+				case 'x':
+				case 'X':
+					caseSensitive = (var_type == 'X');
+					break;
+
 				case 'c':
-				case 'C':
-					caseSensitive = (var_type == 'C');
+					out.AddLast(ReadCharStr());
 					break;
 
 				case 'i': {
@@ -543,9 +618,20 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					break;
 				}
 
-				case '(': {
-					mtlChars format = exprParser.ReadTo(")", true);
+				case '[': {
+					int index = exprParser.IndexOf("]", true);
+					mtlChars format = exprParser.ReadRaw(index - exprParser.GetCurrentIndex());
+					exprParser.ReadChar(); // consume ']'
 					out.AddLast(ReadFormat(format, caseSensitive));
+					break;
+				}
+
+				case '(': {
+					int end = exprParser.IndexOf(")", true);
+					mtlString format("%(");
+					format.Append(exprParser.ReadRaw(end - exprParser.GetCurrentIndex() - 1).GetTrimmed()).Append(")");
+					out.AddLast(ReadFormat(format));
+					exprParser.SkipToIndex(end + 1);
 					break;
 				}
 

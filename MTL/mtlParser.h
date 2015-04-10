@@ -28,7 +28,7 @@ public:
 		ExpressionNotFound,
 		ExpressionInputError, // %s%s (two or more types without delimiters)
 		ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
-		ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
+		//ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
 		ExpressionValid,
 		ExpressionFound
 	};
@@ -79,7 +79,7 @@ public:
 	void				BackWord( void );
 
 	mtlChars			ReadFormat(const mtlChars &format, bool caseSensitive = false);
-	mtlChars			PeekFormat(const mtlChars &format, bool caseSensitive = false);
+	//mtlChars			PeekFormat(const mtlChars &format, bool caseSensitive = false) const;
 
 	mtlChars			ReadLine( void );
 	mtlChars			PeekLine( void ) const;

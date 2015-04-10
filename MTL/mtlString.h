@@ -33,6 +33,8 @@ public:
 	inline static bool		IsAlpha(char ch);
 	inline static bool		IsNumeric(char ch);
 	inline static bool		IsAlphanumeric(char ch);
+	inline static bool		IsBin(char ch);
+	inline static bool		IsHex(char ch);
 	inline static bool		IsMath(char ch);
 	inline static bool		IsWhitespace(char ch);
 	inline static bool		IsNewline(char ch);
@@ -239,6 +241,16 @@ bool mtlChars::IsNumeric(char ch)
 bool mtlChars::IsAlphanumeric(char ch)
 {
 	return IsAlpha(ch) || IsNumeric(ch);
+}
+
+bool mtlChars::IsBin(char ch)
+{
+	return ch == '0' || ch == '1';
+}
+
+bool mtlChars::IsHex(char ch)
+{
+	return IsNumeric(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
 }
 
 bool mtlChars::IsMath(char ch)
