@@ -1,7 +1,15 @@
 #include <fstream>
 #include "mtlParser.h"
 
-#define mtlVariablesStr "xXcifbswln([adhm_"
+#define mtlVariablesStr "!xXcifbswln([adh_"
+
+// w	word	%(%a%d_%!<X>)	X is delimiter
+// i	int		%(%d)			Requires checking for overflow
+// f	float	%(%d.f)			Requires checking for overflow
+// b	bool	%(%a%b)			Requires checking for "true" or "false"
+// c	char	N/A				Need to use some other function for this
+// s	string	%!(X)			X is delimiter
+// l	line	%!(%n)
 
 enum mtlReadState
 {
@@ -57,7 +65,7 @@ mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &exp
 				readState = Variable;
 			} else if (ch == esc) {
 				readState = Escape;
-			}/* else {
+			} /*else {
 
 				if (mtlChars::SameAsAny(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr))) {
 
@@ -159,6 +167,97 @@ void mtlParser::RemoveDelimiters(const mtlChars &chars, const mtlChars &delimite
 	out.SetSize(o);
 }
 
+bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, const bool notState) const
+{
+	mtlParser parser(format);
+	bool match = false;
+	mtlChars word;
+	bool skip_read = false;
+	bool not_state = false;
+
+	while (!parser.IsEnd() && !match) {
+
+		if (!skip_read) {
+			not_state = false;
+			word = parser.ReadCharStr();
+		}
+		skip_read = false;
+
+		if (word.Compare(var, true)) {
+
+			char type = parser.ReadChar();
+
+			switch (type) {
+			case 'a': { // alphabetic
+				match = mtlChars::IsAlpha(ch) ^ not_state ^ notState;
+				break;
+			}
+			case 'd': { // decimal
+				match = mtlChars::IsNumeric(ch) ^ not_state ^ notState;
+				break;
+			}
+			case 'b': { // binary
+				match = mtlChars::IsBin(ch) ^ not_state ^ notState;
+				break;
+			}
+			case 'h': { // hexadecimal
+				match = mtlChars::IsHex(ch) ^ not_state ^ notState;
+				break;
+			}
+			case '_': { // whitespace
+				match = mtlChars::IsWhitespace(ch) ^ not_state ^ notState;
+				break;
+			}
+			case 'n': { // newline
+				match = mtlChars::IsNewline(ch) ^ not_state ^ notState;
+				break;
+			}
+			case '[': { // RANGE
+				char a = parser.ReadChar();
+				char hyphen = parser.ReadChar();
+				char b = parser.ReadChar();
+				char close_bracket = parser.ReadChar();
+				if (hyphen == '-' && close_bracket == ']') {
+					if (b < a) {
+						char t = a;
+						a = b;
+						b = t;
+					}
+					if (!caseSensitive) {
+						match = ((ch >= mtlChars::ToLower(a) && ch <= mtlChars::ToLower(b)) || (ch >= mtlChars::ToUpper(a) && ch <= mtlChars::ToUpper(b)))  ^ not_state ^ notState;
+					} else {
+						match = (ch >= a && ch <= b) ^ not_state ^ notState;
+					}
+				}
+				break;
+			}
+			case '(': { // OR
+				mtlChars inner_format = parser.ReadRaw(parser.IndexOf(")", true) - parser.GetCurrentIndex());
+				parser.ReadChar();
+				match = IsFormat(ch, inner_format, caseSensitive, not_state ^ notState);
+				break;
+			}
+			case '<': { // AND
+				mtlChars inner_format = parser.ReadRaw(parser.IndexOf(">", true) - parser.GetCurrentIndex());
+				parser.ReadChar();
+				match = IsFormat(ch, inner_format, caseSensitive, not_state ^ notState);
+				if (!match) { return false; } // kill loop, no match
+				break;
+			}
+			case '!': { // inverse test
+				not_state = true;
+				skip_read = true;
+			}
+			}
+
+		} else {
+			match = word.Compare(ch, caseSensitive);
+		}
+	}
+
+	return match;
+}
+
 mtlParser::mtlParser( void ) : m_buffer(), m_reader(0)
 {}
 
@@ -214,7 +313,11 @@ void mtlParser::BackChar( void )
 mtlChars mtlParser::ReadCharStr( void )
 {
 	SkipWhitespaces();
-	return (!IsEnd(m_reader)) ? mtlChars(m_buffer, m_reader, ++m_reader) : mtlChars(m_buffer, m_reader, m_reader);
+	if (!IsEnd(m_reader)) {
+		++m_reader;
+		return mtlChars(m_buffer, m_reader-1, m_reader);
+	}
+	return mtlChars(m_buffer, m_reader, m_reader);
 }
 
 mtlChars mtlParser::PeekCharStr( void ) const
@@ -253,101 +356,28 @@ void mtlParser::BackWord( void )
 	if (IsEnd(m_reader) && r != m_reader+1) { ++m_reader; } // in order to make the first word in file readable only once
 }
 
-mtlChars mtlParser::ReadFormat(const mtlChars &format, bool caseSensitive)
+mtlChars mtlParser::ReadFormat(const mtlChars &format, bool caseSensitive, bool notState)
 {
 	SkipWhitespaces();
 	int start = m_reader;
 
-	bool match = true;
-	while (!IsEnd(m_reader) && match) {
-
-		char ch = m_buffer[m_reader];
-
-		mtlParser parser(format);
-		match = false;
-
-		while (!parser.IsEnd() && !match) {
-			mtlChars word = parser.ReadWord();
-			if (word.Compare("%", true)) {
-
-				char type = parser.ReadChar();
-
-				switch (type) {
-				case 'a': {
-					match = mtlChars::IsAlpha(ch);
-					break;
-				}
-				case 'd': {
-					match = mtlChars::IsNumeric(ch);
-					break;
-				}
-				case 'b': {
-					match = mtlChars::IsBin(ch);
-					break;
-				}
-				case 'h': {
-					match = mtlChars::IsHex(ch);
-					break;
-				}
-				case '_': {
-					match = mtlChars::IsWhitespace(ch);
-					break;
-				}
-				case 'n': {
-					match = mtlChars::IsNewline(ch);
-					break;
-				}
-				case '(': {
-					mtlList<mtlChars> out;
-					if (parser.Match("%c-%c)", out, false) == mtlParser::ExpressionFound && out.GetSize() == 2) {
-						char a = out.GetFirst()->GetItem()[0];
-						char b = out.GetFirst()->GetItem()[0];
-						if (b < a) {
-							char t = a;
-							a = b;
-							b = t;
-						}
-						if (!caseSensitive) {
-							match = (ch >= mtlChars::ToLower(a) && ch <= mtlChars::ToLower(b)) || (ch >= mtlChars::ToUpper(a) && ch <= mtlChars::ToUpper(b));
-						} else {
-							match = (ch >= a && ch <= b);
-						}
-					}
-					break;
-				}
-				}
-
-			} else {
-				match = mtlChars::SameAsAny(m_buffer[m_reader], word.GetChars(), word.GetSize(), caseSensitive);
-			}
-		}
-
+	while (!IsEnd(m_reader) && IsFormat(m_buffer[m_reader], format, caseSensitive, notState)) {
 		++m_reader;
 	}
-
 	Selection s = { start, m_reader };
 	return GetSubstring(s);
-
-	/*while (!IsEnd(m_reader) && mtlChars::SameAsAny(m_buffer[m_reader], format.GetChars(), format.GetSize(), caseSensitive)) {
-		++m_reader;
-	}
-	int end = m_reader;
-	if (end - start == 0) { ++end; }
-	Selection s = { start, end };
-	return GetSubstring(s);*/
 }
 
-/*mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive) const
+mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive, bool notState) const
 {
 	int start = SkipWhitespaces(m_reader);
 	int end = start;
-	while (!IsEnd(end) && mtlChars::SameAsAny(m_buffer[end], format.GetChars(), format.GetSize(), caseSensitive)) {
+	while (!IsEnd(end) && IsFormat(m_buffer[end], format, caseSensitive, notState)) {
 		++end;
 	}
-	if (end - start == 0) { ++end; }
 	Selection s = { start, end };
 	return GetSubstring(s);
-}*/
+}
 
 mtlChars mtlParser::ReadLine( void )
 {
@@ -545,6 +575,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 	bool caseSensitive = false;
 	int start = m_reader;
+	bool not_state = false;
 
 	while (result == ExpressionValid && !exprParser.IsEnd()) {
 
@@ -554,7 +585,10 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 		} else {
 
-			mtlChars e = exprParser.ReadFormat(mtlAlphanumStr);
+			mtlChars e = exprParser.ReadFormat("%a%d_");
+			if (e.GetSize() == 0) {
+				e = exprParser.ReadCharStr();
+			}
 
 			//case 'n': // makes sure there's a newline
 			//case '_': // makes sure there's a white space
@@ -576,7 +610,10 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					break;
 
 				case 'i': {
-					RemoveDelimiters(mtlIntStr, delimiter, format, caseSensitive);
+					//RemoveDelimiters(mtlIntStr, delimiter, format, caseSensitive);
+					//mtlChars t = ReadFormat(format);
+					format.Copy("%d%!<");
+					format.Append(delimiter).Append(">");
 					mtlChars t = ReadFormat(format);
 					int i;
 					if (t.ToInt(i)) {
@@ -588,7 +625,10 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'f': {
-					RemoveDelimiters(mtlFloatStr, delimiter, format, caseSensitive);
+					//RemoveDelimiters(mtlFloatStr, delimiter, format, caseSensitive);
+					//mtlChars t = ReadFormat(format);
+					format.Copy("%d.f%!<");
+					format.Append(delimiter).Append(">");
 					mtlChars t = ReadFormat(format);
 					float f;
 					if (t.ToFloat(f)) {
@@ -600,7 +640,9 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'b': {
-					RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
+					//RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
+					format.Copy("%a%b%!<");
+					format.Append(delimiter).Append(">");
 					mtlChars t = ReadFormat(format);
 					bool b;
 					if (t.ToBool(b)) {
@@ -612,26 +654,32 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'w': {
-					RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
+					//RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
+					//mtlChars t = ReadFormat(format); // faster way: "%a%d_%!<delimiter>"
+					format.Copy("%a%d_%!<");
+					format.Append(delimiter).Append(">");
 					mtlChars t = ReadFormat(format);
-					out.AddLast(t);
+					if (t.GetSize() > 0) {
+						out.AddLast(t);
+					} else {
+						result = ExpressionNotFound;
+					}
 					break;
 				}
 
-				case '[': {
-					int index = exprParser.IndexOf("]", true);
-					mtlChars format = exprParser.ReadRaw(index - exprParser.GetCurrentIndex());
-					exprParser.ReadChar(); // consume ']'
-					out.AddLast(ReadFormat(format, caseSensitive));
-					break;
-				}
-
+				case '!':
+					var_type = exprParser.ReadChar();
+					if (var_type != '(') {
+						result = mtlParser::ExpressionInputError;
+						break;
+					}
+					not_state = true;
+					// fall through here
 				case '(': {
-					int end = exprParser.IndexOf(")", true);
-					mtlString format("%(");
-					format.Append(exprParser.ReadRaw(end - exprParser.GetCurrentIndex() - 1).GetTrimmed()).Append(")");
-					out.AddLast(ReadFormat(format));
-					exprParser.SkipToIndex(end + 1);
+					mtlChars format = exprParser.ReadRaw(exprParser.IndexOf(")", true) - exprParser.GetCurrentIndex());
+					exprParser.ReadChar(); // consume ')'
+					out.AddLast(ReadFormat(format, caseSensitive, not_state));
+					not_state = false;
 					break;
 				}
 

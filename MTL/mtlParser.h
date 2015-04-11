@@ -33,6 +33,14 @@ public:
 		ExpressionFound
 	};
 
+	enum ReadFlags
+	{
+		StayOnFail		= 1,	// parser will not to revert when there are no matches
+		CaseSensitive	= 2,	// parser is in case sensitive mode
+		InverseTest		= 4,	//
+		ReadOne			= 8		// at least one character is read (unless end of stream)
+	};
+
 private:
 	mtlChars	m_buffer;
 	int			m_reader;
@@ -59,6 +67,8 @@ private:
 
 	void				RemoveDelimiters(const mtlChars &chars, const mtlChars &delimiters, mtlString &out, bool caseSensitive) const;
 
+	bool				IsFormat(char ch, const mtlChars &format, bool caseSensitive, const bool notState) const;
+
 public:
 						mtlParser( void );
 	explicit			mtlParser(const mtlChars &p_buffer);
@@ -78,8 +88,8 @@ public:
 	mtlChars			PeekWord( void ) const;
 	void				BackWord( void );
 
-	mtlChars			ReadFormat(const mtlChars &format, bool caseSensitive = false);
-	//mtlChars			PeekFormat(const mtlChars &format, bool caseSensitive = false) const;
+	mtlChars			ReadFormat(const mtlChars &format, bool caseSensitive = false, bool notState = false);
+	mtlChars			PeekFormat(const mtlChars &format, bool caseSensitive = false, bool notState = false) const;
 
 	mtlChars			ReadLine( void );
 	mtlChars			PeekLine( void ) const;

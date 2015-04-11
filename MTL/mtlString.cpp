@@ -126,6 +126,7 @@ bool mtlChars::ToInt(int &p_out) const
 {
 	// 1) optional + or -
 	// 2) numbers only
+	if (m_size == 0) { return false; }
 	int sign = 0;
 	int nums = m_size;
 	int i = 0;
@@ -566,6 +567,12 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 	m_size += p_str.GetSize();
 	m_str[m_size] = '\0';
 	return *this;
+}
+
+mtlString &mtlString::Append(char ch)
+{
+	char c[] = { ch };
+	return Append(c);
 }
 
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)

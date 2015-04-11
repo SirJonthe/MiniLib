@@ -122,6 +122,7 @@ public:
 
 	void				Insert(const mtlChars &p_str, int p_at);
 	mtlString			&Append(const mtlChars &p_str);
+	mtlString			&Append(char ch);
 	void				Overwrite(const mtlChars &p_str, int p_at);
 	void				Remove(int p_start, int p_end = -1);
 	void				Free( void );
