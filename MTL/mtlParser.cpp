@@ -50,60 +50,6 @@ int mtlParser::BackNonWhitespaces(int i) const
 	return i;
 }
 
-mtlParser::ExpressionResult mtlParser::VerifyInputExpression(const mtlChars &expr) const
-{
-	mtlReadState readState = Constant;
-
-	for (int i = 0; i < expr.GetSize(); ++i) {
-
-		// brace matching
-		char ch = expr[i];
-
-		if (readState == Constant) {
-
-			if (ch == var) {
-				readState = Variable;
-			} else if (ch == esc) {
-				readState = Escape;
-			} /*else {
-
-				if (mtlChars::SameAsAny(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr))) {
-
-					if (braceStack.GetSize() == 0 || (braceStack.GetLast()->GetItem() != '\"' && braceStack.GetLast()->GetItem() != '\'')) {
-						braceStack.AddLast(ch);
-					} else if (ch == braceStack.GetLast()->GetItem()) {
-						braceStack.RemoveLast();
-					}
-
-				} else {
-
-					int chi = mtlChars::SameAsWhich(ch, mtlClosedBracesStr, sizeof(mtlClosedBracesStr));
-					if (chi > -1) {
-
-						if (i == 0) { return ExpressionUnbalancedBraces; }
-
-						char match = mtlOpenBracesStr[chi];
-						if (match == braceStack.GetLast()->GetItem()) {
-							braceStack.RemoveLast();
-						} else {
-							return ExpressionUnbalancedBraces;
-						}
-					}
-				}
-			}*/
-		} else if (readState == Variable) {
-			if (!mtlChars::SameAsAny(ch, mtlVariablesStr, sizeof(mtlVariablesStr))) {
-				return ExpressionInputError;
-			}
-			readState = Constant;
-		} else if (readState == Escape) {
-			readState = Constant;
-		}
-	}
-
-	return ExpressionValid;
-}
-
 int mtlParser::IndexOfAny(int i, const mtlChars &p_chars, bool caseSensitive) const
 {
 	while (!IsEnd(i) && p_chars.SameAsNone(m_buffer[i], caseSensitive)) {
@@ -177,13 +123,19 @@ bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, co
 
 	while (!parser.IsEnd() && !match) {
 
+		bool escape = false;
+
 		if (!skip_read) {
 			not_state = false;
 			word = parser.ReadCharStr();
+			if (word.Compare(esc, true) && parser.PeekChar() == var) {
+				word = parser.ReadCharStr();
+				escape = true;
+			}
 		}
 		skip_read = false;
 
-		if (word.Compare(var, true)) {
+		if (!escape && word.Compare(var, true)) {
 
 			char type = parser.ReadChar();
 
@@ -570,7 +522,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 	if (expr.GetSize() == 0) { return ExpressionFound; }
 
-	ExpressionResult result = VerifyInputExpression(expr);
+	ExpressionResult result = ExpressionFound;
 	mtlParser exprParser(expr);
 
 	bool caseSensitive = false;
@@ -586,14 +538,21 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 		} else {
 
 			mtlChars e = exprParser.ReadFormat("%a%d_");
+			bool escape = false;
 			if (e.GetSize() == 0) {
 				e = exprParser.ReadCharStr();
+				if (e.Compare(esc, true)) {
+					if (exprParser.PeekChar() == var) {
+						e = exprParser.ReadCharStr();
+						escape = true;
+					}
+				}
 			}
 
 			//case 'n': // makes sure there's a newline
 			//case '_': // makes sure there's a white space
 
-			if (e.Compare(var)) {
+			if (!escape && e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
 				mtlChars delimiter = exprParser.PeekCharStr();
@@ -667,22 +626,6 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					break;
 				}
 
-				case '!':
-					var_type = exprParser.ReadChar();
-					if (var_type != '(') {
-						result = mtlParser::ExpressionInputError;
-						break;
-					}
-					not_state = true;
-					// fall through here
-				case '(': {
-					mtlChars format = exprParser.ReadRaw(exprParser.IndexOf(")", true) - exprParser.GetCurrentIndex());
-					exprParser.ReadChar(); // consume ')'
-					out.AddLast(ReadFormat(format, caseSensitive, not_state));
-					not_state = false;
-					break;
-				}
-
 				case 's': {
 					out.AddLast(ReadTo(delimiter, caseSensitive));
 					break;
@@ -692,6 +635,29 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					out.AddLast(ReadLine());
 					break;
 				}
+
+				case '!':
+					var_type = exprParser.ReadChar();
+					if (var_type != '(') {
+						result = mtlParser::ExpressionInputError;
+						break;
+					}
+					not_state = true;
+					// fall through here
+				case '<':
+				case '(': {
+					char close_brace[] = { mtlClosedBracesStr[mtlChars::SameAsWhich(var_type, mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true)] };
+					mtlChars format = exprParser.ReadRaw(exprParser.IndexOf(close_brace, true) - exprParser.GetCurrentIndex());
+					exprParser.ReadChar(); // consume close brace
+					out.AddLast(ReadFormat(format, caseSensitive, not_state));
+					not_state = false;
+					break;
+				}
+
+				default:
+					result = ExpressionInputError;
+					break;
+
 				}
 
 			} else {
@@ -705,11 +671,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 		}
 	}
 
-	if (result == ExpressionValid) {
-		result = ExpressionFound;
-	} else {
-		out.RemoveAll();
-		if (revert_on_fail) { m_reader = start; }
+	if (result != ExpressionFound && revert_on_fail) {
+		m_reader = start;
 	}
 	return result;
 }

@@ -27,18 +27,10 @@ public:
 	{
 		ExpressionNotFound,
 		ExpressionInputError, // %s%s (two or more types without delimiters)
-		ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
+		//ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
 		//ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
-		ExpressionValid,
+		//ExpressionValid,
 		ExpressionFound
-	};
-
-	enum ReadFlags
-	{
-		StayOnFail		= 1,	// parser will not to revert when there are no matches
-		CaseSensitive	= 2,	// parser is in case sensitive mode
-		InverseTest		= 4,	//
-		ReadOne			= 8		// at least one character is read (unless end of stream)
 	};
 
 private:
@@ -53,7 +45,6 @@ private:
 	int					BackWhitespaces(int i) const;
 	int					SkipNonWhitespaces(int i) const;
 	int					BackNonWhitespaces(int i) const;
-	ExpressionResult	VerifyInputExpression(const mtlChars &expr) const;
 
 	int					IndexOfAny(int i, const mtlChars &p_chars, bool caseSensitive = false) const;
 	int					IndexOfAnyBack(int i, const mtlChars &p_chars, bool caseSensitive = false) const;
