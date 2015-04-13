@@ -1,14 +1,17 @@
 #include <fstream>
 #include "mtlParser.h"
 
-#define mtlVariablesStr "!xXcifbswln([adh_"
+#define mtlWordFmtStr	"%a%d_"
+#define mtlFloatFmtStr	"%d.f"
+#define mtlIntFmtStr	"%d"
+#define mtlBoolFmtStr	"%a%b"
 
-// w	word	%(%a%d_%!<X>)	X is delimiter
-// i	int		%(%d)			Requires checking for overflow
-// f	float	%(%d.f)			Requires checking for overflow
-// b	bool	%(%a%b)			Requires checking for "true" or "false"
-// c	char	N/A				Need to use some other function for this
-// s	string	%!(X)			X is delimiter
+// w	word	%(%a%d_)	X is delimiter
+// i	int		%(%d)		Requires checking for overflow
+// f	float	%(%d.f)		Requires checking for overflow
+// b	bool	%(%a%b)		Requires checking for "true" or "false"
+// c	char	N/A			Need to use some other function for this
+// s	string	%!(X)		X is delimiter
 // l	line	%!(%n)
 
 int mtlParser::SkipWhitespaces(int i) const
@@ -92,7 +95,7 @@ mtlChars mtlParser::GetSubstring(Selection s) const
 	return mtlChars(m_buffer, s.start, s.end).GetTrimmed();
 }
 
-void mtlParser::RemoveDelimiters(const mtlChars &chars, const mtlChars &delimiter, mtlString &out, bool caseSensitive) const
+/*void mtlParser::RemoveDelimiters(const mtlChars &chars, const mtlChars &delimiter, mtlString &out, bool caseSensitive) const
 {
 	out.SetSize(chars.GetSize());
 	int o = 0;
@@ -104,7 +107,7 @@ void mtlParser::RemoveDelimiters(const mtlChars &chars, const mtlChars &delimite
 		}
 	}
 	out.SetSize(o);
-}
+}*/
 
 bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, const bool notState) const
 {
@@ -531,7 +534,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 		} else {
 
-			mtlChars e = exprParser.ReadFormat("%a%d_");
+			mtlChars e = exprParser.ReadFormat(mtlWordFmtStr);
 			if (e.GetSize() == 0) {
 				e = exprParser.ReadCharStr();
 			}
@@ -539,7 +542,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
-				mtlChars delimiter = exprParser.PeekCharStr();
+				char delimiter = exprParser.PeekChar();
 				mtlString format;
 
 				switch (var_type) {
@@ -599,8 +602,12 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				case 'w': {
 					//RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
 					//mtlChars t = ReadFormat(format); // faster way: "%a%d_%!<delimiter>"
-					format.Copy("%a%d_%!<");
-					format.Append(delimiter).Append(">");
+
+					// ERROR
+					// Consider parsing "mov mat" using "%w mat"
+					// character 'm' (second word) is the delimiter
+					// will prevent *first* word from being read in its entirety
+					format.Copy(mtlWordFmtStr);
 					mtlChars t = ReadFormat(format);
 					if (t.GetSize() > 0) {
 						out.AddLast(t);
@@ -630,9 +637,11 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					// fall through here
 				case '<':
 				case '(': {
-					char close_brace[] = { mtlClosedBracesStr[mtlChars::SameAsWhich(var_type, mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true)] };
+					mtlChars open_brace_types   = "(<";
+					mtlChars closed_brace_types = ")>";
+					const char close_brace[] = { closed_brace_types[open_brace_types.SameAsWhich(var_type, true)] };
 					mtlChars format = exprParser.ReadRaw(exprParser.IndexOf(close_brace, true) - exprParser.GetCurrentIndex());
-					exprParser.ReadChar(); // consume close brace
+					exprParser.ReadChar(); // consume closing brace
 					out.AddLast(ReadFormat(format, caseSensitive, not_state));
 					not_state = false;
 					break;

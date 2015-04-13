@@ -52,7 +52,7 @@ private:
 
 	mtlChars			GetSubstring(Selection s) const;
 
-	void				RemoveDelimiters(const mtlChars &chars, const mtlChars &delimiters, mtlString &out, bool caseSensitive) const;
+	//void				RemoveDelimiters(const mtlChars &chars, const mtlChars &delimiters, mtlString &out, bool caseSensitive) const;
 
 	bool				IsFormat(char ch, const mtlChars &format, bool caseSensitive, const bool notState) const;
 
