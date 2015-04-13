@@ -114,8 +114,7 @@ bool mtlChars::ToBool(bool &p_out) const
 	if (Compare("true")) {
 		p_out = true;
 		return true;
-	}
-	if (Compare("false")) {
+	} else if (Compare("false")) {
 		p_out = false;
 		return true;
 	}

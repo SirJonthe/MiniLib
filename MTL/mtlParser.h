@@ -25,10 +25,7 @@ public:
 	enum ExpressionResult
 	{
 		ExpressionNotFound,
-		ExpressionInputError, // %s%s (two or more types without delimiters)
-		//ExpressionTypeMismatch, // %i evaluates to float/string/bool(non 0/1), %b evaluates to float/string/int(non 0/1), %f evaluates to string/bool(non 0/1)/int(if out of range)
-		//ExpressionUnbalancedBraces, // {%s}, where s = "string [ string", no closing brace (example)
-		//ExpressionValid,
+		ExpressionInputError,
 		ExpressionFound
 	};
 
