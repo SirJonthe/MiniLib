@@ -19,7 +19,6 @@
 class mtlParser
 {
 private:
-	static const char esc = '\\';
 	static const char var = '%';
 
 public:

@@ -11,13 +11,6 @@
 // s	string	%!(X)			X is delimiter
 // l	line	%!(%n)
 
-enum mtlReadState
-{
-	Constant,
-	Variable,
-	Escape
-};
-
 int mtlParser::SkipWhitespaces(int i) const
 {
 	while (!IsEnd(i) && mtlChars::IsWhitespace(m_buffer[i])) {
@@ -123,19 +116,13 @@ bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, co
 
 	while (!parser.IsEnd() && !match) {
 
-		bool escape = false;
-
 		if (!skip_read) {
 			not_state = false;
 			word = parser.ReadCharStr();
-			if (word.Compare(esc, true) && parser.PeekChar() == var) {
-				word = parser.ReadCharStr();
-				escape = true;
-			}
 		}
 		skip_read = false;
 
-		if (!escape && word.Compare(var, true)) {
+		if (word.Compare(var, true)) {
 
 			char type = parser.ReadChar();
 
@@ -199,7 +186,14 @@ bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, co
 			case '!': { // inverse test
 				not_state = true;
 				skip_read = true;
+				break;
 			}
+			case '%': { // % is the escape character for %
+				match = word.Compare(ch, caseSensitive);
+				break;
+			}
+			default:
+				return false;
 			}
 
 		} else {
@@ -529,7 +523,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 	int start = m_reader;
 	bool not_state = false;
 
-	while (result == ExpressionValid && !exprParser.IsEnd()) {
+	while (result == ExpressionFound && !exprParser.IsEnd()) {
 
 		if (IsEnd()) {
 
@@ -538,21 +532,14 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 		} else {
 
 			mtlChars e = exprParser.ReadFormat("%a%d_");
-			bool escape = false;
 			if (e.GetSize() == 0) {
 				e = exprParser.ReadCharStr();
-				if (e.Compare(esc, true)) {
-					if (exprParser.PeekChar() == var) {
-						e = exprParser.ReadCharStr();
-						escape = true;
-					}
-				}
 			}
 
 			//case 'n': // makes sure there's a newline
 			//case '_': // makes sure there's a white space
 
-			if (!escape && e.Compare(var)) {
+			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
 				mtlChars delimiter = exprParser.PeekCharStr();
