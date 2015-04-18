@@ -542,8 +542,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
-				char delimiter = exprParser.PeekChar();
-				mtlString format;
+				mtlChars delimiter = exprParser.ReadFormat(mtlWordFmtStr);
 
 				switch (var_type) {
 				case 'x':
@@ -556,11 +555,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 					break;
 
 				case 'i': {
-					//RemoveDelimiters(mtlIntStr, delimiter, format, caseSensitive);
-					//mtlChars t = ReadFormat(format);
-					format.Copy("%d%!<");
-					format.Append(delimiter).Append(">");
-					mtlChars t = ReadFormat(format);
+					mtlChars t = ReadFormat("%d"); // decimal
 					int i;
 					if (t.ToInt(i)) {
 						out.AddLast(t);
@@ -571,11 +566,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'f': {
-					//RemoveDelimiters(mtlFloatStr, delimiter, format, caseSensitive);
-					//mtlChars t = ReadFormat(format);
-					format.Copy("%d.f%!<");
-					format.Append(delimiter).Append(">");
-					mtlChars t = ReadFormat(format);
+					mtlChars t = ReadFormat("%d.f"); // decimal and . and f
 					float f;
 					if (t.ToFloat(f)) {
 						out.AddLast(t);
@@ -586,10 +577,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'b': {
-					//RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
-					format.Copy("%a%b%!<");
-					format.Append(delimiter).Append(">");
-					mtlChars t = ReadFormat(format);
+					mtlChars t = ReadFormat("%a%b"); // alpha and binary
 					bool b;
 					if (t.ToBool(b)) {
 						out.AddLast(t);
@@ -600,15 +588,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'w': {
-					//RemoveDelimiters(mtlAlphanumStr, delimiter, format, caseSensitive);
-					//mtlChars t = ReadFormat(format); // faster way: "%a%d_%!<delimiter>"
-
-					// ERROR
-					// Consider parsing "mov mat" using "%w mat"
-					// character 'm' (second word) is the delimiter
-					// will prevent *first* word from being read in its entirety
-					format.Copy(mtlWordFmtStr);
-					mtlChars t = ReadFormat(format);
+					mtlChars t = ReadFormat(mtlWordFmtStr);
 					if (t.GetSize() > 0) {
 						out.AddLast(t);
 					} else {
@@ -629,7 +609,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 				case '!':
 					var_type = exprParser.ReadChar();
-					if (var_type != '(') {
+					if (var_type != '(' && var_type != '<') {
 						result = mtlParser::ExpressionInputError;
 						break;
 					}
