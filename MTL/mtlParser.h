@@ -83,10 +83,15 @@ public:
 	void				BackLine( void );
 
 	mtlChars			ReadTo(const mtlChars &p_str, bool caseSensitive=false);
-	mtlChars			PeekTo(const mtlChars &p_str, bool caseSensitive=false);
+	mtlChars			ReadTo(char ch, bool caseSensitive=false);
+	mtlChars			PeekTo(const mtlChars &p_str, bool caseSensitive=false) const;
+	mtlChars			PeekTo(char ch, bool caseSensitive=false) const;
 	//void				BackTo(const mtlChars &p_str, bool caseSensitive=false);
+	//void				BackTo(char ch, bool caseSensitive=false);
 	int					IndexOf(const mtlChars &p_chars, bool caseSensitive=false) const;
+	int					IndexOf(char ch, bool caseSensitive=false) const;
 	int					IndexOfBack(const mtlChars &p_chars, bool caseSensitive=false) const;
+	int					IndexOfBack(char ch, bool caseSensitive=false);
 
 	mtlChars			ReadToAny(const mtlChars &p_chars, bool caseSensitive=false);
 	mtlChars			PeekToAny(const mtlChars &p_chars, bool caseSensitive=false) const;
@@ -107,7 +112,7 @@ public:
 	void				SkipToEndChar( void )	{ m_reader = m_buffer.GetSize() - 1; }
 	void				SkipToEndWord( void );
 	void				SkipToEndLine( void );
-	void				SkipToIndex(int index)	{ m_reader = index; }
+	void				SkipToIndex(int index)	{ m_reader = (index < 0) ? m_buffer.GetSize() : index; }
 
 	void				SkipToAny(const mtlChars &p_chars, bool caseSensitive=false);
 	void				SkipToAnyBack(const mtlChars &p_chars, bool caseSensitive=false);

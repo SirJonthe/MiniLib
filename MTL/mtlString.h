@@ -4,6 +4,8 @@
 #include <cstddef>
 #include "mtlList.h"
 
+#define mtlCharToStr(ch) { ch, 0 }
+
 class mtlString;
 
 class mtlChars

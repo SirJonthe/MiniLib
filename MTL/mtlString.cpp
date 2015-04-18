@@ -338,7 +338,7 @@ void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bo
 
 void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace, bool p_braceScoping) const
 {
-	char chars[1] = { p_ch };
+	char chars[] = mtlCharToStr(p_ch);
 	SplitByChar(p_out, chars, p_ignoreWhitespace, p_braceScoping);
 }
 
@@ -418,7 +418,7 @@ int mtlChars::FindFirstChar(const mtlChars &p_chars) const
 
 int mtlChars::FindFirstChar(char p_ch) const
 {
-	const char ch[1] = { p_ch };
+	const char ch[] = mtlCharToStr(p_ch);
 	return FindFirstChar(ch);
 }
 
@@ -435,7 +435,7 @@ int mtlChars::FindLastChar(const mtlChars &p_chars) const
 
 int mtlChars::FindLastChar(char p_ch) const
 {
-	const char ch[1] = { p_ch };
+	const char ch[] = mtlCharToStr(p_ch);
 	return FindLastChar(ch);
 }
 
@@ -570,7 +570,7 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 
 mtlString &mtlString::Append(char ch)
 {
-	char c[] = { ch };
+	const char c[] = mtlCharToStr(ch);
 	return Append(c);
 }
 

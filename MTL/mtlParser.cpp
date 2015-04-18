@@ -191,7 +191,7 @@ bool mtlParser::IsFormat(char ch, const mtlChars &format, bool caseSensitive, co
 				skip_read = true;
 				break;
 			}
-			case '%': { // % is the escape character for %
+			case var: { // % is the escape character for %
 				match = word.Compare(ch, caseSensitive);
 				break;
 			}
@@ -355,13 +355,25 @@ void mtlParser::BackLine( void )
 mtlChars mtlParser::ReadTo(const mtlChars &p_str, bool caseSensitive)
 {
 	int start = m_reader;
-	SkipToIndex(IndexOf(p_str, caseSensitive));
+	SkipToIndex(IndexOf(p_str, caseSensitive) - 1);
 	return mtlChars(m_buffer, start, m_reader).GetTrimmed();
 }
 
-mtlChars mtlParser::PeekTo(const mtlChars &p_str, bool caseSensitive)
+mtlChars mtlParser::ReadTo(char ch, bool caseSensitive)
 {
-	return mtlChars(m_buffer, m_reader, IndexOf(p_str, caseSensitive)).GetTrimmed();
+	const char chars[] = mtlCharToStr(ch);
+	return ReadTo(chars, caseSensitive);
+}
+
+mtlChars mtlParser::PeekTo(const mtlChars &p_str, bool caseSensitive) const
+{
+	return mtlChars(m_buffer, m_reader, IndexOf(p_str, caseSensitive) - 1).GetTrimmed();
+}
+
+mtlChars mtlParser::PeekTo(char ch, bool caseSensitive) const
+{
+	const char chars[] = mtlCharToStr(ch);
+	return PeekTo(chars, caseSensitive);
 }
 
 int mtlParser::IndexOf(const mtlChars &p_str, bool caseSensitive) const
@@ -373,6 +385,12 @@ int mtlParser::IndexOf(const mtlChars &p_str, bool caseSensitive) const
 		++start;
 	}
 	return m_buffer.GetSize();
+}
+
+int mtlParser::IndexOf(char ch, bool caseSensitive) const
+{
+	const char chars[] = mtlCharToStr(ch);
+	return IndexOf(chars, caseSensitive);
 }
 
 int mtlParser::IndexOfBack(const mtlChars &p_str, bool caseSensitive) const
@@ -418,6 +436,12 @@ int mtlParser::IndexOfBack(const mtlChars &p_str, bool caseSensitive) const
 	return start;
 }
 
+int mtlParser::IndexOfBack(char ch, bool caseSensitive)
+{
+	const char chars[] = mtlCharToStr(ch);
+	return IndexOfBack(chars, caseSensitive);
+}
+
 mtlChars mtlParser::ReadToAny(const mtlChars &p_chars, bool caseSensitive)
 {
 	int start = m_reader;
@@ -427,7 +451,7 @@ mtlChars mtlParser::ReadToAny(const mtlChars &p_chars, bool caseSensitive)
 
 mtlChars mtlParser::PeekToAny(const mtlChars &p_chars, bool caseSensitive) const
 {
-	return mtlChars(m_buffer, m_reader, IndexOfAny(p_chars, caseSensitive)).GetTrimmed();
+	return mtlChars(m_buffer, m_reader, IndexOfAny(p_chars, caseSensitive) - 1).GetTrimmed();
 }
 
 void mtlParser::BackToAny(const mtlChars &p_chars, bool caseSensitive)
@@ -488,12 +512,12 @@ void mtlParser::SkipToEndLine( void )
 
 void mtlParser::SkipToAny(const mtlChars &p_chars, bool caseSensitive)
 {
-	m_reader = IndexOfAny(p_chars, caseSensitive);
+	m_reader = IndexOfAny(p_chars, caseSensitive) - 1;
 }
 
 void mtlParser::SkipToAnyBack(const mtlChars &p_chars, bool caseSensitive)
 {
-	m_reader = IndexOfAnyBack(p_chars, caseSensitive);
+	m_reader = IndexOfAnyBack(p_chars, caseSensitive) - 1;
 }
 
 mtlChars mtlParser::ReadRaw(int count)
@@ -542,7 +566,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
-				mtlChars delimiter = exprParser.ReadFormat(mtlWordFmtStr);
+				mtlChars delimiter = exprParser.PeekFormat(mtlWordFmtStr);
 
 				switch (var_type) {
 				case 'x':
@@ -598,7 +622,8 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 's': {
-					out.AddLast(ReadTo(delimiter, caseSensitive));
+					mtlChars c = ReadTo(delimiter, caseSensitive);
+					out.AddLast(c);
 					break;
 				}
 
@@ -619,11 +644,24 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				case '(': {
 					mtlChars open_brace_types   = "(<";
 					mtlChars closed_brace_types = ")>";
-					const char close_brace[] = { closed_brace_types[open_brace_types.SameAsWhich(var_type, true)] };
-					mtlChars format = exprParser.ReadRaw(exprParser.IndexOf(close_brace, true) - exprParser.GetCurrentIndex());
+					char closed_brace = closed_brace_types[open_brace_types.SameAsWhich(var_type, true)];
+					int close_index = exprParser.IndexOf(closed_brace, true);
+					int current_index = exprParser.GetCurrentIndex();
+					mtlChars format = exprParser.ReadRaw(close_index - current_index);
 					exprParser.ReadChar(); // consume closing brace
 					out.AddLast(ReadFormat(format, caseSensitive, not_state));
 					not_state = false;
+					break;
+				}
+
+				case var: {
+					mtlChars p = ReadFormat(mtlWordFmtStr);
+					if (p.GetSize() == 0) {
+						p = ReadCharStr();
+					}
+					if (!e.Compare(p, caseSensitive)) {
+						result = ExpressionNotFound;
+					}
 					break;
 				}
 
@@ -635,7 +673,10 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			} else {
 
-				mtlChars p = ReadFormat(mtlAlphanumStr);
+				mtlChars p = ReadFormat(mtlWordFmtStr);
+				if (p.GetSize() == 0) {
+					p = ReadCharStr();
+				}
 				if (!e.Compare(p, caseSensitive)) {
 					result = ExpressionNotFound;
 				}
@@ -653,5 +694,5 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 mtlParser::ExpressionResult mtlParser::MatchAll(const mtlChars &expr, mtlList<mtlChars> &out, bool revert_on_fail)
 {
 	ExpressionResult result = Match(expr, out, revert_on_fail);
-	return (IsEnd()) ? result : ExpressionNotFound;
+	return (result == ExpressionInputError || IsEnd()) ? result : ExpressionNotFound;
 }
