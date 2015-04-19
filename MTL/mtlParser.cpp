@@ -328,6 +328,18 @@ mtlChars mtlParser::PeekFormat(const mtlChars &format, bool caseSensitive, bool 
 	return GetSubstring(s);
 }
 
+mtlChars mtlParser::ReadFormatOne(const mtlChars &format, bool caseSensitive, bool notState)
+{
+	mtlChars str = ReadFormat(format, caseSensitive, notState);
+	return str.GetSize() == 0 ? ReadCharStr() : str;
+}
+
+mtlChars mtlParser::PeekFormatOne(const mtlChars &format, bool caseSensitive, bool notState) const
+{
+	mtlChars str = PeekFormat(format, caseSensitive, notState);
+	return str.GetSize() == 0 ? PeekCharStr() : str;
+}
+
 mtlChars mtlParser::ReadLine( void )
 {
 	Selection s = LineIndex(m_reader);
@@ -355,7 +367,7 @@ void mtlParser::BackLine( void )
 mtlChars mtlParser::ReadTo(const mtlChars &p_str, bool caseSensitive)
 {
 	int start = m_reader;
-	SkipToIndex(IndexOf(p_str, caseSensitive) - 1);
+	SkipToIndex(IndexOf(p_str, caseSensitive));
 	return mtlChars(m_buffer, start, m_reader).GetTrimmed();
 }
 
@@ -367,7 +379,7 @@ mtlChars mtlParser::ReadTo(char ch, bool caseSensitive)
 
 mtlChars mtlParser::PeekTo(const mtlChars &p_str, bool caseSensitive) const
 {
-	return mtlChars(m_buffer, m_reader, IndexOf(p_str, caseSensitive) - 1).GetTrimmed();
+	return mtlChars(m_buffer, m_reader, IndexOf(p_str, caseSensitive)).GetTrimmed();
 }
 
 mtlChars mtlParser::PeekTo(char ch, bool caseSensitive) const
@@ -451,7 +463,7 @@ mtlChars mtlParser::ReadToAny(const mtlChars &p_chars, bool caseSensitive)
 
 mtlChars mtlParser::PeekToAny(const mtlChars &p_chars, bool caseSensitive) const
 {
-	return mtlChars(m_buffer, m_reader, IndexOfAny(p_chars, caseSensitive) - 1).GetTrimmed();
+	return mtlChars(m_buffer, m_reader, IndexOfAny(p_chars, caseSensitive)).GetTrimmed();
 }
 
 void mtlParser::BackToAny(const mtlChars &p_chars, bool caseSensitive)
@@ -512,12 +524,12 @@ void mtlParser::SkipToEndLine( void )
 
 void mtlParser::SkipToAny(const mtlChars &p_chars, bool caseSensitive)
 {
-	m_reader = IndexOfAny(p_chars, caseSensitive) - 1;
+	m_reader = IndexOfAny(p_chars, caseSensitive);
 }
 
 void mtlParser::SkipToAnyBack(const mtlChars &p_chars, bool caseSensitive)
 {
-	m_reader = IndexOfAnyBack(p_chars, caseSensitive) - 1;
+	m_reader = IndexOfAnyBack(p_chars, caseSensitive);
 }
 
 mtlChars mtlParser::ReadRaw(int count)
@@ -558,15 +570,12 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 		} else {
 
-			mtlChars e = exprParser.ReadFormat(mtlWordFmtStr);
-			if (e.GetSize() == 0) {
-				e = exprParser.ReadCharStr();
-			}
+			mtlChars e = exprParser.ReadFormatOne(mtlWordFmtStr);
 
 			if (e.Compare(var)) {
 
 				char var_type = exprParser.ReadChar();
-				mtlChars delimiter = exprParser.PeekFormat(mtlWordFmtStr);
+				mtlChars delimiter = exprParser.PeekFormatOne(mtlWordFmtStr);
 
 				switch (var_type) {
 				case 'x':
@@ -612,7 +621,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case 'w': {
-					mtlChars t = ReadFormat(mtlWordFmtStr);
+					mtlChars t = ReadFormatOne(mtlWordFmtStr);
 					if (t.GetSize() > 0) {
 						out.AddLast(t);
 					} else {
@@ -655,10 +664,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 				}
 
 				case var: {
-					mtlChars p = ReadFormat(mtlWordFmtStr);
-					if (p.GetSize() == 0) {
-						p = ReadCharStr();
-					}
+					mtlChars p = ReadFormatOne(mtlWordFmtStr);
 					if (!e.Compare(p, caseSensitive)) {
 						result = ExpressionNotFound;
 					}
@@ -673,10 +679,7 @@ mtlParser::ExpressionResult mtlParser::Match(const mtlChars &expr, mtlList<mtlCh
 
 			} else {
 
-				mtlChars p = ReadFormat(mtlWordFmtStr);
-				if (p.GetSize() == 0) {
-					p = ReadCharStr();
-				}
+				mtlChars p = ReadFormatOne(mtlWordFmtStr);
 				if (!e.Compare(p, caseSensitive)) {
 					result = ExpressionNotFound;
 				}

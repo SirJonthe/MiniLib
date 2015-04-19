@@ -78,6 +78,9 @@ public:
 	mtlChars			ReadFormat(const mtlChars &format, bool caseSensitive = false, bool notState = false);
 	mtlChars			PeekFormat(const mtlChars &format, bool caseSensitive = false, bool notState = false) const;
 
+	mtlChars			ReadFormatOne(const mtlChars &format, bool caseSensitive = false, bool notState = false);
+	mtlChars			PeekFormatOne(const mtlChars &format, bool caseSensitive = false, bool notState = false) const;
+
 	mtlChars			ReadLine( void );
 	mtlChars			PeekLine( void ) const;
 	void				BackLine( void );
