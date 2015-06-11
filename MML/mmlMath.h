@@ -36,8 +36,8 @@ inline bool mmlIsPow2(unsigned int x)		{ return (x != 0) && !(x & (x - 1)); }
 inline bool mmlIsPow2(unsigned long long x)	{ return (x != 0) && !(x & (x - 1)); }
 template < typename T > inline T mmlMin2(const T &pA, const T &pB) { return (pA < pB) ? (pA) : (pB); }
 template < typename T > inline T mmlMax2(const T &pA, const T &pB) { return (pA > pB) ? (pA) : (pB); }
-template < typename T > inline T mmlMin3(const T &pA, const T &pB, const T &pC) { return mmlMin2(Min2(pA,pB),pC); }
-template < typename T > inline T mmlMax3(const T &pA, const T &pB, const T &pC) { return mmlMax2(Max2(pA,pB),pC); }
+template < typename T > inline T mmlMin3(const T &pA, const T &pB, const T &pC) { return mmlMin2(mmlMin2(pA,pB),pC); }
+template < typename T > inline T mmlMax3(const T &pA, const T &pB, const T &pC) { return mmlMax2(mmlMax2(pA,pB),pC); }
 template < typename T > inline void mmlSwap(T &pA, T&pB) { T temp = pA; pA = pB; pB = temp; }
 template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
 inline float mmlFastInvSqrt(float pX)
