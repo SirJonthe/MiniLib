@@ -31,7 +31,7 @@ Interdependence
 ---------------
 * MTL depends on nothing (not even MML, MGL, or MPL).
 * MML depends on nothing (not even MTL, MGL, or MPL).
-* MGL depends on nothing (not even MTL, MML, or MGL).
+* MPL depends on nothing (not even MTL, MML, or MGL).
 * MGL depends on MTL and MML. May depend on MPL in the future.
 
 Compiling
