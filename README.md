@@ -15,22 +15,22 @@ Copyright Jonathan Karlsson 2013-2014
 
 About
 -----
-[Minimal template library, MTL]
-Small replacement for common data types and algorithms found in
-STL.
-[Minimal math library, MML].
-Small template-based linear algebra library.
-[Minimal graphics/game library, MGL]
-Small object-based game engine with a built-in software renderer.
-Hardware accelerated API:s can be included in a drop-in fashion.
-This component requires a platform library to work (i.e. platform-
-independent SDL, or native Win32).
-NOTE: For users that do not care about game functionality the
-      library is designed to work without that component, i.e.
-      by removing/omitting the MGL folder from your project
-[Minimal parallel library, MPL]
-Includes a library for handling data parallel tasks; built-in
-SIMD (SSE2, NEON) and multi-threading (OpenMP).
+Minimal template library, MTL:
+* Small replacement for common data types and algorithms found in
+  STL.
+Minimal math library, MML:
+* Small template-based linear algebra library.
+Minimal graphics/game library, MGL:
+* Small object-based game engine with a built-in software renderer.
+  Hardware accelerated API:s can be included in a drop-in fashion.
+  This component requires a platform library to work (i.e. platform-
+  independent SDL, or native Win32).
+        NOTE: For users that do not care about game functionality the
+        library is designed to work without that component, i.e.
+        by removing/omitting the MGL folder from your project
+Minimal parallel library, MPL:
+* Includes a library for handling data parallel tasks; built-in
+  SIMD (SSE2, NEON) and multi-threading (OpenMP).
 
 
 Interdependence
