@@ -505,7 +505,6 @@ void mglModel::Free( void )
 bool mglModel::Load(const mtlDirectory &p_filename)
 {
 	Free();
-	SetError("");
 	
 	if (!p_filename.GetExtension().Compare("obj")) {
 		SetError("Not an .obj file");

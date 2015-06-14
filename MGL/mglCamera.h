@@ -12,7 +12,6 @@ private:
 	mglTransform m_transform;
 	float m_near;
 	float m_far;
-	float m_whereverYouAre;
 
 public:
 	void LookAt(const mmlVector<3> &p_point);
