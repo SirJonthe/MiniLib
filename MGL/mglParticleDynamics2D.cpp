@@ -1,5 +1,5 @@
 #include "mglParticleDynamics2D.h"
-#include "MML/mmlMath.h"
+#include "../MML/mmlMath.h"
 
 #define XY(i,j) ((i)+(m_width+2)*(j))
 #define TEST_XY(i,j) ((i) > -1 && (i) < m_width && (j) > -1 && (j) < m_height)
