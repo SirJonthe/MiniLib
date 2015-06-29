@@ -5,80 +5,91 @@
 #include "../MTL/mtlAsset.h"
 #include "mglPixel.h"
 
-#define mglTILE 4
-#define mglTILE_AREA 16
-#define mglTILE_SHIFT 2
-#define mglTILE_AREA_SHIFT 4
-#define mglTILE_MASK 3
-#define mglTILE_AREA_MASK 15
+// Remove swizzling?
+// Does not sit well when trying to load pixel data to graphics memory
+// Can still manually swizzle data
+// I have to support multiple pixel depths
+	// Traversing large grayscale images causes a lot of wasteful cache misses
+
+// KNOWN BUGS:
+	// TGA reader can't load compressed 16-bit grayscale images (Chunk size exceeds pixel count)
+	// TGA reader can't load compressed 24-bit truecolor images (Chunk size exceeds pixel count)
 
 class mglTexture : public mtlAssetInterface
 {
-public:
-	static const mglPixelFormat TargaFormat;
-	static mglPixelFormat		nativeFormat;
 private:
-	unsigned int			*m_pixels;
-	int						m_dimension;
-	int						m_dimensionShift;
-	int						m_dimensionMask;
-	int						m_blocksPerDimShift;
-	int						m_blockTileRatioShift;
+	mglPixel         *m_pixels;
+	int               m_width;
+	int               m_height;
+	int               m_width_mask;
+	int               m_height_mask;
+	mglPixelFormat32  m_format;
+
 private:
-					mglTexture(const mglTexture&) {}
-	mglTexture		&operator=(const mglTexture&) { return *this; }
-	int				GetBase2Log(int x) const;
-	bool			VerifyDimension(int p_dimension) const;
-	inline int		GetTiledIndex(int x, int y) const;
-	inline int		GetMortonIndex(int x, int y) const;
-	bool			LoadTGA(const mtlDirectory &p_filename);
-	void			OrderAsMorton( void );
+	mglTexture(const mglTexture&) {}
+	mglTexture &operator=(const mglTexture&) { return *this; }
+	int         GetBase2Log(int x) const;
+	bool        VerifyDimension(int p_dimension) const;
+	inline int  GetMortonIndex(int x, int y) const;
+	mglPixel    UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
+	bool        LoadTGA(const mtlDirectory &p_filename);
+	void        OrderAsMorton( void );
+
 public:
-							mglTexture( void );
-							mglTexture(int p_dimension, unsigned int p_color);
-							~mglTexture( void );
-	bool					Load(const mtlDirectory &p_filename);
-	bool					Create(int p_dimension);
-	bool					Create(int p_dimension, unsigned int p_color);
-	void					Free( void );
-	void					Copy(const mglTexture &p_texture);
-	int						GetDimension( void ) const { return this->m_dimension; }
-	int						GetArea( void ) const { return this->m_dimension*this->m_dimension; }
-	bool					IsBad( void ) const	{ return this->m_pixels == NULL; }
-	const unsigned int		*GetPixelXY(int x, int y) const { return m_pixels + GetMortonIndex(x & m_dimensionMask, y & m_dimensionMask); }
-	const unsigned int		*GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
-	//unsigned int			GetPixelXY(float x, float y) const; // bilinear
-	const unsigned int		*GetPixelUV(float u, float v) const { return GetPixelXY((int)(u * m_dimension), (int)(v * m_dimension)); }
-	static unsigned char	GetRed(unsigned int color) { return (unsigned char)((color & nativeFormat.RMask) >> nativeFormat.RShift); }
-	static unsigned char	GetGreen(unsigned int color) { return (unsigned char)((color & nativeFormat.GMask) >> nativeFormat.GShift); }
-	static unsigned char	GetBlue(unsigned int color) { return (unsigned char)((color & nativeFormat.BMask) >> nativeFormat.BShift); }
-	static unsigned char	GetAlpha(unsigned int color) { return (unsigned char)((color & nativeFormat.AMask) >> nativeFormat.AShift); }
-	static unsigned int		GetColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) { return (((unsigned int)r) << nativeFormat.RShift) | (((unsigned int)g) << nativeFormat.GShift) | (((unsigned int)b) << nativeFormat.BShift) | (((unsigned int)a) << nativeFormat.AShift); }
+	mglTexture( void );
+	mglTexture(int p_width, int p_height);
+	mglTexture(int p_width, int p_height, unsigned int p_color);
+	~mglTexture( void );
+
+	bool Load(const mtlDirectory &p_filename);
+	bool Create(int p_width, int p_height);
+	bool Create(int p_width, int p_height, unsigned int p_color);
+	void Free( void );
+	void Copy(const mglTexture &p_texture, bool copy_format = true);
+
+	int GetWidth( void ) const  { return this->m_width; }
+	int GetHeight( void ) const { return this->m_height; }
+	int GetArea( void ) const   { return this->m_width*this->m_height; }
+
+	bool IsBad( void ) const { return this->m_pixels == NULL; }
+
+	const mglPixel *GetPixelXY(int x, int y) const     { return m_pixels + GetMortonIndex(x & m_width_mask, y & m_height_mask); }
+	const mglPixel *GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
+	const mglPixel *GetPixelUV(float u, float v) const { return GetPixelXY((int)(u * m_width), (int)(v * m_height)); }
+
+	mglPixel *GetPixelXY(int x, int y)     { return m_pixels + GetMortonIndex(x & m_width_mask, y & m_height_mask); }
+	mglPixel *GetPixelXY(float x, float y) { return GetPixelXY(int(x), int(y)); }
+	mglPixel *GetPixelUV(float u, float v) { return GetPixelXY((int)(u * m_width), (int)(v * m_height)); }
+
+	const unsigned char *GetRedXY(int x, int y) const       { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
+	const unsigned char *GetGreenXY(int x, int y) const     { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
+	const unsigned char *GetBlueXY(int x, int y) const      { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
+	const unsigned char *GetAlphaXY(int x, int y) const     { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
+	const unsigned char *GetRedXY(float x, float y) const   { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
+	const unsigned char *GetGreenXY(float x, float y) const { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
+	const unsigned char *GetBlueXY(float x, float y) const  { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
+	const unsigned char *GetAlphaXY(float x, float y) const { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
+	const unsigned char *GetRedUV(float u, float v) const   { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.r; }
+	const unsigned char *GetGreenUV(float u, float v) const { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.g; }
+	const unsigned char *GetBlueUV(float u, float v) const  { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.b; }
+	const unsigned char *GetAlphaUV(float u, float v) const { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.a; }
+
+	unsigned char *GetRedXY(int x, int y)       { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
+	unsigned char *GetGreenXY(int x, int y)     { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
+	unsigned char *GetBlueXY(int x, int y)      { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
+	unsigned char *GetAlphaXY(int x, int y)     { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
+	unsigned char *GetRedXY(float x, float y)   { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
+	unsigned char *GetGreenXY(float x, float y) { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
+	unsigned char *GetBlueXY(float x, float y)  { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
+	unsigned char *GetAlphaXY(float x, float y) { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
+	unsigned char *GetRedUV(float u, float v)   { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.r; }
+	unsigned char *GetGreenUV(float u, float v) { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.g; }
+	unsigned char *GetBlueUV(float u, float v)  { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.b; }
+	unsigned char *GetAlphaUV(float u, float v) { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.a; }
+
+	const mglPixelFormat32 &GetFormat( void ) const { return m_format; }
+	void                    SetFormat(const mglPixelFormat32 &format);
 };
-
-int mglTexture::GetTiledIndex(int x, int y) const
-{
-	// Restrictions on negative bitshifting (i.e. negative left
-	// shift is not same as positive right shift), texture dimension
-	// must be at least TILE*TILE in size. See comments in VerifyDimension.
-
-	//const int blockPerDim = m_dimension / TILE;
-	// /* x1 = */ ( ((x >> TILE_AREA_SHIFT) + int((y & TILE_MASK) * float(float(blockPerDim) / float(TILE))) << TILE_SHIFT );
-
-	// NOTE:
-	// float(float(blockPerDim) / float(TILE) =
-	// float(DIM >> TILE_SHIFT) / float(TILE) =
-	// DIM >> TILE_AREA_SHIFT
-	return
-		// y
-			(
-			/* y0 = */ ((y & ~mglTILE_MASK) +
-			/* y1 = */ (((x >> mglTILE_SHIFT) + (y << m_blocksPerDimShift)) & mglTILE_MASK)
-			) << m_dimensionShift) +
-		// x
-			/* x0 = */ (x & mglTILE_MASK) +
-			/* x1 = */ (((x >> mglTILE_AREA_SHIFT) + ((y & mglTILE_MASK) << m_blockTileRatioShift)) << mglTILE_SHIFT);
-}
 
 int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
 {
@@ -95,7 +106,15 @@ int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
 	return x | (y << 1);
 }
 
-/*int mglTexture::GetTiledIndexSlow(int x, int y) const
+/*
+#define mglTILE 4
+#define mglTILE_AREA 16
+#define mglTILE_SHIFT 2
+#define mglTILE_AREA_SHIFT 4
+#define mglTILE_MASK 3
+#define mglTILE_AREA_MASK 15
+
+int mglTexture::GetTiledIndexSlow(int x, int y) const
 {
 	const int blockPerDim = m_dimension / mglTILE;
 	int x0 = x % mglTILE;
@@ -111,25 +130,5 @@ int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
 
 	return yf*m_dimension + xf;
 }*/
-
-// CORE CONCEPTS
-
-// SWIZZLING
-// no swizzling (this does not sit well when combining MGL with OpenGL/DirectX)
-// provide swizzling as separate function
-// would still allow user to manually swizzle texture
-// software rasterizer might then assume texture has been manually swizzled
-
-// TEXTURE SIZES
-// mglTexture enforces a power of two texture size (width and height may not be same)
-
-/*template < typename pixel_t, unsigned int channels_i = 1 >
-class mglTexture
-{
-private:
-	pixel_t	*m_pixels;
-	int		m_width;
-	int		m_height;
-};*/
 
 #endif

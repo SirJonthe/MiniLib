@@ -132,7 +132,7 @@ void mglTexturedRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w
 		const mmlVector<2> affineUV2 = t1 * (1.0f / w1);
 		const mmlVector<2> deltaUV = (affineUV2 - affineUV1) * dAffine;
 		for (int x = i; x < x1; ++x) {
-			pixels[x] = *m_currentTexture->GetPixelUV(affineUV1[0], affineUV1[1]);
+			pixels[x] = m_currentTexture->GetPixelUV(affineUV1[0], affineUV1[1])->color;
 			affineUV1 += deltaUV;
 		}
 		affineUV1 = affineUV2;
@@ -153,7 +153,7 @@ void mglTexturedRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1,
 	if (x2 > width) { x2 = width; }
 
 	for (int x = x1; x < x2; ++x) {
-		pixels[x] = *m_currentTexture->GetPixelUV(t1[0] / w1, t1[1] / w1);
+		pixels[x] = m_currentTexture->GetPixelUV(t1[0] / w1, t1[1] / w1)->color;
 		t1 += dt;
 		w1 += dw;
 	}
@@ -201,7 +201,8 @@ void mglTexturedRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y,
 		x1 = 0;
 	}
 	if (x2 > width) { x2 = width; }
-	const int dim = m_currentTexture->GetDimension();
+	const int wdim = m_currentTexture->GetWidth();
+	const int hdim = m_currentTexture->GetHeight();
 	// sub affine interpolation, perspective correction every 8 pixels per scanline
 	const int affineStep = 8;
 	const float fAffineStep = float(affineStep);
@@ -217,9 +218,9 @@ void mglTexturedRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y,
 		const mmlVector<2> deltaUV = (affineUV2 - affineUV1) * dAffine;
 		for (int x = i; x < x1; ++x) {
 			const mmlVector<2> ditherOffset = dither[ditherY][x&1];
-			const int tx = int(affineUV1[0] * dim + ditherOffset[0]);
-			const int ty = int(affineUV1[1] * dim + ditherOffset[1]);
-			pixels[x] = *m_currentTexture->GetPixelXY(tx, ty);
+			const int tx = int(affineUV1[0] * wdim + ditherOffset[0]);
+			const int ty = int(affineUV1[1] * hdim + ditherOffset[1]);
+			pixels[x] = m_currentTexture->GetPixelXY(tx, ty)->color;
 			affineUV1 += deltaUV;
 		}
 		affineUV1 = affineUV2;
@@ -243,13 +244,14 @@ void mglTexturedRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, f
 		x1 = 0;
 	}
 	if (x2 > width) { x2 = width; }
-	const int dim = m_currentTexture->GetDimension();
+	const int wdim = m_currentTexture->GetWidth();
+	const int hdim = m_currentTexture->GetHeight();
 	for (int x = x1; x < x2; ++x) {
 		const mmlVector<2> ditherOffset = dither[ditherY][x&1];
 		const float w = 1.0f / w1;
-		const int tx = int((t1[0] * w) * dim + ditherOffset[0]);
-		const int ty = int((t1[1] * w) * dim + ditherOffset[1]);
-		pixels[x] = *m_currentTexture->GetPixelXY(tx, ty);
+		const int tx = int((t1[0] * w) * wdim + ditherOffset[0]);
+		const int ty = int((t1[1] * w) * hdim + ditherOffset[1]);
+		pixels[x] = m_currentTexture->GetPixelXY(tx, ty)->color;
 		t1 += dt;
 		w1 += dw;
 	}
@@ -692,10 +694,10 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 		}
 
 		const mmlVector<3> diffuseColor = node->GetItem().material->GetDiffuseColor();
-		unsigned int iDiffuseColor =
-			((unsigned char)(diffuseColor[0] * 255.0f * dot) << mglTexture::nativeFormat.RShift) |
-			((unsigned char)(diffuseColor[1] * 255.0f * dot) << mglTexture::nativeFormat.GShift) |
-			((unsigned char)(diffuseColor[2] * 255.0f * dot) << mglTexture::nativeFormat.BShift);
+		mglPixel iDiffuseColor;
+		iDiffuseColor.bytes[m_videoFormat.index.r] = (unsigned char)(diffuseColor[0] * 255.0f * dot);
+		iDiffuseColor.bytes[m_videoFormat.index.g] = (unsigned char)(diffuseColor[1] * 255.0f * dot);
+		iDiffuseColor.bytes[m_videoFormat.index.b] = (unsigned char)(diffuseColor[2] * 255.0f * dot);
 
 		tri[0] *= p_finalMatrix;
 		tri[1] *= p_finalMatrix;
@@ -716,7 +718,7 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 				tri[i][1] = tri[i][1] * w + centerY;
 				tri[i][2] = w;
 			}
-			RenderTriangle(mmlVector<2>::Cast(&tri[0]), mmlVector<2>::Cast(&tri[1]), mmlVector<2>::Cast(&tri[2]), iDiffuseColor);
+			RenderTriangle(mmlVector<2>::Cast(&tri[0]), mmlVector<2>::Cast(&tri[1]), mmlVector<2>::Cast(&tri[2]), iDiffuseColor.color);
 		} else {
 			numclip = m_nearPlane.Clip(tri[0], tri[1], tri[2], clipped);
 			for (int i = 0; i < numclip; ++i) {
@@ -727,9 +729,9 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 			}
 			switch (numclip) {
 				case 4:
-					RenderTriangle(mmlVector<2>::Cast(&clipped[2]), mmlVector<2>::Cast(&clipped[3]), mmlVector<2>::Cast(&clipped[0]), iDiffuseColor);
+					RenderTriangle(mmlVector<2>::Cast(&clipped[2]), mmlVector<2>::Cast(&clipped[3]), mmlVector<2>::Cast(&clipped[0]), iDiffuseColor.color);
 				case 3:
-					RenderTriangle(mmlVector<2>::Cast(&clipped[0]), mmlVector<2>::Cast(&clipped[1]), mmlVector<2>::Cast(&clipped[2]), iDiffuseColor);
+					RenderTriangle(mmlVector<2>::Cast(&clipped[0]), mmlVector<2>::Cast(&clipped[1]), mmlVector<2>::Cast(&clipped[2]), iDiffuseColor.color);
 			}
 		}
 
@@ -765,10 +767,10 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 			float dot = -mmlDot(facetDirection, cameraDirection);
 			if (dot <= 0.0f) { face = face->GetNext(); continue; }
 
-			unsigned int iDiffuseColor =
-				((unsigned char)(diffuseColor[0] * 255.0f * dot) << mglTexture::nativeFormat.RShift) |
-				((unsigned char)(diffuseColor[1] * 255.0f * dot) << mglTexture::nativeFormat.GShift) |
-				((unsigned char)(diffuseColor[2] * 255.0f * dot) << mglTexture::nativeFormat.BShift);
+			mglPixel iDiffuseColor;
+			iDiffuseColor.bytes[m_videoFormat.index.r] = (unsigned char)(diffuseColor[0] * 255.0f * dot);
+			iDiffuseColor.bytes[m_videoFormat.index.g] = (unsigned char)(diffuseColor[1] * 255.0f * dot);
+			iDiffuseColor.bytes[m_videoFormat.index.b] = (unsigned char)(diffuseColor[2] * 255.0f * dot);
 
 			tri[0] *= final;
 			tri[1] *= final;
@@ -793,7 +795,7 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 					face = face->GetNext();
 					continue;
 				}*/
-				RenderTriangle(mmlVector<2>::Cast(&tri[0]), mmlVector<2>::Cast(&tri[1]), mmlVector<2>::Cast(&tri[2]), iDiffuseColor);
+				RenderTriangle(mmlVector<2>::Cast(&tri[0]), mmlVector<2>::Cast(&tri[1]), mmlVector<2>::Cast(&tri[2]), iDiffuseColor.color);
 			} else {
 				numclip = m_nearPlane.Clip(tri[0], tri[1], tri[2], clipped);
 				for (int i = 0; i < numclip; ++i) {
@@ -808,9 +810,9 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 				}*/
 				switch (numclip) {
 					case 4:
-						RenderTriangle(mmlVector<2>::Cast(&clipped[2]), mmlVector<2>::Cast(&clipped[3]), mmlVector<2>::Cast(&clipped[0]), iDiffuseColor);
+						RenderTriangle(mmlVector<2>::Cast(&clipped[2]), mmlVector<2>::Cast(&clipped[3]), mmlVector<2>::Cast(&clipped[0]), iDiffuseColor.color);
 					case 3:
-						RenderTriangle(mmlVector<2>::Cast(&clipped[0]), mmlVector<2>::Cast(&clipped[1]), mmlVector<2>::Cast(&clipped[2]), iDiffuseColor);
+						RenderTriangle(mmlVector<2>::Cast(&clipped[0]), mmlVector<2>::Cast(&clipped[1]), mmlVector<2>::Cast(&clipped[2]), iDiffuseColor.color);
 				}
 			}
 			face = face->GetNext();

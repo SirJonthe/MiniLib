@@ -41,8 +41,11 @@ template < typename T > inline T mmlMax3(const T &pA, const T &pB, const T &pC) 
 template < typename T > inline void mmlSwap(T &pA, T&pB) { T temp = pA; pA = pB; pB = temp; }
 template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
 template < typename TA, typename TB > inline TA mmlLerp(TA a, TA b, TB x) { return a + (b - a) * x; }
-template < typename TA, typename TB > inline TA mmlBilerp(TA aa, TA ab, TA ba, TA bb, TB x, TB y) { return mglLerp(mglLerp(aa, ab, x), mglLerp(ba, bb, x), y); }
-template < typename TA, typename TB > inline TA mmlTrilerp(TA aaa, TA aba, TA baa, TA bba, TA aab, TA abb, TA bab, TA bbb, TB x, TB y, TB z) { return mmlLerp(mmlBilerp(aaa, aba, baa, bba, x, y), mmlBilerp(aab, abb, bab, bbb), z); }
+template < typename TA, typename TB > inline TA mmlBilerp(TA i00, TA i10, TA i01, TA i11, TB x, TB y) { return mmlLerp(mmlLerp(i00, i10, x), mmlLerp(i01, i11, x), y); }
+template < typename TA, typename TB > inline TA mmlTrilerp(TA i000, TA i100, TA i010, TA i110, TA i001, TA i101, TA i011, TA i111, TB x, TB y, TB z) { return mmlLerp(mmlBilerp(i000, i100, i010, i110, x, y), mmlBilerp(i001, i101, i011, i111, x, y), z); }
+template < typename TA, typename TB > inline TA mmlQuerp(TA a, TA b, TA c, TA d, TB x) { return b + 0.5 * x * (c - a + x * (2 * a - 5 * b + 4 * c - d + x * (3 * (b - c) + d - a))); }
+template < typename TA, typename TB > inline TA mmlBiquerp(TA i[4][4], TB x, TB y) { return mmlQuerp(mmlQuerp(i[0], y), mmlQuerp(i[1], y), mmlQuerp(i[2], y), mmlQuerp(i[3], y), x); }
+template < typename TA, typename TB > inline TA mmlTriquerp(TA i[4][4][4], TB x, TB y, TB z) { return mmlQuerp(mmlBiquerp(i[0], y, z), mmlBiquerp(i[1], y, z), mmlBiquerp(i[2], y, z), mmlBiquerp(i[3], y, z), x); }
 inline float mmlFastInvSqrt(float pX)
 {
 	union bits32
@@ -54,16 +57,6 @@ inline float mmlFastInvSqrt(float pX)
 	b.f = pX;
 	b.i = 0x5f375a86 - (b.i >> 1);
 	return b.f * (1.5f - 0.5f * pX * b.f * b.f);
-	
-	/*float xhalf = 0.5f*pX;
-	int i = *(int*)&pX; // get bits for floating value
-	i = 0x5f375a86 - (i>>1); // gives initial guess y0
-	pX = *(float*)&i; // convert bits back to float
-	pX = pX*(1.5f-xhalf*pX*pX); // Newton step, repeating increases accuracy
-
-	// Due to a very good initial guess, no iterations are needed to recieve a really accurate result.
-	// Initial guess: 0x5f375a86 (magic number)
-	return pX;*/
 }
 inline float mmlFastSqrt(float pX) { return pX*mmlFastInvSqrt(pX); }
 inline int mmlX86RoundCast(double x)

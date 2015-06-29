@@ -43,7 +43,7 @@ public:
 	typedef unsigned char unsigned_type;
 	typedef signed_type reversed_type;
 	
-	static next_type upcast(unsigned char uc) { return (next_type)uc; }
+	static next_type upcast(next_type uc) { return uc; }
 	
 	static unsigned char max( void ) { return UCHAR_MAX; }
 	static unsigned char min( void ) { return 0; }
@@ -65,7 +65,7 @@ public:
 	typedef unsigned short unsigned_type;
 	typedef signed_type reversed_type;
 	
-	static next_type upcast(unsigned short us) { return (next_type)us; }
+	static next_type upcast(next_type us) { return us; }
 	
 	static unsigned short max( void ) { return USHRT_MAX; }
 	static unsigned short min( void ) { return 0; }
@@ -87,7 +87,7 @@ public:
 	typedef unsigned int unsigned_type;
 	typedef signed_type reversed_type;
 	
-	static next_type upcast(unsigned int ui) { return (next_type)ui; }
+	static next_type upcast(next_type ui) { return ui; }
 	
 	static unsigned int max( void ) { return UINT_MAX; }
 	static unsigned int min( void ) { return 0; }
@@ -109,7 +109,7 @@ public:
 	typedef unsigned long long unsigned_type;
 	typedef signed_type reversed_type;
 	
-	static next_type upcast(unsigned long long ul) { return (next_type)ul; }
+	static next_type upcast(next_type ul) { return ul; }
 	
 	static unsigned long long max( void ) { return ULLONG_MAX; }
 	static unsigned long long min( void ) { return 0; }
@@ -131,7 +131,7 @@ public:
 	typedef unsigned char unsigned_type;
 	typedef unsigned_type reversed_type;
 	
-	static next_type upcast(char c) { return (next_type)c; }
+	static next_type upcast(next_type c) { return c; }
 	
 	static char max( void ) { return CHAR_MAX; }
 	static char min( void ) { return CHAR_MIN; }
@@ -153,7 +153,7 @@ public:
 	typedef unsigned short unsigned_type;
 	typedef unsigned_type reversed_type;
 	
-	static next_type upcast(short s) { return (next_type)s; }
+	static next_type upcast(next_type s) { return s; }
 	
 	static short max( void ) { return SHRT_MAX; }
 	static short min( void ) { return SHRT_MIN; }
@@ -175,7 +175,7 @@ public:
 	typedef unsigned int unsigned_type;
 	typedef unsigned_type reversed_type;
 	
-	static next_type upcast(int i) { return (next_type)i; }
+	static next_type upcast(next_type i) { return i; }
 	
 	static int max( void ) { return INT_MAX; }
 	static int min( void ) { return INT_MIN; }
@@ -197,7 +197,7 @@ public:
 	typedef unsigned long long unsigned_type;
 	typedef unsigned_type reversed_type;
 	
-	static next_type upcast(long long l) { return (next_type)l; }
+	static next_type upcast(next_type l) { return l; }
 	
 	static long long max( void ) { return LLONG_MAX; }
 	static long long min( void ) { return LLONG_MIN; }
@@ -218,6 +218,11 @@ public:
 	#define NO_ARITHMETIC_SHIFT
 	#warning Performance: Arithmetic shift of signed types is emulated.
 #endif
+
+/*#if (4 << -1) != (4 >> 1) || (4 >> -1) != (4 << 1)
+	#define NO_SIGNED_SHIFT
+	#warning Performance: Shifting by negative numbers is emulated.
+#endif*/
 
 //
 // mml_shift_left
@@ -434,15 +439,16 @@ inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator*=(mml_fixe
 	mml_next lx = (mml_next)x;
 	mml_next rx = (mml_next)r.x;
 	x = ((lx ^ rx) < 0) ?
-	base_t( shift_right((lx + 1) * (rx + 1), mml_info::bits()) - 1 ) :
-	base_t( shift_right(lx * rx, mml_info::bits()) + 1 );
+	base_t( mml_shift_right((lx + 1) * (rx + 1), mml_info::bits()) - 1 ) :
+	base_t( mml_shift_right(lx * rx, mml_info::bits()) + 1 );
 	return *this;
 	*/
 	
 	mml_next lx = (mml_next)x;
 	mml_next rx = (mml_next)r.x;
 	if (!mml_info::is_signed()) {
-		x = (((lx + 1) * (rx + 1)) >> mml_info::bits()) - 1;
+		//x = (((lx + 1) * (rx + 1)) >> mml_info::bits()) - 1;
+		x = (lx * (rx + 1)) >> mml_info::bits();
 	} else {
 		mml_next ls = (lx < 0) ? 1 : -1;
 		mml_next rs = (rx < 0) ? 1 : -1;
@@ -473,14 +479,14 @@ private:
 	
 public:
 	mml_fixed_real( void ) {}
-	mml_fixed_real(int i) : x(shift_left((base_t)i, prec_n)) {}
-	mml_fixed_real(unsigned int i) : x(shift_left((base_t)i, prec_n)) {}
+	mml_fixed_real(int i) : x(mml_shift_left((base_t)i, prec_n)) {}
+	mml_fixed_real(unsigned int i) : x(mml_shift_left((base_t)i, prec_n)) {}
 	mml_fixed_real(float f) : x(base_t(f * float(mml_real_one))) {}
 	template < typename base2_t, unsigned int prec2_n >
-	mml_fixed_real(mml_fixed_real<base2_t,prec2_n> f) : x((prec_n < prec2_n) ? shift_right((base_t)f.base(), (prec2_n - prec_n)) : shift_left((base_t)f.base(), (prec_n - prec2_n))) {}
+	mml_fixed_real(mml_fixed_real<base2_t,prec2_n> f) : x((prec_n < prec2_n) ? mml_shift_right((base_t)f.base(), (prec2_n - prec_n)) : mml_shift_left((base_t)f.base(), (prec_n - prec2_n))) {}
 	mml_fixed_real(const mml_fixed_real<base_t, prec_n> &f) : x(f.x) {}
 	mml_fixed_real &operator=(mml_fixed_real<base_t, prec_n> f) { x = f.x; return *this; }
-	explicit mml_fixed_real(mml_fixed_uniform<base_t> f) : x(f.base()) {}
+	explicit mml_fixed_real(mml_fixed_uniform<mml_prev> f) : x(base_t(f.base()) + 1) {}
 	
 	float to_float( void ) const { return float(x) / float(mml_real_one); }
 	double to_double( void ) const { return double(x) / double(mml_real_one); }
@@ -529,18 +535,18 @@ mml_fixed_real<base_t, prec_n> mml_fixed_real<base_t, prec_n>::operator-=(mml_fi
 template < typename base_t, unsigned int prec_n >
 mml_fixed_real<base_t, prec_n> mml_fixed_real<base_t, prec_n>::operator*=(mml_fixed_real<base_t, prec_n> r)
 {
-	if (mml_info::is_signed()) {
-		x = base_t(shift_right(mml_info::upcast(x) * mml_info::upcast(r.x), prec_n));
-	} else {
-		x = base_t(shift_right((mml_next)x * mml_next(r.x), prec_n));
-	}
+	//if (mml_info::is_signed()) {
+	//	x = base_t(mml_shift_right(mml_info::upcast(x) * mml_info::upcast(r.x), prec_n));
+	//} else {
+		x = base_t(mml_shift_right((mml_next)x * mml_next(r.x), prec_n));
+	//}
 	return *this;
 }
 
 template < typename base_t, unsigned int prec_n >
 mml_fixed_real<base_t, prec_n> mml_fixed_real<base_t, prec_n>::operator/=(mml_fixed_real<base_t, prec_n> r)
 {
-	x = base_t(shift_left((mml_next)x, prec_n) / r.x);
+	x = base_t(mml_shift_left((mml_next)x, prec_n) / r.x);
 	return *this;
 }
 
@@ -558,15 +564,16 @@ mml_fixed_real<base_t,prec_n> mml_fixed_real<base_t,prec_n>::operator*=(mml_fixe
 {
 	mml_next lx = (mml_next)x;
 	mml_next rx = (mml_next)r.base();
-	if (!mml_info::is_signed()) {
-		x = (((lx + 1) * (rx + 1)) >> mml_info::bits()) - 1;
-	} else {
-		mml_next ls = (lx < 0) ? 1 : -1;
-		mml_next rs = (rx < 0) ? 1 : -1;
-		x = ((lx ^ rx) < 0) ?
-		base_t( mml_shift_right((lx + ls) * (rx + rs), mml_info::bits()) - 1 ) :
-		base_t( mml_shift_right(lx * rx, mml_info::bits()) + 1 );
-	}
+	//if (!mml_info::is_signed()) {
+		//x = (((lx + 1) * (rx + 1)) >> mml_info::bits()) - 1;
+		x = (lx * rx) >> prec_n;
+	//} else {
+	//	mml_next ls = (lx < 0) ? 1 : -1;
+	//	mml_next rs = (rx < 0) ? 1 : -1;
+	//	x = ((lx ^ rx) < 0) ?
+	//	base_t( mml_shift_right((lx + ls) * (rx + rs), mml_info::bits()) - 1 ) :
+	//	base_t( mml_shift_right(lx * rx, mml_info::bits()) + 1 );
+	//}
 	return *this;
 }
 
@@ -579,6 +586,7 @@ inline mml_fixed_real<base_t,prec_n> operator*(mml_fixed_uniform<base_t> l, mml_
 #undef mml_unsigned
 #undef mml_next
 #undef NO_ARITHMETIC_SHIFT
+#undef NO_SIGNED_SHIFT
 #undef mml_uniform_one
 #undef mml_real_one
 

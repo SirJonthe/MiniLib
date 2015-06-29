@@ -28,6 +28,8 @@ private:
 	void CalculateComponents( void );
 public:
 							mtlDirectory( void );
+							template < int t_size >
+							mtlDirectory(const char (&p_str)[t_size], int p_size = -1);
 							mtlDirectory(const mtlChars &p_directory);
 							mtlDirectory(const mtlString &p_directory);
 							mtlDirectory(const mtlDirectory &p_directory);
@@ -40,5 +42,12 @@ public:
 	const mtlString			&GetDirectory( void ) const { return m_dir; }
 	//const mtlList<mtlChars> &GetDirectories( void ) const { return m_dirs; }
 };
+
+template < int t_size >
+mtlDirectory::mtlDirectory(const char (&p_str)[t_size], int p_size)
+{
+	m_dir.Copy(mtlChars(p_str, p_size));
+	CalculateComponents();
+}
 
 #endif

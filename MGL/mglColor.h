@@ -3,6 +3,19 @@
 
 #include "../MML/mmlMath.h"
 
+/*union mglColor32
+{
+#if defined(__linux__) || defined(__linux) || defined(linux) || defiend(__gnu_linux) || defined(__gnu_linux__)
+	struct { unsigned char b, g, r, a; } rgba;
+#else
+	struct { unsigned char b, g, r, a; } rgba;
+#endif
+	// __APPLE__
+	// __WIN32__ / __WIN32 / _WIN32 / WIN32
+	unsigned char bytes[4];
+	unsigned int color;
+};*/
+
 class mglColor
 {
 public:

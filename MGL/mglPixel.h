@@ -5,51 +5,79 @@
 #define mglMul8x4(a, b) (unsigned int)(mglMul8((unsigned char)(a), (unsigned char)(b)) | (mglMul8((unsigned char)((a)>>8), (unsigned char)((b)>>8)) << 8) | (mglMul8((unsigned char)((a)>>16), (unsigned char)((b)>>16)) << 16) | (mglMul8((unsigned char)((a)>>16), (unsigned char)((b)>>16)) << 24))
 #define mglMul16(a, b) (unsigned short)((((unsigned int)(a) * (unsigned int)(b)) >> 16) + 1)
 
-struct mglPixelFormat
+union mglPixelFormat32
 {
-	unsigned int RMask;
-	unsigned int GMask;
-	unsigned int BMask;
-	unsigned int AMask;
-	unsigned int RShift;
-	unsigned int GShift;
-	unsigned int BShift;
-	unsigned int AShift;
+	unsigned int hash;
+	struct { unsigned char r, g, b, a; } index;
 };
 
 union mglPixel
 {
-	unsigned char	rgba[sizeof(unsigned int)];
-	unsigned int	color;
+	unsigned int  color;
+	unsigned char bytes[sizeof(unsigned int)];
 };
+
+inline const mglPixelFormat32 &mglStandardPixelFormat( void )
+{
+	// the following should take care of endianness
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux) || defined(__gnu_linux__)
+	static const mglPixelFormat32 standard_format = { 0x03000102 }; // r=2, g=1, b=0, a=3
+#elif defined(__APPLE__)
+	static const mglPixelFormat32 standard_format = { 0x00030201 }; // r=1, g=2, b=3, a=0
+#else
+	static const mglPixelFormat32 standard_format = { 0x03000102 }; // r=2, g=1, b=0, a=3 (just a legitimate guess)
+#endif
+	// __WIN32__ / __WIN32 / _WIN32 / WIN32
+	return standard_format;
+}
+
+inline mglPixel mglRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a, mglPixelFormat32 fmt = mglStandardPixelFormat())
+{
+	mglPixel out;
+	out.bytes[fmt.index.r] = r;
+	out.bytes[fmt.index.g] = g;
+	out.bytes[fmt.index.b] = b;
+	out.bytes[fmt.index.a] = a;
+	return out;
+}
+
+inline mglPixel mglRGB(unsigned char r, unsigned char g, unsigned char b, mglPixelFormat32 fmt = mglStandardPixelFormat())
+{
+
+	mglPixel out;
+	out.bytes[fmt.index.r] = r;
+	out.bytes[fmt.index.g] = g;
+	out.bytes[fmt.index.b] = b;
+	out.bytes[fmt.index.a] = 0xff;
+	return out;
+}
 
 namespace mglPixelManip
 {
 	inline unsigned char Mul(unsigned char a, unsigned char b)
 	{
-		return (unsigned char)((((unsigned short)a * (unsigned short)b) >> 8) + 1);
+		return mglMul8(a, b);
 	}
-	inline unsigned int Mul(unsigned int a, unsigned int b) {
-		return
-			(unsigned int)(Mul((unsigned char)a, (unsigned char)b)) |
-			(((unsigned int)(Mul((unsigned char)(a >> 8), (unsigned char)(b >> 8)))) << 8) |
-			(((unsigned int)(Mul((unsigned char)(a >> 16), (unsigned char)(b >> 16)))) << 16) |
-			(((unsigned int)(Mul((unsigned char)(a >> 24), (unsigned char)(b >> 24)))) << 24)
-		;
+	inline mglPixel Mul(mglPixel a, mglPixel b) {
+		mglPixel out;
+		out.bytes[0] = Mul(a.bytes[0], b.bytes[0]);
+		out.bytes[1] = Mul(a.bytes[1], b.bytes[1]);
+		out.bytes[2] = Mul(a.bytes[2], b.bytes[2]);
+		out.bytes[3] = Mul(a.bytes[3], b.bytes[3]);
+		return out;
 	}
 	// returns the dot product between two 32 bit colors
 	// unsigned, so returns 0-255 range
 	// MAKE SURE OF 2 THINGS:
 	// 1) The input RGB/RGBA colors are normalized (length = 255)
 	// 2) For RGB normalization, make sure alpha is 0
-	inline unsigned char Dot(unsigned int a, unsigned int b)
+	inline unsigned char Dot(mglPixel a, mglPixel b)
 	{
-		return (
-			Mul((unsigned char)a, (unsigned char)b) +
-			Mul((unsigned char)(a >> 8), (unsigned char)(b >> 8)) +
-			Mul((unsigned char)(a >> 16), (unsigned char)(b >> 16)) +
-			Mul((unsigned char)(a >> 24), (unsigned char)(b >> 24))
-		);
+		return
+			Mul(a.bytes[0], b.bytes[0]) +
+			Mul(a.bytes[1], b.bytes[1]) +
+			Mul(a.bytes[2], b.bytes[2]) +
+			Mul(a.bytes[3], b.bytes[3]);
 	}
 };
 
