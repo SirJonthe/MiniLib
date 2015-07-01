@@ -89,6 +89,7 @@ public:
 
 	const mglPixelFormat32 &GetFormat( void ) const { return m_format; }
 	void                    SetFormat(const mglPixelFormat32 &format);
+	void                    SetFormatNoReorder(const mglPixelFormat32 &format) { m_format = format; }
 };
 
 int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
