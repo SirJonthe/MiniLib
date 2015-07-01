@@ -75,9 +75,9 @@ void mglDifferentialAnalyzer2::Step( void )
 	m_xyz[m_side] += m_step[m_side];
 }
 
-float mglDifferentialAnalyzer3::GetImpactU( void ) const
+float mglDifferentialAnalyzer2::GetImpactU( void ) const
 {
-	mmlVector<3> impact = GetImpactPosition();
+	mmlVector<2> impact = GetImpactPosition();
 	float u = impact[(m_side + 1) % 2];
 	return u - floor(u);
 }

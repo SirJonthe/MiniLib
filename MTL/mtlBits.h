@@ -97,7 +97,7 @@ type_t mtlReadBit(type_t in_bits, unsigned int i) { return in_bits & (1 << i); }
 template < typename type_t >
 inline type_t mtlSetBit(unsigned int i, bool state) { return (((type_t)state) << i); }
 template < typename type_t >
-inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return in_bits & mtlSetBit(i, state); }
+inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return in_bits & mtlSetBit<type_t>(i, state); }
 
 template < typename type_t >
 inline type_t mtlToggleBit(type_t in_bits, unsigned int i) { return in_bits ^ (1 << i); }
