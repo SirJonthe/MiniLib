@@ -1,111 +1,60 @@
 #ifndef MGL_TEXTURE_H_INCLUDED__
 #define MGL_TEXTURE_H_INCLUDED__
 
-#include "../MTL/mtlDirectory.h"
 #include "../MTL/mtlAsset.h"
 #include "mglPixel.h"
 
-// Remove swizzling?
-// Does not sit well when trying to load pixel data to graphics memory
-// Can still manually swizzle data
-// I have to support multiple pixel depths
-	// Traversing large grayscale images causes a lot of wasteful cache misses
-
-// KNOWN BUGS:
-	// TGA reader can't load compressed 16-bit grayscale images (Chunk size exceeds pixel count)
-	// TGA reader can't load compressed 24-bit truecolor images (Chunk size exceeds pixel count)
-
+// optimized for random access
+// variable bit depth
+// size constraints
+// SIMD (RGBA SoA)
+// morton order
+// compression
+// sample coord wrap
+// device independent by default (i.e. red in byte index 0, green in byte index 1, etc.)
 class mglTexture : public mtlAssetInterface
 {
 private:
-	mglPixel         *m_pixels;
-	int               m_width;
-	int               m_height;
-	int               m_width_mask;
-	int               m_height_mask;
-	mglPixelFormat32  m_format;
+	mglByte       *m_pixels;
+	int            m_width;
+	int            m_height;
+	int            m_width_mask;
+	int            m_height_mask;
+	mglByteOrder32 m_order; // only used if bytes per pixel is 4
+	mglPixelFormat m_format;
 
 private:
-	mglTexture(const mglTexture&) {}
+	mglTexture(const mglTexture &) {}
 	mglTexture &operator=(const mglTexture&) { return *this; }
-	int         GetBase2Log(int x) const;
-	bool        VerifyDimension(int p_dimension) const;
-	inline int  GetMortonIndex(int x, int y) const;
-	mglPixel    UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
-	bool        LoadTGA(const mtlDirectory &p_filename);
-	void        OrderAsMorton( void );
+
+	bool       VerifyDimension(int dimension) const;
+	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
+	bool       LoadTGA(const mtlDirectory &p_filename);
 
 public:
 	mglTexture( void );
-	mglTexture(int p_width, int p_height);
-	mglTexture(int p_width, int p_height, unsigned int p_color);
-	~mglTexture( void );
+	mglTexture(int width, int height);
+	mglTexture(int width, int height, mglPixelFormat format);
+	mglTexture(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+	mglTexture(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+	~mglTexture( void ) { delete [] m_pixels; }
+
+	int GetWidth( void )  const { return m_width; }
+	int GetHeight( void ) const { return m_height; }
+	int GetArea( void )   const { return m_width*m_height; }
+
+	bool Create(int width, int height);
+	bool Create(int width, int height, mglPixelFormat format);
+	bool Create(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+	bool Create(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
 
 	bool Load(const mtlDirectory &p_filename);
-	bool Create(int p_width, int p_height);
-	bool Create(int p_width, int p_height, unsigned int p_color);
+
 	void Free( void );
-	void Copy(const mglTexture &p_texture, bool copy_format = true);
 
-	int GetWidth( void ) const  { return this->m_width; }
-	int GetHeight( void ) const { return this->m_height; }
-	int GetArea( void ) const   { return this->m_width*this->m_height; }
-
-	bool IsBad( void ) const { return this->m_pixels == NULL; }
-
-	const mglPixel *GetPixelXY(int x, int y) const     { return m_pixels + GetMortonIndex(x & m_width_mask, y & m_height_mask); }
-	const mglPixel *GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
-	const mglPixel *GetPixelUV(float u, float v) const { return GetPixelXY((int)(u * m_width), (int)(v * m_height)); }
-
-	mglPixel *GetPixelXY(int x, int y)     { return m_pixels + GetMortonIndex(x & m_width_mask, y & m_height_mask); }
-	mglPixel *GetPixelXY(float x, float y) { return GetPixelXY(int(x), int(y)); }
-	mglPixel *GetPixelUV(float u, float v) { return GetPixelXY((int)(u * m_width), (int)(v * m_height)); }
-
-	const unsigned char *GetRedXY(int x, int y) const       { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
-	const unsigned char *GetGreenXY(int x, int y) const     { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
-	const unsigned char *GetBlueXY(int x, int y) const      { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
-	const unsigned char *GetAlphaXY(int x, int y) const     { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
-	const unsigned char *GetRedXY(float x, float y) const   { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
-	const unsigned char *GetGreenXY(float x, float y) const { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
-	const unsigned char *GetBlueXY(float x, float y) const  { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
-	const unsigned char *GetAlphaXY(float x, float y) const { return ((const unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
-	const unsigned char *GetRedUV(float u, float v) const   { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.r; }
-	const unsigned char *GetGreenUV(float u, float v) const { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.g; }
-	const unsigned char *GetBlueUV(float u, float v) const  { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.b; }
-	const unsigned char *GetAlphaUV(float u, float v) const { return ((const unsigned char*)GetPixelUV(u, v)) + m_format.index.a; }
-
-	unsigned char *GetRedXY(int x, int y)       { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
-	unsigned char *GetGreenXY(int x, int y)     { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
-	unsigned char *GetBlueXY(int x, int y)      { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
-	unsigned char *GetAlphaXY(int x, int y)     { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
-	unsigned char *GetRedXY(float x, float y)   { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.r; }
-	unsigned char *GetGreenXY(float x, float y) { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.g; }
-	unsigned char *GetBlueXY(float x, float y)  { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.b; }
-	unsigned char *GetAlphaXY(float x, float y) { return ((unsigned char*)GetPixelXY(x, y)) + m_format.index.a; }
-	unsigned char *GetRedUV(float u, float v)   { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.r; }
-	unsigned char *GetGreenUV(float u, float v) { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.g; }
-	unsigned char *GetBlueUV(float u, float v)  { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.b; }
-	unsigned char *GetAlphaUV(float u, float v) { return ((unsigned char*)GetPixelUV(u, v)) + m_format.index.a; }
-
-	const mglPixelFormat32 &GetFormat( void ) const { return m_format; }
-	void                    SetFormat(const mglPixelFormat32 &format);
-	void                    SetFormatNoReorder(const mglPixelFormat32 &format) { m_format = format; }
+	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
+	void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
 };
-
-int mglTexture::GetMortonIndex(int x, int y) const // x and y must be 0-65535
-{
-	x = (x | (x << 8)) & 0x00FF00FF;
-	x = (x | (x << 4)) & 0x0F0F0F0F;
-	x = (x | (x << 2)) & 0x33333333;
-	x = (x | (x << 1)) & 0x55555555;
-
-	y = (y | (y << 8)) & 0x00FF00FF;
-	y = (y | (y << 4)) & 0x0F0F0F0F;
-	y = (y | (y << 2)) & 0x33333333;
-	y = (y | (y << 1)) & 0x55555555;
-
-	return x | (y << 1);
-}
 
 /*
 #define mglTILE 4

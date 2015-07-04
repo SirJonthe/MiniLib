@@ -1,5 +1,6 @@
 #include <fstream>
 #include "mglTexture.h"
+#include "mglImage.h"
 #include "../MML/mmlMath.h"
 #include "../MTL/mtlArray.h"
 
@@ -32,21 +33,9 @@ enum TGA_SupportedPixelDepth
 	BGRA8888     = 32
 };
 
-int	mglTexture::GetBase2Log(int x) const
+mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const
 {
-	int i = 0;
-	while (x >>= 1) { ++i; }
-	return i;
-}
-
-bool mglTexture::VerifyDimension(int p_dimension) const
-{
-	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
-}
-
-mglPixel mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const
-{
-	mglPixel color;
+	mglPixel32 color;
 	switch (type) {
 	case COMPRESSED_GRAYSCALE_IMAGE:
 	case UNCOMPRESSED_GRAYSCALE_IMAGE:
@@ -148,7 +137,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 		}
 
 	} else if (header[IMAGE_TYPE] == COMPRESSED_TRUECOLOR_IMAGE || header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE) {
-		
+
 		int currentIndex = 0;
 		while (currentIndex < NUM_PIXELS) {
 			unsigned char chunk_header;
@@ -194,75 +183,58 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	return true;
 }
 
-void mglTexture::OrderAsMorton( void )
+bool mglTexture::VerifyDimension(int p_dimension) const
 {
-	mglPixel *mortonPixels = new mglPixel[GetArea()];
-	mglPixel *pixels = m_pixels;
-	for (int y = 0; y < m_height; ++y) {
-		for (int x = 0; x < m_width; ++x) {
-			mortonPixels[GetMortonIndex(x, y)] = *pixels;
-			++pixels;
-		}
+	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
+}
+
+bool mglTexture::Create(int width, int height)
+{
+	Free();
+	if (VerifyDimension(width) && VerifyDimension(height)) {
+		m_width = width;
+		m_height = height;
+		m_width_mask = m_width - 1;
+		m_height_mask = m_height - 1;
+		m_pixels = new mglByte[m_width*m_height*m_format.bytes_per_pixel];
+	} else {
+		SetError("Invalid dimensions"); // Add more descriptive error here
 	}
-	delete [] m_pixels;
-	m_pixels = mortonPixels;
 }
 
-mglTexture::mglTexture( void ) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_format(mglStandardPixelFormat())
-{}
-
-mglTexture::mglTexture(int p_width, int p_height) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_format(mglStandardPixelFormat())
+bool mglTexture::Create(int width, int height, mglPixelFormat format)
 {
-	Create(p_width, p_height);
+	m_format = format;
+	return Create(width, height);
 }
 
-mglTexture::mglTexture(int p_width, int p_height, unsigned int p_color) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_format(mglStandardPixelFormat())
+bool mglTexture::Create(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a)
 {
-	Create(p_width, p_height, p_color);
+	if (Create(width, height)) {
+		// add pixel conversion here
+		return true;
+	}
+	return false;
 }
 
-mglTexture::~mglTexture( void )
+bool mglTexture::Create(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a)
 {
-	delete [] m_pixels;
+	if (Create(width, height, format)) {
+		// add pixel conversion here
+		return true;
+	}
+	return false;
 }
 
 bool mglTexture::Load(const mtlDirectory &p_filename)
 {
 	if (p_filename.GetExtension().Compare("tga")) { // targa
-		bool retval = LoadTGA(p_filename);
-		if (retval) { OrderAsMorton(); }
-		return retval;
-	} else if (p_filename.GetExtension().Compare("tgam")) { // Morton ordered targa
 		return LoadTGA(p_filename);
 	}
 	mtlString error;
 	error.Copy("Cannot load format: ");
 	error.Append(p_filename.GetExtension());
 	SetError(error);
-	return false;
-}
-
-bool mglTexture::Create(int p_width, int p_height)
-{
-	Free();
-	if (VerifyDimension(p_width) && VerifyDimension(p_height)) {
-		m_width = p_width;
-		m_height = p_height;
-		m_width_mask = m_width - 1;
-		m_height_mask = m_height - 1;
-		m_pixels = new mglPixel[GetArea()];
-	} else {
-		SetError("Bad dimensions");
-	}
-	return !IsBad();
-}
-
-bool mglTexture::Create(int p_width, int p_height, unsigned int p_color)
-{
-	if (Create(p_width, p_height)) {
-		for (int i = 0; i < GetArea(); ++i) { m_pixels[i].color = p_color; }
-		return true;
-	}
 	return false;
 }
 
@@ -275,38 +247,4 @@ void mglTexture::Free( void )
 	m_width_mask = 0;
 	m_height_mask = 0;
 	SetError("");
-}
-
-void mglTexture::Copy(const mglTexture &p_texture, bool copy_format)
-{
-	if (Create(p_texture.GetWidth(), p_texture.GetHeight())) {
-		if (copy_format || m_format.hash == p_texture.m_format.hash) {
-			for (int i = 0; i < GetArea(); ++i) {
-				m_pixels[i] = p_texture.m_pixels[i];
-			}
-			m_format = p_texture.m_format;
-		} else {
-			mglPixel *dst = (mglPixel*)m_pixels;
-			const mglPixel *src = (const mglPixel*)p_texture.m_pixels;
-			for (int i = 0; i < GetArea(); ++i) {
-				dst[i].bytes[m_format.index.r] = src[i].bytes[p_texture.m_format.index.r];
-				dst[i].bytes[m_format.index.g] = src[i].bytes[p_texture.m_format.index.g];
-				dst[i].bytes[m_format.index.b] = src[i].bytes[p_texture.m_format.index.b];
-				dst[i].bytes[m_format.index.a] = src[i].bytes[p_texture.m_format.index.a];
-			}
-		}
-	}
-}
-
-void mglTexture::SetFormat(const mglPixelFormat32 &format)
-{
-	mglPixel *pixels = (mglPixel*)m_pixels;
-	for (int i = 0; i < GetArea(); ++i) {
-		mglPixel tmp = pixels[i];
-		pixels[i].bytes[format.index.r] = tmp.bytes[m_format.index.r];
-		pixels[i].bytes[format.index.g] = tmp.bytes[m_format.index.g];
-		pixels[i].bytes[format.index.b] = tmp.bytes[m_format.index.b];
-		pixels[i].bytes[format.index.a] = tmp.bytes[m_format.index.a];
-	}
-	m_format = format;
 }

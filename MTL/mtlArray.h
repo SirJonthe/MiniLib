@@ -113,7 +113,7 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array)
 template < typename type_t >
 void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end)
 {
-	if (p_end < 0) { end = p_array.GetSize(); }
+	if (p_end < 0) { p_end = p_array.GetSize(); }
 	Create(p_end - p_begin);
 	mtlCopy(m_arr, p_array.m_arr+p_begin, m_size);
 }

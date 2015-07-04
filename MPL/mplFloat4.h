@@ -2,6 +2,7 @@
 #define MPL_FLOAT4_H_INCLUDED__
 
 #include "mplCommon.h"
+#include "mplMask4.h"
 #include <cmath>
 
 // MSVC ARM NEON looks *very* different from GCC ARM NEON
@@ -18,8 +19,6 @@ namespace mpl
 #endif
 class float4
 {
-	friend class float4x4;
-
 private:
 	union {
 #if defined(mplMSVC_SSE) || defined(mplGCC_SSE)
@@ -32,14 +31,14 @@ private:
 
 public:
 	float4( void ) {}
-	inline float4(float x, float y, float z, float w = 1.0f);
-	inline float4(float xyzw);
+	inline float4(float a, float b, float c, float d);
+	inline float4(float abcd);
 	inline explicit float4(const float *v);
 	inline float4(const float *v, int stride);
 	inline float4(const float4 &r);
 	inline float4 &operator=(const float4 &r);
 
-	operator float *( void ) { return data.e; }
+	operator       float *( void )       { return data.e; }
 	operator const float *( void ) const { return data.e; }
 
 	inline float4 &operator +=(const float4 &r);
@@ -56,6 +55,21 @@ public:
 	inline float4 operator *(float r) const;
 	inline float4 operator /(const float4 &r) const;
 	inline float4 operator /(float r) const;
+
+	inline float4 &operator &=(const mask4 &r);
+	inline float4 &operator |=(const mask4 &r);
+	inline float4 &operator ^=(const mask4 &r);
+
+	inline float4 operator &(const mask4 &r);
+	inline float4 operator |(const mask4 &r);
+	inline float4 operator ^(const mask4 &r);
+
+	inline mask4 operator ==(const float4 &r) const;
+	inline mask4 operator !=(const float4 &r) const;
+	inline mask4 operator >=(const float4 &r) const;
+	inline mask4 operator <=(const float4 &r) const;
+	inline mask4 operator >(const float4 &r) const;
+	inline mask4 operator <(const float4 &r) const;
 
 	friend float4 sqrt(const float4 &f);
 	friend float4 inv_sqrt(const float4 &f);
@@ -100,15 +114,27 @@ mpl::float4::float4(const mpl::float4 &r)
 #endif
 }
 
-mpl::float4::float4(float x, float y, float z, float w)
+mpl::float4::float4(float a, float b, float c, float d)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	data.reg = _mm_setr_ps(x, y, z, w);
+	data.reg = _mm_setr_ps(a, b, c, d);
 #else
-	data.e[0] = x;
-	data.e[1] = y;
-	data.e[2] = z;
-	data.e[3] = w;
+	data.e[0] = a;
+	data.e[1] = b;
+	data.e[2] = c;
+	data.e[3] = d;
+#endif
+}
+
+mpl::float4::float4(float abcd)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	data.reg = _mm_set1_ps(abcd);
+#else
+	data.e[0] = abcd;
+	data.e[1] = abcd;
+	data.e[2] = abcd;
+	data.e[3] = abcd;
 #endif
 }
 
@@ -133,18 +159,7 @@ mpl::float4::float4(const float *v, int stride)
 	data.e[2] = *v;
 	v+=stride;
 	data.e[3] = *v;
-}
-
-mpl::float4::float4(float xyzw)
-{
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	data.reg = _mm_set1_ps(xyzw);
-#else
-	data.e[0] = xyzw;
-	data.e[1] = xyzw;
-	data.e[2] = xyzw;
-	data.e[3] = xyzw;
-#endif
+	// NEON has instructions for this?
 }
 
 mpl::float4 &mpl::float4::operator =(const mpl::float4 &r)
@@ -253,7 +268,7 @@ mpl::float4 mpl::float4::operator +(const mpl::float4 &r) const
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	f.data.reg = _mm_add_ps(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = vaddq_f32(data.reg, r.data.reg);
+	f.data.reg = vaddq_f32(data.reg, r.data.reg);
 #else
 	f.data.e[0] = data.e[0] + r.data.e[0];
 	f.data.e[1] = data.e[1] + r.data.e[1];
@@ -269,7 +284,7 @@ mpl::float4 mpl::float4::operator -(const mpl::float4 &r) const
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	f.data.reg = _mm_sub_ps(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = vsubq_f32(data.reg, r.data.reg);
+	f.data.reg = vsubq_f32(data.reg, r.data.reg);
 #else
 	f.data.e[0] = data.e[0] - r.data.e[0];
 	f.data.e[1] = data.e[1] - r.data.e[1];
@@ -290,7 +305,7 @@ mpl::float4 mpl::float4::operator *(const mpl::float4 &r) const
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	f.data.reg = _mm_mul_ps(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = vmulq_f32(data.reg, r.data.reg);
+	f.data.reg = vmulq_f32(data.reg, r.data.reg);
 #else
 	f.data.e[0] = data.e[0] * r.data.e[0];
 	f.data.e[1] = data.e[1] * r.data.e[1];
@@ -336,7 +351,7 @@ mpl::float4 mpl::float4::operator /(const mpl::float4 &r) const
 	f.data.e[2] = data.e[2] / r.data.e[2];
 	f.data.e[3] = data.e[3] / r.data.e[3];
 #endif
-	return *this;
+	return f;
 }
 
 mpl::float4 mpl::float4::operator /(float r) const
@@ -353,6 +368,195 @@ mpl::float4 mpl::float4::operator /(float r) const
 	f.data.e[3] = data.e[3] / r;
 #endif
 	return f;
+}
+
+mpl::float4 &mpl::float4::operator &=(const mpl::mask4 &r)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	data.reg = _mm_and_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	data.reg = *(float32x4)(&vandq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	data.e[0] &= r.data.e[0];
+	data.e[1] &= r.data.e[1];
+	data.e[2] &= r.data.e[2];
+	data.e[3] &= r.data.e[3];
+#endif
+	return *this;
+}
+
+mpl::float4 &mpl::float4::operator |=(const mpl::mask4 &r)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	data.reg = _mm_or_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	data.reg = *(float32x4)(&vorrq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	data.e[0] |= r.data.e[0];
+	data.e[1] |= r.data.e[1];
+	data.e[2] |= r.data.e[2];
+	data.e[3] |= r.data.e[3];
+#endif
+	return *this;
+}
+
+mpl::float4 &mpl::float4::operator ^=(const mpl::mask4 &r)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	data.reg = _mm_xor_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	data.reg = *(float32x4)(&veorq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	data.e[0] ^= r.data.e[0];
+	data.e[1] ^= r.data.e[1];
+	data.e[2] ^= r.data.e[2];
+	data.e[3] ^= r.data.e[3];
+#endif
+	return *this;
+}
+
+mpl::float4 mpl::float4::operator &(const mpl::mask4 &r)
+{
+	float4 f;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	f.data.reg = _mm_and_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	f.data.reg = *(float32x4)(&vandq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	f.data.e[0] = data.e[0] & r.data.e[0];
+	f.data.e[1] = data.e[1] & r.data.e[1];
+	f.data.e[2] = data.e[2] & r.data.e[2];
+	f.data.e[3] = data.e[3] & r.data.e[3];
+#endif
+	return f;
+}
+
+mpl::float4 mpl::float4::operator |(const mpl::mask4 &r)
+{
+	float4 f;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	f.data.reg = _mm_or_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	f.data.reg = *(float32x4)(&vorrq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	f.data.e[0] = data.e[0] | r.data.e[0];
+	f.data.e[1] = data.e[1] | r.data.e[1];
+	f.data.e[2] = data.e[2] | r.data.e[2];
+	f.data.e[3] = data.e[3] | r.data.e[3];
+#endif
+	return f;
+}
+
+mpl::float4 mpl::float4::operator ^(const mpl::mask4 &r)
+{
+	float4 f;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	f.data.reg = _mm_xor_si128(*(__m128i*)(&data.reg), r.data.reg);
+#elif defined(mplGCC_NEON)
+	f.data.reg = *(float32x4)(&veorq_u32(*(uint32x4)(&data.reg), r.data.reg));
+#else
+	f.data.e[0] = data.e[0] ^ r.data.e[0];
+	f.data.e[1] = data.e[1] ^ r.data.e[1];
+	f.data.e[2] = data.e[2] ^ r.data.e[2];
+	f.data.e[3] = data.e[3] ^ r.data.e[3];
+#endif
+	return f;
+}
+
+mpl::mask4 mpl::float4::operator ==(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmpeq_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vceqq_f32(data.reg, r.data.reg);
+#else
+	i.data.e[0] = data.e[0] == r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] == r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] == r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] == r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
+}
+
+mpl::mask4 mpl::float4::operator !=(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmpneq_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vmvnq_u32(vceqq_f32(data.reg, r.data.reg));
+#else
+	i.data.e[0] = data.e[0] != r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] != r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] != r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] != r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
+}
+
+mpl::mask4 mpl::float4::operator >=(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmpge_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vcgeq_f32(data.reg, r.data.reg);
+#else
+	i.data.e[0] = data.e[0] >= r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] >= r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] >= r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] >= r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
+}
+
+mpl::mask4 mpl::float4::operator <=(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmple_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vcleq_f32(data.reg, r.data.reg);
+#else
+	i.data.e[0] = data.e[0] <= r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] <= r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] <= r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] <= r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
+}
+
+mpl::mask4 mpl::float4::operator >(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmpgt_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vcgtq_f32(data.reg, r.data.reg);
+#else
+	i.data.e[0] = data.e[0] > r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] > r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] > r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] > r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
+}
+
+mpl::mask4 mpl::float4::operator <(const mpl::float4 &r) const
+{
+	mask4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_cmplt_ps(data.reg, r.data.reg);
+#elif defined(mglGCC_NEON)
+	i.data.reg = vcltq_f32(data.reg, r.data.reg);
+#else
+	i.data.e[0] = data.e[0] < r.data.e[0] ? 0xffffffff : 0x0;
+	i.data.e[1] = data.e[1] < r.data.e[1] ? 0xffffffff : 0x0;
+	i.data.e[2] = data.e[2] < r.data.e[2] ? 0xffffffff : 0x0;
+	i.data.e[3] = data.e[3] < r.data.e[3] ? 0xffffffff : 0x0;
+#endif
+	return i;
 }
 
 mpl::float4 mpl::sqrt(const mpl::float4 &f)

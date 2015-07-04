@@ -45,4 +45,17 @@
 
 // let user include OpenMP herself (headers are not needed even if we use pragma directives)
 
+
+// a for loop that is optionally threaded (I think declaring directives inside macro might be undefined in C/C++, so this might not work)
+#ifdef _OPENMP
+
+	#define mpl_for \
+		#pragma omp parallel for \
+		for
+
+#else
+
+	#define mpl_for \
+		for
+
 #endif
