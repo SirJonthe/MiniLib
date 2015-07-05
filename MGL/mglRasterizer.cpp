@@ -132,7 +132,7 @@ void mglTexturedRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w
 		const mmlVector<2> affineUV2 = t1 * (1.0f / w1);
 		const mmlVector<2> deltaUV = (affineUV2 - affineUV1) * dAffine;
 		for (int x = i; x < x1; ++x) {
-			pixels[x] = m_currentTexture->GetPixelUV(affineUV1[0], affineUV1[1])->color;
+			pixels[x] = m_currentTexture->GetPixelUV(affineUV1[0], affineUV1[1]).color;
 			affineUV1 += deltaUV;
 		}
 		affineUV1 = affineUV2;
@@ -153,7 +153,7 @@ void mglTexturedRasterizer::RenderScanlineCorrect(int x1, int x2, int, float w1,
 	if (x2 > width) { x2 = width; }
 
 	for (int x = x1; x < x2; ++x) {
-		pixels[x] = m_currentTexture->GetPixelUV(t1[0] / w1, t1[1] / w1)->color;
+		pixels[x] = m_currentTexture->GetPixelUV(t1[0] / w1, t1[1] / w1).color;
 		t1 += dt;
 		w1 += dw;
 	}
@@ -220,7 +220,7 @@ void mglTexturedRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y,
 			const mmlVector<2> ditherOffset = dither[ditherY][x&1];
 			const int tx = int(affineUV1[0] * wdim + ditherOffset[0]);
 			const int ty = int(affineUV1[1] * hdim + ditherOffset[1]);
-			pixels[x] = m_currentTexture->GetPixelXY(tx, ty)->color;
+			pixels[x] = m_currentTexture->GetPixelXY(tx, ty).color;
 			affineUV1 += deltaUV;
 		}
 		affineUV1 = affineUV2;
@@ -251,7 +251,7 @@ void mglTexturedRasterizer::RenderScanlineDitherCorrect(int x1, int x2, int y, f
 		const float w = 1.0f / w1;
 		const int tx = int((t1[0] * w) * wdim + ditherOffset[0]);
 		const int ty = int((t1[1] * w) * hdim + ditherOffset[1]);
-		pixels[x] = m_currentTexture->GetPixelXY(tx, ty)->color;
+		pixels[x] = m_currentTexture->GetPixelXY(tx, ty).color;
 		t1 += dt;
 		w1 += dw;
 	}
@@ -694,7 +694,7 @@ void mglFlatRasterizer::RenderTriangleList(const mtlList<mglStaticModel::Triangl
 		}
 
 		const mmlVector<3> diffuseColor = node->GetItem().material->GetDiffuseColor();
-		mglPixel iDiffuseColor;
+		mglPixel32 iDiffuseColor;
 		iDiffuseColor.bytes[m_videoFormat.index.r] = (unsigned char)(diffuseColor[0] * 255.0f * dot);
 		iDiffuseColor.bytes[m_videoFormat.index.g] = (unsigned char)(diffuseColor[1] * 255.0f * dot);
 		iDiffuseColor.bytes[m_videoFormat.index.b] = (unsigned char)(diffuseColor[2] * 255.0f * dot);
@@ -767,7 +767,7 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 			float dot = -mmlDot(facetDirection, cameraDirection);
 			if (dot <= 0.0f) { face = face->GetNext(); continue; }
 
-			mglPixel iDiffuseColor;
+			mglPixel32 iDiffuseColor;
 			iDiffuseColor.bytes[m_videoFormat.index.r] = (unsigned char)(diffuseColor[0] * 255.0f * dot);
 			iDiffuseColor.bytes[m_videoFormat.index.g] = (unsigned char)(diffuseColor[1] * 255.0f * dot);
 			iDiffuseColor.bytes[m_videoFormat.index.b] = (unsigned char)(diffuseColor[2] * 255.0f * dot);

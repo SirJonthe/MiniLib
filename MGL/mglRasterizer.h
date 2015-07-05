@@ -25,22 +25,22 @@ class mglRasterizer
 public:
 	const mglFramebuffer<> *framebuffer;
 protected:
-	mmlMatrix<4,4>		m_worldToCamera, m_projection, m_infProj;
-	mmlVector<3>		m_cameraPosition;
-	mglPlane			m_nearPlane, m_farPlane;
-	float				m_nearDepth, m_farDepth, m_vFov;
-	mglPixelFormat32	m_videoFormat;
+	mmlMatrix<4,4>	m_worldToCamera, m_projection, m_infProj;
+	mmlVector<3>	m_cameraPosition;
+	mglPlane		m_nearPlane, m_farPlane;
+	float			m_nearDepth, m_farDepth, m_vFov;
+	mglByteOrder32	m_videoFormat;
 protected:
 	virtual void	UpdateAPIProjectionMatrix( void ) = 0;
 public:
-	explicit				mglRasterizer(const mglFramebuffer<> *p_framebuffer) : framebuffer(p_framebuffer), m_videoFormat(mglStandardPixelFormat()) {}
+	explicit				mglRasterizer(const mglFramebuffer<> *p_framebuffer) : framebuffer(p_framebuffer), m_videoFormat(mglDeviceByteOrder()) {}
 	virtual					~mglRasterizer( void ) {}
 	void					SetCameraTransform(const mglTransform &p_camTransform);
 	void					SetProjectionMatrix(float p_vFov, float p_near, float p_far);
 	virtual void			Render(const mglModel &p_model, const mmlMatrix<4,4> &p_objToWorld) = 0;
 	virtual void			Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld) = 0;
-	const mglPixelFormat32	&GetVideoFormat( void ) const { return m_videoFormat; }
-	void					SetVideoFormat(const mglPixelFormat32 &format) { m_videoFormat = format; }
+	const mglByteOrder32	&GetVideoFormat( void ) const { return m_videoFormat; }
+	void					SetVideoFormat(const mglByteOrder32 &format) { m_videoFormat = format; }
 };
 
 class mglTexturedRasterizer : public mglRasterizer

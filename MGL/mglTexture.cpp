@@ -42,17 +42,17 @@ mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int ty
 		switch (bpp) {
 		case 1:
 			// XXXXXXXX
-			color.bytes[m_format.index.r] = pixel_data[0];
-			color.bytes[m_format.index.g] = pixel_data[0];
-			color.bytes[m_format.index.b] = pixel_data[0];
-			color.bytes[m_format.index.a] = 0xff;
+			color.bytes[m_order.index.r] = pixel_data[0];
+			color.bytes[m_order.index.g] = pixel_data[0];
+			color.bytes[m_order.index.b] = pixel_data[0];
+			color.bytes[m_order.index.a] = 0xff;
 			break;
 		case 2:
 			// XXXXXXXX AAAAAAAA
-			color.bytes[m_format.index.r] = pixel_data[0];
-			color.bytes[m_format.index.g] = pixel_data[0];
-			color.bytes[m_format.index.b] = pixel_data[0];
-			color.bytes[m_format.index.a] = pixel_data[1];
+			color.bytes[m_order.index.r] = pixel_data[0];
+			color.bytes[m_order.index.g] = pixel_data[0];
+			color.bytes[m_order.index.b] = pixel_data[0];
+			color.bytes[m_order.index.a] = pixel_data[1];
 			break;
 		default:
 			color.color = 0;
@@ -64,24 +64,24 @@ mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int ty
 		// 1 byte color map?
 		case 2:
 			// GGGBBBBB ARRRRRGG
-			color.bytes[m_format.index.r] = (pixel_data[1] & 0x7c) << 1;
-			color.bytes[m_format.index.g] = ((pixel_data[1] & 0x30) << 5) | ((pixel_data[0] & 0xe0) >> 2);
-			color.bytes[m_format.index.b] = (pixel_data[0] & 0x1f) << 3;
-			color.bytes[m_format.index.a] = 0xff * ((pixel_data[1] & 0x80) >> 7);
+			color.bytes[m_order.index.r] = (pixel_data[1] & 0x7c) << 1;
+			color.bytes[m_order.index.g] = ((pixel_data[1] & 0x30) << 5) | ((pixel_data[0] & 0xe0) >> 2);
+			color.bytes[m_order.index.b] = (pixel_data[0] & 0x1f) << 3;
+			color.bytes[m_order.index.a] = 0xff * ((pixel_data[1] & 0x80) >> 7);
 			break;
 		case 3:
 			// BBBBBBBB GGGGGGGG RRRRRRRR
-			color.bytes[m_format.index.b] = pixel_data[0];
-			color.bytes[m_format.index.g] = pixel_data[1];
-			color.bytes[m_format.index.r] = pixel_data[2];
-			color.bytes[m_format.index.a] = 0xff;
+			color.bytes[m_order.index.b] = pixel_data[0];
+			color.bytes[m_order.index.g] = pixel_data[1];
+			color.bytes[m_order.index.r] = pixel_data[2];
+			color.bytes[m_order.index.a] = 0xff;
 			break;
 		case 4:
 			// BBBBBBBB GGGGGGGG RRRRRRRR AAAAAAAA
-			color.bytes[m_format.index.b] = pixel_data[0];
-			color.bytes[m_format.index.g] = pixel_data[1];
-			color.bytes[m_format.index.r] = pixel_data[2];
-			color.bytes[m_format.index.a] = pixel_data[3];
+			color.bytes[m_order.index.b] = pixel_data[0];
+			color.bytes[m_order.index.g] = pixel_data[1];
+			color.bytes[m_order.index.r] = pixel_data[2];
+			color.bytes[m_order.index.a] = pixel_data[3];
 			break;
 		default:
 			color.color = 0;
@@ -156,7 +156,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 					SetError("[TGA] Failed to read compressed chunk");
 					return false;
 				}
-				mglPixel color = UnpackTGAPixel(color_bytes, bpp, header[IMAGE_TYPE]);
+				mglPixel32 color = UnpackTGAPixel(color_bytes, bpp, header[IMAGE_TYPE]);
 				for (int i = 0; i < size; ++i) {
 					m_pixels[currentIndex] = color;
 					++currentIndex;
@@ -188,42 +188,46 @@ bool mglTexture::VerifyDimension(int p_dimension) const
 	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
 }
 
+mglTexture::mglTexture( void ) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
+{
+	m_format.bytes_per_pixel = 4;
+	m_format.color           = mglPixelFormat::Color_Truecolor;
+	m_order.index.r          = 0;
+	m_order.index.g          = 1;
+	m_order.index.b          = 2;
+	m_order.index.a          = 3;
+}
+
+mglTexture::mglTexture(int p_width, int p_height) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
+{
+	m_format.bytes_per_pixel = 4;
+	m_format.color           = mglPixelFormat::Color_Truecolor;
+	m_order.index.r          = 0;
+	m_order.index.g          = 1;
+	m_order.index.b          = 2;
+	m_order.index.a          = 3;
+	Create(p_width, p_height);
+}
+
 bool mglTexture::Create(int width, int height)
 {
 	Free();
 	if (VerifyDimension(width) && VerifyDimension(height)) {
-		m_width = width;
-		m_height = height;
-		m_width_mask = m_width - 1;
-		m_height_mask = m_height - 1;
-		m_pixels = new mglByte[m_width*m_height*m_format.bytes_per_pixel];
+		m_width        = width;
+		m_height       = height;
+		m_width_mask   = m_width - 1;
+		m_height_mask  = m_height - 1;
+		m_width_shift  = 0;
+		m_height_shift = 0;
+		int tmp = m_width;
+		while (tmp != 1) { ++m_width_shift; tmp >>= 1; }
+		tmp = m_height;
+		while (tmp != 1) { ++m_height_shift; tmp >>= 1; }
+		//m_pixels = new mglByte[m_width*m_height*m_format.bytes_per_pixel];
+		m_pixels = new mglPixel32[m_width*m_height];
 	} else {
 		SetError("Invalid dimensions"); // Add more descriptive error here
 	}
-}
-
-bool mglTexture::Create(int width, int height, mglPixelFormat format)
-{
-	m_format = format;
-	return Create(width, height);
-}
-
-bool mglTexture::Create(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a)
-{
-	if (Create(width, height)) {
-		// add pixel conversion here
-		return true;
-	}
-	return false;
-}
-
-bool mglTexture::Create(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a)
-{
-	if (Create(width, height, format)) {
-		// add pixel conversion here
-		return true;
-	}
-	return false;
 }
 
 bool mglTexture::Load(const mtlDirectory &p_filename)
@@ -241,10 +245,12 @@ bool mglTexture::Load(const mtlDirectory &p_filename)
 void mglTexture::Free( void )
 {
 	delete [] m_pixels;
-	m_pixels = NULL;
-	m_width = 0;
-	m_height = 0;
-	m_width_mask = 0;
-	m_height_mask = 0;
+	m_pixels       = NULL;
+	m_width        = 0;
+	m_height       = 0;
+	m_width_mask   = 0;
+	m_height_mask  = 0;
+	m_width_shift  = 0;
+	m_height_shift = 0;
 	SetError("");
 }

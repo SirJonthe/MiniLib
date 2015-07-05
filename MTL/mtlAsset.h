@@ -17,6 +17,8 @@ protected:
 public:
 	virtual			~mtlAssetInterface( void ) {}
 	virtual bool	Load(const mtlDirectory &p_filename) = 0;
+	//virtual bool Save(const mtlDirectory &p_filename) = 0;
+	//virtual void Free( void ) = 0;
 	const mtlString	&GetError( void ) const { return m_error; }
 };
 

@@ -4,22 +4,23 @@
 #include "../MTL/mtlAsset.h"
 #include "mglPixel.h"
 
-// optimized for random access
-// variable bit depth
-// size constraints
+// variable bit depth (problem; how does the programmer set depth manually if Load interface is only common interface for assets?)
 // SIMD (RGBA SoA)
-// morton order
-// compression
-// sample coord wrap
-// device independent by default (i.e. red in byte index 0, green in byte index 1, etc.)
+// compression (vector quantization)
+// z order swizzle
+// device independent by default (i.e. red in byte index 0, green in byte index 1, etc.) (same problem as bit depth)
+// unpack pixels on access
 class mglTexture : public mtlAssetInterface
 {
 private:
-	mglByte       *m_pixels;
+	//mglByte       *m_pixels;
+	mglPixel32    *m_pixels;
 	int            m_width;
 	int            m_height;
 	int            m_width_mask;
 	int            m_height_mask;
+	int            m_width_shift;
+	int            m_height_shift;
 	mglByteOrder32 m_order; // only used if bytes per pixel is 4
 	mglPixelFormat m_format;
 
@@ -30,13 +31,11 @@ private:
 	bool       VerifyDimension(int dimension) const;
 	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlDirectory &p_filename);
+	//bool       LoadVPZ(const mtlDirectory &p_filename); // [V]ector quantisized, [P]acked, [Z] order image (own format)
 
 public:
 	mglTexture( void );
 	mglTexture(int width, int height);
-	mglTexture(int width, int height, mglPixelFormat format);
-	mglTexture(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
-	mglTexture(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
 	~mglTexture( void ) { delete [] m_pixels; }
 
 	int GetWidth( void )  const { return m_width; }
@@ -44,16 +43,23 @@ public:
 	int GetArea( void )   const { return m_width*m_height; }
 
 	bool Create(int width, int height);
-	bool Create(int width, int height, mglPixelFormat format);
-	bool Create(int width, int height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
-	bool Create(int width, int height, mglPixelFormat format, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+
+	//bool CreateFrom(const mglImage &image); // create texture from image (note that we would have to handle dimensions that are not supported)
 
 	bool Load(const mtlDirectory &p_filename);
 
 	void Free( void );
 
+	// take bpp into account when we change to variable bit depth
+	mglPixel32 GetPixelXY(int x, int y)     const { int index = (x & m_width_mask) + ((y & m_height_mask) << m_width_shift); return m_pixels[index]; }
+	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
+	//void SetPixel(mglByte r, mglByte g, mglByte b, mglByte a = 0xff) {}
+
+	mglByteOrder32 GetByteOrder( void ) const { return m_order; }
+	void SetByteOrder(mglByteOrder32 order) { m_order = order; }
+
 	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
-	void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
+	//void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
 };
 
 /*
