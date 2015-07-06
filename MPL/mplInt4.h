@@ -30,7 +30,11 @@ public:
 	int4( void ) {}
 	inline int4(int a, int b, int c, int d);
 	inline int4(int abcd);
+	inline explicit int4(const char *v);
+	inline explicit int4(const short *v);
 	inline explicit int4(const int *v);
+	inline int4(const char *v, int stride);
+	inline int4(const short *v, int stride);
 	inline int4(const int *v, int stride);
 	inline int4(const int4 &r);
 	inline int4 &operator=(const int4 &r);
@@ -78,6 +82,10 @@ public:
 	inline mask4 operator <=(const int4 &r) const;
 	inline mask4 operator >(const int4 &r) const;
 	inline mask4 operator <(const int4 &r) const;
+
+	friend float4 aligned_load(const float *v);
+	friend void unaligned_store(const float4 &f, float *out);
+	friend void aligned_store(const float4 &f, float *out);
 }
 #if mplCompiler == mplGCC
 	#if defined(mplGCC_SSE)
@@ -87,6 +95,10 @@ public:
 	#endif
 #endif
 ;
+
+inline int4 aligned_load(const int *v);
+inline void unaligned_store(const int4 &i, int *out);
+inline void aligned_store(const int4 &i, int *out);
 
 }
 
@@ -127,10 +139,28 @@ mpl::int4::int4(int abcd)
 #endif
 }
 
+mpl::int4::int4(const char *v)
+{
+	data.e[0] = v[0];
+	data.e[1] = v[1];
+	data.e[2] = v[2];
+	data.e[3] = v[3];
+}
+
+mpl::int4::int4(const short *v)
+{
+	data.e[0] = v[0];
+	data.e[1] = v[1];
+	data.e[2] = v[2];
+	data.e[3] = v[3];
+}
+
 mpl::int4::int4(const int *v)
 {
 	// No SSE instructions for integer loads (maybe reinterpret cast to float?)
-#if defined(mplGCC_NEON)
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	data.reg = _mm_loadu_si128(*((const __m128i*)v));
+#elif defined(mplGCC_NEON)
 	data.reg = vld1q_s32(v);
 #else
 	data.e[0] = v[0];
@@ -138,6 +168,30 @@ mpl::int4::int4(const int *v)
 	data.e[2] = v[2];
 	data.e[3] = v[3];
 #endif
+}
+
+mpl::int4::int4(const char *v, int stride)
+{
+	data.e[0] = *v;
+	v += stride;
+	data.e[1] = *v;
+	v += stride;
+	data.e[2] = *v;
+	v += stride;
+	data.e[3] = *v;
+	// NEON has instructions for this?
+}
+
+mpl::int4::int4(const short *v, int stride)
+{
+	data.e[0] = *v;
+	v += stride;
+	data.e[1] = *v;
+	v += stride;
+	data.e[2] = *v;
+	v += stride;
+	data.e[3] = *v;
+	// NEON has instructions for this?
 }
 
 mpl::int4::int4(const int *v, int stride)
@@ -685,6 +739,50 @@ mpl::mask4 mpl::int4::operator >=(const mpl::int4 &r) const
 	i.data.e[3] = data.e[3] < r.data.e[3] ? 0xffffffff : 0x0;
 #endif
 	return i;
+}
+
+mpl::int4 mpl::aligned_load(const int *v)
+{
+	int4 i;
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	i.data.reg = _mm_load_si128((const __m128i*)v);
+#elif defined(mplGCC_NEON)
+	i.data.reg = vld1q_s32(v);
+#else
+	data.e[0] = v[0];
+	data.e[1] = v[1];
+	data.e[2] = v[2];
+	data.e[3] = v[3];
+#endif
+	return i;
+}
+
+void mpl::unaligned_store(const mpl::int4 &i, int *out)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	_mm_storeu_si128((__m128i*)out, i.data.reg);
+#elif defined(mplGCC_NEON)
+	vst1q_s32(out, i.data.reg);
+#else
+	out[0] = i.data.e[0];
+	out[1] = i.data.e[1];
+	out[2] = i.data.e[2];
+	out[3] = i.data.e[3];
+#endif
+}
+
+void mpl::aligned_store(const mpl::int4 &i, int *out)
+{
+#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
+	_mm_store_si128((__m128i*)out, i.data.reg);
+#elif defined(mplGCC_NEON)
+	vst1q_s32(out, i.data.reg);
+#else
+	out[0] = i.data.e[0];
+	out[1] = i.data.e[1];
+	out[2] = i.data.e[2];
+	out[3] = i.data.e[3];
+#endif
 }
 
 #endif // MPL_INT4_H_INCLUDED__

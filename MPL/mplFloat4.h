@@ -95,10 +95,6 @@ inline float4 max(const float4 &a, const float4 &b);
 inline float4 aligned_load(const float *v);
 inline void unaligned_store(const float4 &f, float *v);
 inline void aligned_store(const float4 &f, float *v);
-inline float4 clamp(const float4 &lo, const float4 &x, const float4 &hi);
-inline float4 lerp(const float4 &a, const float4 &b, float x);
-inline float4 bilerp(const float4 &aa, const float4 &ab, const float4 &ba, const float4 &bb, float x, float y);
-inline float4 trilerp(const float4 &aaa, const float4 &aba, const float4 &baa, const float4 &bba, const float4 &aab, const float4 &abb, const float4 &bab, const float4 &bbb, float x, float y, float z);
 
 }
 
@@ -648,6 +644,8 @@ mpl::float4 mpl::aligned_load(const float *v)
 	float4 f;
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	f.data.reg = _mm_load_ps(v);
+#elif defined(mplGCC_NEON)
+	f.data.reg = vld1q_f32(v);
 #else
 	f.data.e[0] = v[0];
 	f.data.e[1] = v[1];
@@ -661,6 +659,8 @@ void mpl::aligned_store(const float4 &f, float *out)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	_mm_store_ps(out, f.data.reg);
+#elif defined(mplGCC_NEON)
+	vst1q_f32(out, f.data.reg);
 #else
 	out[0] = f.data.e[0];
 	out[1] = f.data.e[1];
@@ -673,36 +673,14 @@ void mpl::unaligned_store(const float4 &f, float *out)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	_mm_storeu_ps(out, f.data.reg);
+#elif defined(mplGCC_NEON)
+	vst1q_f32(out, f.data.reg);
 #else
 	out[0] = f.data.e[0];
 	out[1] = f.data.e[1];
 	out[2] = f.data.e[2];
 	out[3] = f.data.e[3];
 #endif
-}
-
-mpl::float4 mpl::clamp(const mpl::float4 &lo, const mpl::float4 &x, const mpl::float4 &hi)
-{
-	return min(max(x, lo), hi);
-}
-
-mpl::float4 mpl::lerp(const mpl::float4 &a, const mpl::float4 &b, float x)
-{
-	return a + (b - a) * x;
-}
-
-mpl::float4 mpl::bilerp(const float4 &aa, const float4 &ab, const float4 &ba, const float4 &bb, float x, float y)
-{
-	return lerp(lerp(aa, ab, x), lerp(ba, bb, x), y);
-}
-
-mpl::float4 mpl::trilerp(const float4 &aaa, const float4 &aba, const float4 &baa, const float4 &bba, const float4 &aab, const float4 &abb, const float4 &bab, const float4 &bbb, float x, float y, float z)
-{
-	return lerp(
-		bilerp(aaa, aba, baa, bba, x, y),
-		bilerp(aab, abb, bab, bbb, x, y),
-		z
-	);
 }
 
 #endif
