@@ -459,6 +459,21 @@
     <p></p>
     <h2>MML, the minimal math library</h2>
     <h2>MPL, the minimal parallel library</h2>
+    <h3>About</h3>
+    <p>MPL is a library that exposes SIMD functionality in a C++ native way. </p>
+    <p>It currently supports SSE2 in MSVC and GCC, and NEON in GCC. Scalar
+      fallback is supported if either of these are not available on your
+      system/compiler.</p>
+    <h3>General design</h3>
+    <p>Unlike MTL, MML, and MGL, MPL uses namespaces (mpl). Names are also in
+      snake_case where a name consists of multiple words. The reason for this is
+      is that collapsing the namespace is encouraged in order to make the data
+      types and functions feel as though they are built-in types and functions
+      of C++.</p>
+    <p>Because the types are designed to feel C++ native they break some of the
+      conventions for object-oriented design. For instance, the main data types
+      have no member functions (outside of constructors and overloaded operators
+      which are hidden from plain sight anyway).</p>
     <h2>MGL, the minimal graphics library</h2>
     <h3>About</h3>
     <p>MGL is a non-intrusive graphics library that combines the functionality
