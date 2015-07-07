@@ -153,11 +153,6 @@ public:
 	void Clamp(const mmlVector<n> &min, const mmlVector<n> &max)
 	{
 		for (int i = 0; i < n; ++i) {
-			/*if (e[i] > max[i]) {
-				e[i] = max[i];
-			} else if (e[i] < min[i]) {
-				e[i] = min[i];
-			}*/
 			e[i] = mmlClamp(min[i], e[i], max[i]);
 		}
 	}
@@ -197,30 +192,6 @@ public:
 		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
 		return sqrt(l);
 	}
-	/*float InvLenFast( void ) const
-	{
-		// pure voodoo
-		float l = 0.f;
-		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
-		float xhalf = 0.5f*l;
-		int i = *(int*)&l;
-		i = 0x5f375a86 - (i>>1);
-		float x = *(float*)&i;
-		x = x*(1.5f-xhalf*x*x);
-		return x;
-	}
-	float LenFast( void ) const
-	{
-		// pure voodoo
-		float l = 0.f;
-		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
-		float xhalf = 0.5f*l;
-		int i = *(int*)&l;
-		i = 0x5f375a86 - (i>>1);
-		float x = *(float*)&i;
-		x = x*(1.5f-xhalf*x*x);
-		return l*x;
-	}*/
 	float InvLenFast( void ) const
 	{
 		float l = 0.f;
