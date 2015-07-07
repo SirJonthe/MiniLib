@@ -8,7 +8,7 @@
 //class mglObject;
 class mglMaterial;
 
-class mglRay3
+class mglRay3D
 {
 public:
 	mmlVector<3> origin;
@@ -16,10 +16,10 @@ public:
 	mtlFlags     mask;
 
 public:
-	mglRay3( void ) : origin(), direction(), mask(0xffffffffffffffff) {}
+	mglRay3D( void ) : origin(), direction(), mask(0xffffffffffffffff) {}
 };
 
-struct mglRayCollision3
+struct mglRayCollision3D
 {
 	//mglObject         *object;
 	const mglMaterial *material;
@@ -31,7 +31,7 @@ struct mglRayCollision3
 // generizise this for 2/3 dimensions
 // ability to set size of discrete steps (use for traversing large empty spaces faster)
 // PROBLEM: only works perfectly for positive subspace (because -0.7 rounds *up* to 0 while 0.7 rounds *down* to 0)
-class mglDifferentialAnalyzer3
+class mglDifferentialAnalyzer3D
 {
 private:
 	mmlVector<3> m_origin;
@@ -43,10 +43,10 @@ private:
 	int          m_side;
 
 public:
-						mglDifferentialAnalyzer3( void ) : m_side(0) {}
-	explicit            mglDifferentialAnalyzer3(const mglRay3 &p_ray) { SetInitialState(p_ray); }
+						mglDifferentialAnalyzer3D( void ) : m_side(0) {}
+	explicit            mglDifferentialAnalyzer3D(const mglRay3D &p_ray) { SetInitialState(p_ray); }
 
-	void                SetInitialState(const mglRay3 &p_ray);
+	void                SetInitialState(const mglRay3D &p_ray);
 
 	void                Step( void );
 	int                 GetX( void ) const { return m_xyz[0]; }
@@ -63,7 +63,7 @@ public:
 	const mmlVector<3> &GetOrigin( void ) const { return m_origin; }
 };
 
-class mglRay2
+class mglRay2D
 {
 public:
 	mmlVector<2> origin;
@@ -71,10 +71,10 @@ public:
 	mtlFlags     mask;
 
 public:
-	mglRay2( void ) : origin(), direction(), mask(0xffffffffffffffff) {}
+	mglRay2D( void ) : origin(), direction(), mask(0xffffffffffffffff) {}
 };
 
-class mglRayCollision2
+class mglRayCollision2D
 {
 	const mglMaterial *material;
 	mmlVector<2>       point;
@@ -82,7 +82,7 @@ class mglRayCollision2
 	mmlVector<2>       normal;
 };
 
-class mglDifferentialAnalyzer2
+class mglDifferentialAnalyzer2D
 {
 private:
 	mmlVector<2> m_origin;
@@ -94,10 +94,10 @@ private:
 	int          m_side;
 
 public:
-						mglDifferentialAnalyzer2( void ) : m_side(0) {}
-	explicit            mglDifferentialAnalyzer2(const mglRay2 &p_ray) { SetInitialState(p_ray); }
+						mglDifferentialAnalyzer2D( void ) : m_side(0) {}
+	explicit            mglDifferentialAnalyzer2D(const mglRay2D &p_ray) { SetInitialState(p_ray); }
 
-	void                SetInitialState(const mglRay2 &p_ray);
+	void                SetInitialState(const mglRay2D &p_ray);
 
 	void                Step( void );
 	int                 GetX( void ) const { return m_xyz[0]; }

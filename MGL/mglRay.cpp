@@ -1,6 +1,6 @@
 #include "mglRay.h"
 
-void mglDifferentialAnalyzer3::SetInitialState(const mglRay3 &p_ray)
+void mglDifferentialAnalyzer3D::SetInitialState(const mglRay3D &p_ray)
 {
 	m_origin = p_ray.origin;
 	m_direction = p_ray.direction;
@@ -22,7 +22,7 @@ void mglDifferentialAnalyzer3::SetInitialState(const mglRay3 &p_ray)
 	Step();
 }
 
-void mglDifferentialAnalyzer3::Step( void )
+void mglDifferentialAnalyzer3D::Step( void )
 {
 	m_side = 0;
 	for (int i = 1; i < 3; ++i) {
@@ -34,7 +34,7 @@ void mglDifferentialAnalyzer3::Step( void )
 	m_xyz[m_side] += m_step[m_side];
 }
 
-mmlVector<2> mglDifferentialAnalyzer3::GetImpactUV( void ) const
+mmlVector<2> mglDifferentialAnalyzer3D::GetImpactUV( void ) const
 {
 	mmlVector<3> impact = GetImpactPosition();
 	float u = impact[(m_side + 1) % 3];
@@ -42,7 +42,7 @@ mmlVector<2> mglDifferentialAnalyzer3::GetImpactUV( void ) const
 	return mmlVector<2>(u - floor(u), v - floor(v));
 }
 
-void mglDifferentialAnalyzer2::SetInitialState(const mglRay2 &p_ray)
+void mglDifferentialAnalyzer2D::SetInitialState(const mglRay2D &p_ray)
 {
 	m_origin = p_ray.origin;
 	m_direction = p_ray.direction;
@@ -63,7 +63,7 @@ void mglDifferentialAnalyzer2::SetInitialState(const mglRay2 &p_ray)
 	Step();
 }
 
-void mglDifferentialAnalyzer2::Step( void )
+void mglDifferentialAnalyzer2D::Step( void )
 {
 	m_side = 0;
 	for (int i = 1; i < 2; ++i) {
@@ -75,7 +75,7 @@ void mglDifferentialAnalyzer2::Step( void )
 	m_xyz[m_side] += m_step[m_side];
 }
 
-float mglDifferentialAnalyzer2::GetImpactU( void ) const
+float mglDifferentialAnalyzer2D::GetImpactU( void ) const
 {
 	mmlVector<2> impact = GetImpactPosition();
 	float u = impact[(m_side + 1) % 2];
