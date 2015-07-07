@@ -20,6 +20,9 @@ void mtlCopyOverlap(type_t *dst, const type_t *src, int num) { memmove(dst, src,
 template < typename type_t >
 bool mtlCompare(const type_t *a, const type_t *b, int num) { return memcmp(a, b, sizeof(type_t) * __mtlclip0(num)) == 0; }
 
+template < typename type_t >
+void mtlSet(type_t *a, const type_t &b, int num) { for (int i = 0; i < num; ++i) { a[i] = b; } }
+
 #undef __mtlclip0
 
 #endif
