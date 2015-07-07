@@ -10,23 +10,25 @@ protected:
 	type_t	*m_pixels;
 	int		m_width;
 	int		m_height;
+
 private:
 					mglFramebuffer(const mglFramebuffer&) {}
 	mglFramebuffer	&operator=(const mglFramebuffer&) { return *this; }
+
 public:
 					mglFramebuffer( void ) : m_pixels(NULL), m_width(0), m_height(0) {}
-	virtual			~mglFramebuffer( void ) { delete [] m_pixels; }
-	virtual void	Create(int p_width, int p_height);
-	virtual void	Free( void );
-	void			Copy(const mglFramebuffer &p_buffer);
-	bool			IsBad( void ) const { return m_pixels == NULL; }
-	int				GetWidth( void ) const { return m_width; }
-	int				GetHeight( void ) const { return m_height; }
-	int				GetArea( void ) const { return m_width*m_height; }
-	type_t			*GetPixels( void ) const { return m_pixels; }
-	type_t			*GetPixels(int y) const { return m_pixels + y*m_width; }
-	type_t			*GetPixels(int x, int y) const { return m_pixels + x + y*m_width; }
-	void			Fill(type_t value) const;
+	virtual      ~mglFramebuffer( void ) { delete [] m_pixels; }
+	virtual void  Create(int p_width, int p_height);
+	virtual void  Free( void );
+	void          Copy(const mglFramebuffer &p_buffer);
+	bool          IsBad( void ) const { return m_pixels == NULL; }
+	int           GetWidth( void ) const { return m_width; }
+	int           GetHeight( void ) const { return m_height; }
+	int           GetArea( void ) const { return m_width*m_height; }
+	type_t       *GetPixels( void ) const { return m_pixels; }
+	type_t       *GetPixels(int y) const { return m_pixels + y*m_width; }
+	type_t       *GetPixels(int x, int y) const { return m_pixels + x + y*m_width; }
+	void          Fill(type_t value) const;
 };
 
 template < typename type_t >
