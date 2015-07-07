@@ -13,7 +13,7 @@ protected:
 
 private:
 					mglFramebuffer(const mglFramebuffer&) {}
-	mglFramebuffer	&operator=(const mglFramebuffer&) { return *this; }
+	mglFramebuffer &operator=(const mglFramebuffer&) { return *this; }
 
 public:
 					mglFramebuffer( void ) : m_pixels(NULL), m_width(0), m_height(0) {}
