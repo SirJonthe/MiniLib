@@ -7,9 +7,9 @@ template < typename type_t = unsigned int >
 class mglFramebuffer
 {
 protected:
-	type_t	*m_pixels;
-	int		m_width;
-	int		m_height;
+	type_t *m_pixels;
+	int     m_width;
+	int     m_height;
 
 private:
 					mglFramebuffer(const mglFramebuffer&) {}
