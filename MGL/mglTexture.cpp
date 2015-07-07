@@ -227,6 +227,7 @@ void mglTexture::Swizzle_Z( void )
 	m_pixels = dst;
 }
 
+// Super duper slow?
 void mglTexture::Compress_VQ( void )
 {
 
@@ -279,8 +280,12 @@ bool mglTexture::Create(int width, int height)
 bool mglTexture::Load(const mtlDirectory &p_filename)
 {
 	bool ret_val = false;
+	bool native_load = false;
 	if (p_filename.GetExtension().Compare("tga")) { // targa
 		ret_val = LoadTGA(p_filename);
+	} else if (p_filename.GetExtension().Compare(".pqz")) { // packed quantized z-order
+		ret_val = LoadPQZ(p_filename);
+		native_load = true;
 	} else {
 		mtlString error;
 		error.Copy("Cannot load format: ");
@@ -289,9 +294,11 @@ bool mglTexture::Load(const mtlDirectory &p_filename)
 	}
 
 	if (ret_val) {
-		Swizzle_Z();
-		Pack_SOA();
-		Compress_VQ();
+		if (!native_load) {
+			Swizzle_Z();
+			Pack_SOA();
+			Compress_VQ();
+		}
 	} else {
 		mtlString error;
 		error.Copy(GetError());

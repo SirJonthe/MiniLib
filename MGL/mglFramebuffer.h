@@ -1,6 +1,8 @@
 #ifndef MGL_FRAMEBUFFER_H_INCLUDED__
 #define MGL_FRAMEBUFFER_H_INCLUDED__
 
+#include "../MTL/mtlMemory.h"
+
 template < typename type_t = unsigned int >
 class mglFramebuffer
 {
@@ -31,9 +33,9 @@ template < typename type_t >
 void mglFramebuffer<type_t>::Create(int p_width, int p_height)
 {
 	Free();
-	m_width = p_width;
-	m_height = p_height;
-	if (GetArea() > 0 && m_width > 0 && m_height > 0) {
+	if (p_width > 0 && p_height > 0) {
+		m_width = p_width;
+		m_height = p_height;
 		m_pixels = new type_t[GetArea()];
 	}
 }
@@ -51,18 +53,15 @@ template < typename type_t >
 void mglFramebuffer<type_t>::Copy(const mglFramebuffer<type_t> &p_buffer)
 {
 	Create(p_buffer.m_width, p_buffer.m_height);
-	for (int i = 0; i < GetArea(); ++i) {
-		m_pixels[i] = p_buffer.m_pixels[i];
-	}
+	mtlCopy(m_pixels, p_buffer.m_pixels, GetArea());
 }
 
 template < typename type_t >
 void mglFramebuffer<type_t>::Fill(type_t value) const
 {
 	const int area = GetArea();
-	type_t *pixels = GetPixels();
 	for (int i = 0; i < area; ++i) {
-		pixels[i] = value;
+		m_pixels[i] = value;
 	}
 }
 

@@ -11,6 +11,7 @@
 // z order swizzle
 // device independent by default (i.e. red in byte index 0, green in byte index 1, etc.) (same problem as bit depth)
 // unpack pixels on access
+// dithering to remove vector quantization artifacts?
 class mglTexture : public mtlAssetInterface
 {
 private:
@@ -33,11 +34,11 @@ private:
 	bool       VerifyDimension(int dimension) const;
 	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlDirectory &p_filename);
+	bool       LoadPQZ(const mtlDirectory &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
 	void       Swizzle_Z( void );
 	void       Pack_SOA( void ) {} // stores in SoA
-	void       Compress_VQ( void ); // uses Vector Quantization to compress
-	mglPixel32 DecodePixel(mglByte *in) const { return mglPixel32(); } // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
-	//bool       LoadVPZ(const mtlDirectory &p_filename); // [V]ector quantisized, [P]acked, [Z] order image (own format)
+	void       Compress_VQ( void ); // uses Vector Quantization to compress (super duper slow???)
+	mglPixel32 DecodePixel(const mglByte *in) const { return mglPixel32(); } // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
 
 public:
 	mglTexture( void );
