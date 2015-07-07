@@ -92,7 +92,7 @@ mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int ty
 	}
 	return color;
 }
-
+#include <iostream>
 bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 {
 	// Take into account origin of the image axis
@@ -123,6 +123,26 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	const int NUM_PIXELS = GetArea();
 	const int NUM_BYTES = NUM_PIXELS * bpp;
 
+	// DEBUG
+	mtlString tmp;
+	tmp.FromInt(m_width);
+	m_format_str.Append(tmp).Append("x");
+	tmp.FromInt(m_height);
+	m_format_str.Append(tmp).Append("x");
+	tmp.FromInt(bpp);
+	m_format_str.Append(tmp);
+	if (header[IMAGE_TYPE] == COMPRESSED_TRUECOLOR_IMAGE || header[IMAGE_TYPE] == UNCOMPRESSED_TRUECOLOR_IMAGE) {
+		m_format_str.Append(" Truecolor");
+	} else if (header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE || header[IMAGE_TYPE] == UNCOMPRESSED_GRAYSCALE_IMAGE) {
+		m_format_str.Append(" Grayscale");
+	} else {
+		m_format_str.Append(" ???");
+	}
+	if (header[IMAGE_TYPE] == COMPRESSED_TRUECOLOR_IMAGE || header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE) {
+		m_format_str.Append(" (RLE)");
+	}
+	// DEBUG
+
 	if (header[IMAGE_TYPE] == UNCOMPRESSED_TRUECOLOR_IMAGE || header[IMAGE_TYPE] == UNCOMPRESSED_GRAYSCALE_IMAGE) {
 
 		mtlArray<unsigned char> image_data(NUM_BYTES);
@@ -146,11 +166,13 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 				return false;
 			}
 			const int size = 1 + (chunk_header & 0x7f);
+			std::cout << "chunk: " << size;
 			if (currentIndex + size > NUM_PIXELS) {
 				SetError("[TGA] Chunk size exceeds pixel count");
 				return false;
 			}
 			if (chunk_header & 0x80) { // RLE compressed
+				std::cout << " (RLE)";
 				unsigned char color_bytes[4]; // maximum number of bytes
 				if (fin.read((char*)color_bytes, bpp).bad()) {
 					SetError("[TGA] Failed to read compressed chunk");
@@ -164,7 +186,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 			} else { // non-compressed
 				unsigned char chunk_data[128*4];
 				unsigned char *chunk_ptr = chunk_data;
-				if (fin.read((char*)chunk_data, size).bad()) {
+				if (fin.read((char*)chunk_data, size*bpp).bad()) {
 					SetError("[TGA] Failed to read uncompressed chunk");
 					return false;
 				}
@@ -174,6 +196,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 					++currentIndex;
 				}
 			}
+			std::cout << std::endl;
 		}
 
 	} else {
@@ -225,9 +248,11 @@ bool mglTexture::Create(int width, int height)
 		while (tmp != 1) { ++m_height_shift; tmp >>= 1; }
 		//m_pixels = new mglByte[m_width*m_height*m_format.bytes_per_pixel];
 		m_pixels = new mglPixel32[m_width*m_height];
+		return true;
 	} else {
 		SetError("Invalid dimensions"); // Add more descriptive error here
 	}
+	return false;
 }
 
 bool mglTexture::Load(const mtlDirectory &p_filename)
@@ -253,4 +278,5 @@ void mglTexture::Free( void )
 	m_width_shift  = 0;
 	m_height_shift = 0;
 	SetError("");
+	m_format_str.Copy("");
 }

@@ -23,6 +23,7 @@ private:
 	int            m_height_shift;
 	mglByteOrder32 m_order; // only used if bytes per pixel is 4
 	mglPixelFormat m_format;
+	mtlString      m_format_str;
 
 private:
 	mglTexture(const mglTexture &) {}
@@ -60,6 +61,8 @@ public:
 
 	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
 	//void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
+
+	const char *Debug_GetFormatString( void ) const { return m_format_str.GetChars(); }
 };
 
 /*
