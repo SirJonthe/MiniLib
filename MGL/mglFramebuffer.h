@@ -61,10 +61,7 @@ void mglFramebuffer<type_t>::Copy(const mglFramebuffer<type_t> &p_buffer)
 template < typename type_t >
 void mglFramebuffer<type_t>::Fill(type_t value) const
 {
-	const int area = GetArea();
-	for (int i = 0; i < area; ++i) {
-		m_pixels[i] = value;
-	}
+	mtlSet(m_pixels, value, GetArea());
 }
 
 #endif
