@@ -23,7 +23,7 @@ mglImage::mglImage(int p_width, int p_height, mglByteOrder32 p_order) : m_pixels
 	Create(p_width, p_height, p_order);
 }
 
-mglImage::mglImage(int p_width, int p_height, mglByte r, mglByte g, mglByte b, mglByte a) : m_pixels(NULL), m_width(0), m_height(0)
+mglImage::mglImage(int p_width, int p_height, mtlByte r, mtlByte g, mtlByte b, mtlByte a) : m_pixels(NULL), m_width(0), m_height(0)
 {
 	m_order.index.r = 0;
 	m_order.index.g = 1;
@@ -32,7 +32,7 @@ mglImage::mglImage(int p_width, int p_height, mglByte r, mglByte g, mglByte b, m
 	Create(p_width, p_height, r, g, b, a);
 }
 
-mglImage::mglImage(int p_width, int p_height, mglByteOrder32 p_order, mglByte r, mglByte g, mglByte b, mglByte a) : m_pixels(NULL), m_width(0), m_height(0)
+mglImage::mglImage(int p_width, int p_height, mglByteOrder32 p_order, mtlByte r, mtlByte g, mtlByte b, mtlByte a) : m_pixels(NULL), m_width(0), m_height(0)
 {
 	Create(p_width, p_height, p_order, r, g, b, a);
 }
@@ -68,7 +68,7 @@ void mglImage::Create(int p_width, int p_height, mglByteOrder32 p_order)
 	Create(p_width, p_height);
 }
 
-void mglImage::Create(int p_width, int p_height, mglByte r, mglByte g, mglByte b, mglByte a)
+void mglImage::Create(int p_width, int p_height, mtlByte r, mtlByte g, mtlByte b, mtlByte a)
 {
 	Create(p_width, p_height);
 	const int area = GetArea();
@@ -78,7 +78,7 @@ void mglImage::Create(int p_width, int p_height, mglByte r, mglByte g, mglByte b
 	}
 }
 
-void mglImage::Create(int p_width, int p_height, mglByteOrder32 p_order, mglByte r, mglByte g, mglByte b, mglByte a)
+void mglImage::Create(int p_width, int p_height, mglByteOrder32 p_order, mtlByte r, mtlByte g, mtlByte b, mtlByte a)
 {
 	m_order = p_order;
 	Create(p_width, p_height, r, g, b, a);

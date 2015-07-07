@@ -28,8 +28,8 @@ public:
 	mglImage( void );
 	mglImage(int p_width, int p_height);
 	mglImage(int p_width, int p_height, mglByteOrder32 p_order);
-	mglImage(int p_width, int p_height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
-	mglImage(int p_width, int p_height, mglByteOrder32 p_order, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+	mglImage(int p_width, int p_height, mtlByte r, mtlByte g, mtlByte b, mtlByte a = 0xff);
+	mglImage(int p_width, int p_height, mglByteOrder32 p_order, mtlByte r, mtlByte g, mtlByte b, mtlByte a = 0xff);
 	~mglImage( void ) { delete [] m_pixels; }
 
 	int GetWidth( void )  const { return m_width; }
@@ -45,8 +45,8 @@ public:
 
 	void Create(int p_width, int p_height);
 	void Create(int p_width, int p_height, mglByteOrder32 p_order);
-	void Create(int p_width, int p_height, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
-	void Create(int p_width, int p_height, mglByteOrder32 p_order, mglByte r, mglByte g, mglByte b, mglByte a = 0xff);
+	void Create(int p_width, int p_height, mtlByte r, mtlByte g, mtlByte b, mtlByte a = 0xff);
+	void Create(int p_width, int p_height, mglByteOrder32 p_order, mtlByte r, mtlByte g, mtlByte b, mtlByte a = 0xff);
 
 	void Copy(const mglImage &image, bool copy_order = false);
 
@@ -55,14 +55,14 @@ public:
 	mglPixel32       *GetPixelXY(int x, int y)       { return m_pixels + x + y * m_width; }
 	const mglPixel32 *GetPixelXY(int x, int y) const { return m_pixels + x + y * m_width; }
 
-	mglByte       *GetRedXY(int x, int y)         { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.r; }
-	mglByte       *GetGreenXY(int x, int y)       { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.g; }
-	mglByte       *GetBlueXY(int x, int y)        { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.b; }
-	mglByte       *GetAlphaXY(int x, int y)       { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.a; }
-	const mglByte *GetRedXY(int x, int y)   const { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.r; }
-	const mglByte *GetGreenXY(int x, int y) const { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.g; }
-	const mglByte *GetBlueXY(int x, int y)  const { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.b; }
-	const mglByte *GetAlphaXY(int x, int y) const { return (mglByte*)(m_pixels + x + y * m_width) + m_order.index.a; }
+	mtlByte       *GetRedXY(int x, int y)         { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.r; }
+	mtlByte       *GetGreenXY(int x, int y)       { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.g; }
+	mtlByte       *GetBlueXY(int x, int y)        { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.b; }
+	mtlByte       *GetAlphaXY(int x, int y)       { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.a; }
+	const mtlByte *GetRedXY(int x, int y)   const { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.r; }
+	const mtlByte *GetGreenXY(int x, int y) const { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.g; }
+	const mtlByte *GetBlueXY(int x, int y)  const { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.b; }
+	const mtlByte *GetAlphaXY(int x, int y) const { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.a; }
 };
 
 #endif // MGL_IMAGE_H_INCLUDED__

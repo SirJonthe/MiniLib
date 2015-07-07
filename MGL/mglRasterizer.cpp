@@ -11,7 +11,7 @@
 #include "../MML/mmlFixed.h"
 #include "mglRasterizer.h"
 
-const mglTexture mglTexturedRasterizer::defaultMaterial(16, 0xFF00FFFF);
+const mglTexture mglTexturedRasterizer::defaultMaterial(16, 16);
 
 /*template < int n >
 class iVec

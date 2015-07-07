@@ -2,6 +2,7 @@
 #define MTL_BITS_H_INCLUDED__
 
 typedef unsigned long long int mtlFlags;
+typedef unsigned char          mtlByte;
 
 inline unsigned long long mtlEncodeMorton2(unsigned int x, unsigned int y)
 {

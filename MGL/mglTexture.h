@@ -15,15 +15,13 @@
 class mglTexture : public mtlAssetInterface
 {
 private:
-	//mglByte       *m_pixels;
-	mglPixel32    *m_pixels;
+	mtlByte       *m_pixels;
 	int            m_width;
 	int            m_height;
 	int            m_width_mask;
 	int            m_height_mask;
 	int            m_width_shift;
 	int            m_height_shift;
-	mglByteOrder32 m_order; // only used if bytes per pixel is 4
 	mglPixelFormat m_format;
 	mtlString      m_format_str;
 
@@ -32,24 +30,27 @@ private:
 	mglTexture &operator=(const mglTexture&) { return *this; }
 
 	bool       VerifyDimension(int dimension) const;
-	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
+	void       UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlDirectory &p_filename);
 	bool       LoadPQZ(const mtlDirectory &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
 	void       Swizzle_Z( void );
 	void       Pack_SOA( void ) {} // stores in SoA
 	void       Compress_VQ( void ); // uses Vector Quantization to compress (super duper slow???)
-	mglPixel32 DecodePixel(const mglByte *in) const { return mglPixel32(); } // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
+	mglPixel32 DecodePixel(const mtlByte *in) const; // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
+	//void       EncodePixel(mglPixel32 in, mtlByte *out); // set the color of a pixel
 
 public:
 	mglTexture( void );
 	mglTexture(int width, int height);
+	mglTexture(int width, int height, mglPixelFormat format);
 	~mglTexture( void ) { delete [] m_pixels; }
 
 	int GetWidth( void )  const { return m_width; }
 	int GetHeight( void ) const { return m_height; }
-	int GetArea( void )   const { return m_width*m_height; }
+	int GetArea( void )   const { return m_width << m_height_shift; }
 
 	bool Create(int width, int height);
+	bool Create(int width, int height, mglPixelFormat format);
 
 	//bool CreateFrom(const mglImage &image); // create texture from image (note that we would have to handle dimensions that are not supported)
 
@@ -58,13 +59,9 @@ public:
 	void Free( void );
 
 	// take bpp into account when we change to variable bit depth
-	mglPixel32 GetPixelXY(int x, int y)     const { return m_pixels[mtlEncodeMorton2(x & m_width_mask, y & m_height_mask)]; }
+	mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + mtlEncodeMorton2(x & m_width_mask, y & m_height_mask) * m_format.bytes_per_pixel); }
 	mglPixel32 GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
 	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
-	//void SetPixel(mglByte r, mglByte g, mglByte b, mglByte a = 0xff) {}
-
-	mglByteOrder32 GetByteOrder( void ) const { return m_order; }
-	void SetByteOrder(mglByteOrder32 order) { m_order = order; }
 
 	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
 	//void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
