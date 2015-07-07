@@ -8,7 +8,7 @@
     <h2>A word of warning</h2>
     <p>I hate keeping too much legacy code around in personal projects. As such,
       whenever features change old code will not be kept around for long.</p>
-    <h2>MTL, the minimal template library</h2>
+    <h2><a name="MTL">MTL, the minimal template library</a></h2>
     <h3>About</h3>
     <p>MTL is a non-intrusive template library designed to provide many of the
       more
@@ -125,7 +125,7 @@
     <p style="margin-left:2em;"><em>bool poolMemory</em></p>
     <p style="margin-left:4em">Public boolean variable. Toggles memory pooling.
       Enabled by default.</p>
-    <p>See also: mtlList</p>
+    <p>See also: <a href="#mtlList">mtlList</a></p>
     <h4><a name="mtlAsset" id="mtlAsset">mtlAsset</a></h4>
     <p>About:</p>
     <dl>
@@ -143,8 +143,8 @@
     <p>Files: MTL/mtlAsset.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
-    <p>See also: mtlAssetInterface</p>
-    <h4><a name="mtlAssetIn" id="mtlAssetIn">mtlAssetInterface</a></h4>
+    <p>See also: <a href="#mtlAssetInterface">mtlAssetInterface</a></p>
+    <h4><a name="mtlAssetIn" id="mtlAssetInterface">mtlAssetInterface</a></h4>
     <p>About:</p>
     <dl>
       <dd>mtlAssetInterface provides the interface used by mtlAsset to load
@@ -156,8 +156,8 @@
     <p>Files: MTL/mtlAsset.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface: </p>
-    <p>See also: mtlAsset, mtlDirectory</p>
-    <h4>mtlBase</h4>
+    <p>See also: <a href="#mtlAsset">mtlAsset</a>, <a href="#mtlDirectory">mtlDirectory</a></p>
+    <h4><a name="mtlBase">mtlBase</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">The class which must be inherited by the master
       base class of anything implementing the RTTI provided by MTL via
@@ -183,8 +183,8 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlInherit</p>
-    <h4>mtlBinaryTree</h4>
+    <p>See also: <a href="#mtlInherit">mtlInherit</a></p>
+    <h4><a name="mtlBinaryTree">mtlBinaryTree</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A binary tree. Works with anything for which the
       comparison operators &gt; (greater) and == (equality) are defined.</p>
@@ -193,9 +193,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlNode</p>
+    <p>See also: <a href="#mtlNode">mtlNode</a></p>
     <p></p>
-    <h4>mtlChars</h4>
+    <h4><a name="mtlChars">mtlChars</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A reference to a string of characters. However,
       this class does not make a separate copy of a string. Rather, it
@@ -216,9 +216,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlString</p>
+    <p>See also: <a href="#mtlString">mtlString</a></p>
     <p></p>
-    <h4>mtlDirectory</h4>
+    <h4><a name="mtlDirectory">mtlDirectory</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A class for handling paths to files and folders
       on
@@ -228,9 +228,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlString</p>
+    <p>See also: <a href="#mtlString">mtlString</a></p>
     <p></p>
-    <h4>mtlDuplex</h4>
+    <h4><a name="mtlDuplex">mtlDuplex</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A class for handing mutual connections between
       two
@@ -257,21 +257,21 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also:</p>
+    <p>See also: N/A</p>
     <p></p>
-    <h4>mtlExclusive</h4>
+    <h4><a name="mtlExclusive">mtlExclusive</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A pointer class that exclusively owns the data
       it
       points to. Only itself may allocate and delete the data it references.</p>
     <p>Files: MTL/mtlPointer.h</p>
-    <p>Inherits: </p>
+    <p>Inherits:N/A</p>
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlShared, mtlReference</p>
+    <p>See also: <a href="#mtlShared">mtlShared</a>, <a href="#mtlReference">mtlReference</a></p>
     <p></p>
-    <h4>mtlFNVConstHasher</h4>
+    <h4><a name="mtlFNVConstHasher">mtlFNVConstHasher</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A class not intended for public use that
       facilitates constant string hashing at compile-time. Template.</p>
@@ -280,9 +280,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlHash</p>
+    <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
-    <h4>mtlHash</h4>
+    <h4><a name="mtlHash">mtlHash</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A hash value.</p>
     <p>Files: MTL/mtlString.h, MTL/mtlString.cpp</p>
@@ -290,9 +290,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlFNVConstHasher, mtlHashInterface</p>
+    <p>See also: <a href="#mtlFNVConstHasher">mtlFNVConstHasher</a>, <a href="#mtlHashInterface">mtlHashInterface</a></p>
     <p></p>
-    <h4>mtlHashInterface</h4>
+    <h4><a name="mtlHashInterface">mtlHashInterface</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">An interface for hashing arbitrary data.</p>
     <p>Files: MTL/mtlString.h</p>
@@ -300,9 +300,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlHash</p>
+    <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
-    <h4>mglHashTable</h4>
+    <h4><a name="mtlHashTable">mtlHashTable</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A hash table.</p>
     <p>Files: MTL/mtlHashTable.h</p>
@@ -310,9 +310,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlHash</p>
+    <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
-    <h4>mtlInherit</h4>
+    <h4><a name="mtlInherit">mtlInherit</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A class used for implementing the RTTI provided
       by
@@ -340,9 +340,19 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlBase</p>
+    <p>See also: <a href="#mtlBase">mtlBase</a></p>
     <p></p>
-    <h4>mtlList</h4>
+    <h4><a name="mtlItem">mtlItem</a></h4>
+    <p>About:</p>
+    <p style="margin-left:2em;">A reference to an item inside of a doubly-linked
+      list.</p>
+    <p>Files: MTL/mtlList.h</p>
+    <p>Inherits: N/A</p>
+    <p>Public interface:</p>
+    <p style="margin-left:2em;"><em>name</em></p>
+    <p style="margin-left:4em">description</p>
+    <p>See also: <a href="#mtlList">mtlList</a></p>
+    <h4><a name="mtlList">mtlList</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A doubly-linked list.</p>
     <p>Files: MTL/mtlList.h</p>
@@ -350,9 +360,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlItem</p>
+    <p>See also: <a href="#mtlItem">mtlItem</a></p>
     <p></p>
-    <h4>mtlMathParser</h4>
+    <h4><a name="mtlMathParser">mtlMathParser</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">Parses and evaulates mathematical expressions.
       Has
@@ -364,20 +374,20 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also:</p>
+    <p>See also: N/A</p>
     <p></p>
-    <h4>mtlNode</h4>
+    <h4><a name="mtlNode">mtlNode</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">The class for referencing a brach in
       mtlBinaryTree.</p>
     <p>Files: MTL/mtlBinaryTree.h, MTL/mtlBinaryTree.cpp</p>
-    <p>Inherits: </p>
+    <p>Inherits: N/A</p>
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlBinaryTree</p>
+    <p>See also: <a href="#mtlBinaryTree">mtlBinaryTree</a></p>
     <p></p>
-    <h4>mtlParser</h4>
+    <h4><a name="mtlParser">mtlParser</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A formatted parser with limited regular
       expression
@@ -387,9 +397,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also:</p>
+    <p>See also: N/A</p>
     <p></p>
-    <h4>mtlRandom</h4>
+    <h4><a name="mtlRandom">mtlRandom</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A class for generating random numbers.</p>
     <p>Files: MTL/mtlRandom.h, MTL/mtlRandom.cpp</p>
@@ -397,9 +407,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also:</p>
+    <p>See also: N/A</p>
     <p></p>
-    <h4>mtlReference</h4>
+    <h4><a name="mtlReference">mtlReference</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A reference to an mtlShared or mtlExclusive
       pointer. This class only observes data inside a shared or exclusive
@@ -418,9 +428,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlShared, mtlExclusive</p>
+    <p>See also: <a href="#mtlShared">mtlShared</a>, <a href="#mtlExclusive">mtlExclusive</a></p>
     <p></p>
-    <h4>mtlShared</h4>
+    <h4><a name="mtlShared">mtlShared</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A shared pointer. Allocates memory once, shares
       it
@@ -432,9 +442,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlExclusive, mtlReference</p>
+    <p>See also: <a href="#mtlExclusive">mtlExclusive</a>, <a href="#mtlReference">mtlReference</a></p>
     <p></p>
-    <h4>mtlString</h4>
+    <h4><a name="mtlString">mtlString</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">A separate copy of a string.</p>
     <p>Files: MTL/mtlString.h, MTL/mtlString.cpp</p>
@@ -442,9 +452,9 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlChars</p>
+    <p>See also: <a href="#mtlChars">mtlChars</a></p>
     <p></p>
-    <h4>mtlStringMap</h4>
+    <h4><a name="mtlStringMap">mtlStringMap</a></h4>
     <p>About:</p>
     <p style="margin-left:2em;">Similar to a hash table, but uses mtlString as
       keys. Used as the basis for asset management in mtlAsset. Access times are
@@ -455,15 +465,16 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>name</em></p>
     <p style="margin-left:4em">description</p>
-    <p>See also: mtlString, mtlAsset</p>
+    <p>See also: <a href="#mtlString">mtlString</a>, <a href="#mtlAsset">mtlAsset</a></p>
     <p></p>
-    <h2>MML, the minimal math library</h2>
-    <h2>MPL, the minimal parallel library</h2>
+    <h2><a name="MML">MML, the minimal math library</a></h2>
+    <h2><a name="MPL">MPL, the minimal parallel library</a></h2>
     <h3>About</h3>
     <p>MPL is a library that exposes SIMD functionality in a C++ native way. </p>
     <p>It currently supports SSE2 in MSVC and GCC, and NEON in GCC. Scalar
       fallback is supported if either of these are not available on your
       system/compiler.</p>
+    <p>MPL is functionally independent from MTL, MML, and MGL.</p>
     <h3>General design</h3>
     <p>Unlike MTL, MML, and MGL, MPL uses namespaces (mpl). Names are also in
       snake_case where a name consists of multiple words. The reason for this is
@@ -474,7 +485,86 @@
       conventions for object-oriented design. For instance, the main data types
       have no member functions (outside of constructors and overloaded operators
       which are hidden from plain sight anyway).</p>
-    <h2>MGL, the minimal graphics library</h2>
+    <h3>Classes</h3>
+    <h4><a name="mglFloat4">mgl::float4</a></h4>
+    <p>About:</p>
+    <p style="margin-left:2em;">A group of 4 floating-point values.</p>
+    <p>Files: MPL/mplFloat4.h</p>
+    <p>Inherits: N/A</p>
+    <p>Public interface:</p>
+    <p style="margin-left:2em;"><em>operator float*()</em></p>
+    <p style="margin-left:4em">Returns elements in scalar form.</p>
+    <p style="margin-left:2em;"><em>const operator float*() const<br>
+      </em></p>
+    <p style="margin-left:4em">Returns elements in scalar form. Read only.</p>
+    <p style="margin-left:2em;"><em>float4()</em></p>
+    <p style="margin-left:4em">Constructor. Does not initialize elements to a
+      value.</p>
+    <p style="margin-left:2em;"><em>float4(float a, float b, float c, float d)</em></p>
+    <p style="margin-left:4em">Constructor. Initializes elements to parameter
+      values in the given order.</p>
+    <p style="margin-left:2em;"><em>float4(float abcd)</em></p>
+    <p style="margin-left:4em">Constructor (implicit). Initializes all elements
+      to the value of the given parameter.</p>
+    <p style="margin-left:2em;"><em>float4(const float *v)</em></p>
+    <p style="margin-left:4em">Constructor (explicit). Initializes elements to
+      the sequence of four values found beginning at the zero index of the given
+      parameter. Assumes the parameter points to unaligned memory.</p>
+    <p style="margin-left:2em;"><em>float4(const float *v, int stride)</em></p>
+    <p style="margin-left:4em">Constructor. Initializes the elements to the
+      sequence of four values found beginning at the zero index of the given
+      parameter. Subsequent values in the parameter are located by a distance of
+      <span style="font-style: italic;">stride</span> from each other. Assumes
+      the parameter points to unaligned memory.</p>
+    <p style="margin-left:2em;"><em>float4(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Constructor. Copies the contents of <span style="font-style: italic;">r</span>.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator=(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Copies the contents of <em>r</em>.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator+=(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise add of <em>this</em> and <em>r</em>.
+      Result is stored in <em>this</em>. <em>this</em> is returned.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator-=(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise subtraction of <em>this</em> and
+      <em>r</em>. Result is stored in <em>this</em>. <em>this</em> is
+      returned.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator*=(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise multiplication of <em>this</em>
+      and <em>r</em>. Result is stored in <em>this</em>. <em>this</em> is
+      returned.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator*=(float r)</em></p>
+    <p style="margin-left:4em">Component-wise multiplication of <em>this</em>
+      and <em>r</em>. Result is stored in <em>this</em>. <em>this</em> is
+      returned.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator/=(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise division between the <em>this</em>
+      and <em>r</em>. Result is stored in <em>this</em>. <em>this</em> is
+      returned.</p>
+    <p style="margin-left:2em;"><em>float4 &amp;operator/=(float r)</em></p>
+    <p style="margin-left:4em">Component-wise division between <em>this</em>
+      and <em>r</em>. Result is stored in <em>this</em>. <em>this</em> is
+      returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator+(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise add of <em>this</em> and <em>r</em>.
+      Result is not stored, but returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator-(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise subtraction of <em>this</em> and
+      <em>r</em>. Result is not stored, but returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator*(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise multiplication of <em>this</em>
+      and <em>r</em>. Result is not stored, but returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator*(float r)</em></p>
+    <p style="margin-left:4em">Component-wise multiplication of <em>this</em>
+      and <em>r</em>. Result is not stored, but returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator/(const float4 &amp;r)</em></p>
+    <p style="margin-left:4em">Component-wise division between <em>this</em>
+      and <em>r</em>. Result is not stored, but returned.</p>
+    <p style="margin-left:2em;"><em>float4 operator+(float r)</em></p>
+    <p style="margin-left:4em">Component-wise division between <em>this</em>
+      and <em>r</em>. Result is not stored, but returned.</p>
+    <p style="margin-left:4em"></p>
+    <p style="margin-left:4em"></p>
+    <p>See also: N/A</p>
+    <h2><a name="MGL">MGL, the minimal graphics library</a></h2>
     <h3>About</h3>
     <p>MGL is a non-intrusive graphics library that combines the functionality
       from
@@ -503,7 +593,7 @@
         is possible to alter the format of individual textures.</dd>
     </dl>
     <p>Files: MGL/mglTexture.h, MGL/mglTexture.cpp</p>
-    <p>Inherits: mtlAssetInterface</p>
+    <p>Inherits: <a href="#mtlAssetInterface">mtlAssetInterface</a></p>
     <p>Public interface:</p>
     <p>See also: mglPixel32, mglPixelFormat, mglByteOrder32</p>
   </body>
