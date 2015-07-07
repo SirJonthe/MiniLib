@@ -33,6 +33,11 @@ enum TGA_SupportedPixelDepth
 	BGRA8888     = 32
 };
 
+bool mglTexture::VerifyDimension(int p_dimension) const
+{
+	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
+}
+
 mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const
 {
 	mglPixel32 color;
@@ -92,7 +97,7 @@ mglPixel32 mglTexture::UnpackTGAPixel(unsigned char *pixel_data, int bpp, int ty
 	}
 	return color;
 }
-#include <iostream>
+
 bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 {
 	// Take into account origin of the image axis
@@ -166,13 +171,11 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 				return false;
 			}
 			const int size = 1 + (chunk_header & 0x7f);
-			std::cout << "chunk: " << size;
 			if (currentIndex + size > NUM_PIXELS) {
 				SetError("[TGA] Chunk size exceeds pixel count");
 				return false;
 			}
 			if (chunk_header & 0x80) { // RLE compressed
-				std::cout << " (RLE)";
 				unsigned char color_bytes[4]; // maximum number of bytes
 				if (fin.read((char*)color_bytes, bpp).bad()) {
 					SetError("[TGA] Failed to read compressed chunk");
@@ -196,7 +199,6 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 					++currentIndex;
 				}
 			}
-			std::cout << std::endl;
 		}
 
 	} else {
@@ -206,9 +208,28 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	return true;
 }
 
-bool mglTexture::VerifyDimension(int p_dimension) const
+void mglTexture::Swizzle( void )
 {
-	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
+	const int area = GetArea();
+	if (area <= 0) { return; }
+
+	mglPixel32 *dst = new mglPixel32[area];
+	const mglPixel32 *src = m_pixels;
+
+	for (int y = 0; y < m_height; ++y) {
+		for (int x = 0; x < m_width; ++x) {
+			dst[mtlEncodeMorton2(x, y)] = *src;
+			++src;
+		}
+	}
+
+	delete [] m_pixels;
+	m_pixels = dst;
+}
+
+void mglTexture::Compress( void )
+{
+
 }
 
 mglTexture::mglTexture( void ) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
@@ -257,14 +278,25 @@ bool mglTexture::Create(int width, int height)
 
 bool mglTexture::Load(const mtlDirectory &p_filename)
 {
+	bool ret_val = false;
 	if (p_filename.GetExtension().Compare("tga")) { // targa
-		return LoadTGA(p_filename);
+		ret_val = LoadTGA(p_filename);
+	} else {
+		mtlString error;
+		error.Copy("Cannot load format: ");
+		error.Append(p_filename.GetExtension());
+		SetError(error);
 	}
-	mtlString error;
-	error.Copy("Cannot load format: ");
-	error.Append(p_filename.GetExtension());
-	SetError(error);
-	return false;
+
+	if (ret_val) {
+		Swizzle();
+	} else {
+		mtlString error;
+		error.Copy(GetError());
+		Free();
+		SetError(error);
+	}
+	return ret_val;
 }
 
 void mglTexture::Free( void )

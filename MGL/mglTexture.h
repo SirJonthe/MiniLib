@@ -2,6 +2,7 @@
 #define MGL_TEXTURE_H_INCLUDED__
 
 #include "../MTL/mtlAsset.h"
+#include "../MTL/mtlBits.h"
 #include "mglPixel.h"
 
 // variable bit depth (problem; how does the programmer set depth manually if Load interface is only common interface for assets?)
@@ -32,6 +33,10 @@ private:
 	bool       VerifyDimension(int dimension) const;
 	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlDirectory &p_filename);
+	void       Swizzle( void );
+	void       Pack( void ) {} // stores in SoA
+	void       Compress( void ); // uses Vector Quantization to compress
+	mglPixel32 DecodePixel(mglByte *in) const { return mglPixel32(); } // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
 	//bool       LoadVPZ(const mtlDirectory &p_filename); // [V]ector quantisized, [P]acked, [Z] order image (own format)
 
 public:
@@ -52,7 +57,8 @@ public:
 	void Free( void );
 
 	// take bpp into account when we change to variable bit depth
-	mglPixel32 GetPixelXY(int x, int y)     const { int index = (x & m_width_mask) + ((y & m_height_mask) << m_width_shift); return m_pixels[index]; }
+	mglPixel32 GetPixelXY(int x, int y)     const { return m_pixels[mtlEncodeMorton2(x & m_width_mask, y & m_height_mask)]; }
+	mglPixel32 GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
 	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
 	//void SetPixel(mglByte r, mglByte g, mglByte b, mglByte a = 0xff) {}
 

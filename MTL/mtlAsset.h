@@ -15,11 +15,11 @@ protected:
 	void SetError(const mtlChars &error) { m_error.Copy(error); }
 
 public:
-	virtual			~mtlAssetInterface( void ) {}
-	virtual bool	Load(const mtlDirectory &p_filename) = 0;
-	//virtual bool Save(const mtlDirectory &p_filename) = 0;
-	//virtual void Free( void ) = 0;
-	const mtlString	&GetError( void ) const { return m_error; }
+	virtual         ~mtlAssetInterface( void ) {}
+	virtual bool     Load(const mtlDirectory &p_filename) = 0;
+	//virtual bool   Save(const mtlDirectory &p_filename) = 0;
+	//virtual void   Free( void ) = 0;
+	const mtlString &GetError( void ) const { return m_error; }
 };
 
 template < typename type_t >
@@ -37,9 +37,9 @@ private:
 	{
 		mtlHash												hash;
 		mutable mtlShared< mtlList< mtlShared<Instance> > >	assets; // all assets with same hash
-		bool operator>(const mtlHash &h) const { return hash.value > h.value; }
-		bool operator==(const mtlHash &h) const { return hash.value == h.value; }
-		bool operator>(const AssetNode &n) const { return hash.value > n.hash.value; }
+		bool operator>(const mtlHash &h)    const { return hash.value > h.value; }
+		bool operator==(const mtlHash &h)   const { return hash.value == h.value; }
+		bool operator>(const AssetNode &n)  const { return hash.value > n.hash.value; }
 		bool operator==(const AssetNode &n) const { return hash.value == n.hash.value; }
 	};
 	static mtlBinaryTree<AssetNode> &GetAssetBank( void );
