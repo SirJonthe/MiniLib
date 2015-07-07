@@ -208,7 +208,7 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 	return true;
 }
 
-void mglTexture::Swizzle( void )
+void mglTexture::Swizzle_Z( void )
 {
 	const int area = GetArea();
 	if (area <= 0) { return; }
@@ -227,7 +227,7 @@ void mglTexture::Swizzle( void )
 	m_pixels = dst;
 }
 
-void mglTexture::Compress( void )
+void mglTexture::Compress_VQ( void )
 {
 
 }
@@ -289,7 +289,9 @@ bool mglTexture::Load(const mtlDirectory &p_filename)
 	}
 
 	if (ret_val) {
-		Swizzle();
+		Swizzle_Z();
+		Pack_SOA();
+		Compress_VQ();
 	} else {
 		mtlString error;
 		error.Copy(GetError());

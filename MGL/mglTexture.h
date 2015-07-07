@@ -33,9 +33,9 @@ private:
 	bool       VerifyDimension(int dimension) const;
 	mglPixel32 UnpackTGAPixel(unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlDirectory &p_filename);
-	void       Swizzle( void );
-	void       Pack( void ) {} // stores in SoA
-	void       Compress( void ); // uses Vector Quantization to compress
+	void       Swizzle_Z( void );
+	void       Pack_SOA( void ) {} // stores in SoA
+	void       Compress_VQ( void ); // uses Vector Quantization to compress
 	mglPixel32 DecodePixel(mglByte *in) const { return mglPixel32(); } // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
 	//bool       LoadVPZ(const mtlDirectory &p_filename); // [V]ector quantisized, [P]acked, [Z] order image (own format)
 

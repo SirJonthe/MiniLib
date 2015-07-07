@@ -95,6 +95,7 @@ inline float4 max(const float4 &a, const float4 &b);
 inline float4 aligned_load(const float *v);
 inline void unaligned_store(const float4 &f, float *v);
 inline void aligned_store(const float4 &f, float *v);
+inline float4 fabs(const float4 &a);
 
 }
 
@@ -681,6 +682,11 @@ void mpl::unaligned_store(const float4 &f, float *out)
 	out[2] = f.data.e[2];
 	out[3] = f.data.e[3];
 #endif
+}
+
+mpl::float4 mpl::fabs(const mpl::float4 &a)
+{
+	return mpl::max(-a, a);
 }
 
 #endif
