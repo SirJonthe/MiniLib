@@ -59,3 +59,7 @@
 		for
 
 #endif
+
+#if !defined(mplGCC_SSE) || !defined(mplGCC_NEON) || !defined(mplMSVC_SSE)
+	#warning Performance: No SIMD support for current platform/compiler. Using fallback scalar mode.
+#endif
