@@ -108,7 +108,11 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 
 	int bpp = header[PIXEL_DEPTH] / 8;
 
-	if (!Create((int)(*(unsigned short*)(header+IMAGE_WIDTH)), (int)(*(unsigned short*)(header+IMAGE_HEIGHT)))) {
+	mglPixelFormat fmt;
+	fmt.bytes_per_pixel = bpp;
+	fmt.color = (header[IMAGE_TYPE] == COMPRESSED_GRAYSCALE_IMAGE || header[IMAGE_TYPE] == UNCOMPRESSED_GRAYSCALE_IMAGE) ? mglPixelFormat::Color_Grayscale : mglPixelFormat::Color_Truecolor;
+
+	if (!Create((int)(*(unsigned short*)(header+IMAGE_WIDTH)), (int)(*(unsigned short*)(header+IMAGE_HEIGHT)), fmt)) {
 		return false;
 	}
 

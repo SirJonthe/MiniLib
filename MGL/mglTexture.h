@@ -15,15 +15,15 @@
 class mglTexture : public mtlAssetInterface
 {
 private:
-	mtlByte       *m_pixels;
-	int            m_width;
-	int            m_height;
-	int            m_width_mask;
-	int            m_height_mask;
-	int            m_width_shift;
-	int            m_height_shift;
-	mglPixelFormat m_format;
-	mtlString      m_format_str;
+	mtlByte        *m_pixels;
+	int             m_width;
+	int             m_height;
+	int             m_width_mask;
+	int             m_height_mask;
+	int             m_width_shift;
+	int             m_height_shift;
+	mglPixelFormat  m_format;
+	mtlString       m_format_str;
 
 private:
 	mglTexture(const mglTexture &) {}
@@ -60,11 +60,11 @@ public:
 
 	// take bpp into account when we change to variable bit depth
 	mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + mtlEncodeMorton2(x & m_width_mask, y & m_height_mask) * m_format.bytes_per_pixel); }
+	//mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + (x + y * m_width) * m_format.bytes_per_pixel); }
 	mglPixel32 GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
 	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
 
 	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
-	//void SetPixelFormat(mglPixelFormat format, mglByteOrder32 order);
 
 	const char *Debug_GetFormatString( void ) const { return m_format_str.GetChars(); }
 };
