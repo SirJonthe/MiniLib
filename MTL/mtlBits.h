@@ -93,7 +93,10 @@ inline unsigned int mtlDecodeMorton3Z(unsigned long long code)
 }
 
 template < typename type_t >
-type_t mtlReadBit(type_t in_bits, unsigned int i) { return in_bits & (1 << i); }
+inline type_t mtlReadBit(type_t in_bits, unsigned int i) { return in_bits & (1 << i); }
+
+template < typename type_t >
+inline bool mtlGetBitState(type_t in_bits, unsigned int i) { return bool(mtlReadBit(in_bits, i) >> i); }
 
 template < typename type_t >
 inline type_t mtlSetBit(unsigned int i, bool state) { return (((type_t)state) << i); }

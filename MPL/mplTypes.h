@@ -101,6 +101,8 @@ inline void   unaligned_store(const float4 &f, float *v);
 inline void   aligned_store(const float4 &f, float *v);
 inline float4 fabs(const float4 &f);
 inline float4 round(const float4 &f);
+inline float4 floor(const float4 &f);
+inline float4 ceil(const float4 &f);
 
 }
 
@@ -716,11 +718,6 @@ void mpl::unaligned_store(const float4 &f, float *out)
 mpl::float4 mpl::fabs(const mpl::float4 &f)
 {
 	return mpl::max(-f, f);
-}
-
-mpl::float4 mpl::round(const float4 &f)
-{
-	return float4(int4(f + float4(0.5f)));
 }
 
 namespace mpl
@@ -1569,6 +1566,21 @@ mpl::float4::float4(const int *v)
 mpl::float4::float4(const int *v, int stride)
 {
 	*this = float4(int4(v, stride));
+}
+
+mpl::float4 mpl::round(const float4 &f)
+{
+	return float4(int4(f + 0.5f));
+}
+
+mpl::float4 mpl::floor(const mpl::float4 &f)
+{
+	return float4(int4(f + float(1<<15)) - int4(1<<15));
+}
+
+mpl::float4 mpl::ceil(const mpl::float4 &f)
+{
+	return float4(int4(1<<15) - int4(float4(float(1<<15)) - f));
 }
 
 mpl::int4::int4(const mpl::int4 &r)
