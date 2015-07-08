@@ -275,7 +275,7 @@ void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_w
 		for (int j = 0; j < char_height; ++j) {
 			for (int i = 0; i < char_width; ++i) {
 				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i, ch_y + j);
-				*dst.GetPixelXY(x + i, y + j) |= mglRGB(bit & r, bit & g, bit & b, dst.GetByteOrder());
+				dst.GetPixelXY(x + i, y + j)->color |= mglRGB(bit & r, bit & g, bit & b, dst.GetByteOrder()).color;
 			}
 		}
 
