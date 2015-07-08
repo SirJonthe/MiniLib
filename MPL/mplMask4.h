@@ -6,8 +6,8 @@
 namespace mpl
 {
 
-	class int4;
-	class float4;
+class int4;
+class float4;
 
 #if mplCompiler == mplMSVC
 	#if defined(mplMSVC_SSE)
@@ -28,7 +28,7 @@ private:
 #elif defined(mplGCC_NEON)
 		uint32x4_t reg;
 #endif
-		int e[4];
+		unsigned int e[4];
 	} data;
 
 public:
@@ -91,7 +91,7 @@ mpl::mask4::mask4(unsigned int a, unsigned int b, unsigned int c, unsigned int d
 #endif
 }
 
-mpl::uint4::uint4(unsigned int abcd)
+mpl::mask4::mask4(unsigned int abcd)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	data.reg = _mm_set1_epi32(abcd);
@@ -103,7 +103,7 @@ mpl::uint4::uint4(unsigned int abcd)
 #endif
 }
 
-mpl::uint4::uint4(const unsigned int *v)
+mpl::mask4::mask4(const unsigned int *v)
 {
 	// No SSE instructions for integer loads (maybe reinterpret cast to float?)
 #if defined(mplGCC_NEON)
@@ -116,7 +116,7 @@ mpl::uint4::uint4(const unsigned int *v)
 #endif
 }
 
-mpl::uint4::uint4(const unsigned int *v, int stride)
+mpl::mask4::mask4(const unsigned int *v, int stride)
 {
 	data.e[0] = *v;
 	v += stride;
@@ -128,7 +128,7 @@ mpl::uint4::uint4(const unsigned int *v, int stride)
 	// NEON has instructions for this?
 }
 
-mpl::uint4 &mpl::uint4::operator =(const mpl::uint4 &r)
+mpl::mask4 &mpl::mask4::operator =(const mpl::mask4 &r)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE) || defined(mplGCC_NEON)
 	data.reg = r.data.reg;
@@ -141,175 +141,12 @@ mpl::uint4 &mpl::uint4::operator =(const mpl::uint4 &r)
 	return *this;
 }
 
-mpl::uint4 &mpl::uint4::operator +=(const mpl::uint4 &r)
-{
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	data.reg = _mm_add_epu32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	data.reg = vaddq_s32(data.reg, r.data.reg);
-#else
-	data.e[0] += r.data.e[0];
-	data.e[1] += r.data.e[1];
-	data.e[2] += r.data.e[2];
-	data.e[3] += r.data.e[3];
-#endif
-	return *this;
-}
-
-mpl::int4 &mpl::int4::operator -=(const mpl::int4 &r)
-{
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	data.reg = _mm_sub_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	data.reg = vsubq_s32(data.reg, r.data.reg);
-#else
-	data.e[0] -= r.data.e[0];
-	data.e[1] -= r.data.e[1];
-	data.e[2] -= r.data.e[2];
-	data.e[3] -= r.data.e[3];
-#endif
-	return *this;
-}
-
-mpl::int4 &mpl::int4::operator *=(const mpl::int4 &r)
-{
-#if defined(mplGCC_NEON)
-	data.reg = vmulq_s32(data.reg, r.data.reg);
-#else
-	data.e[0] *= r.data.e[0];
-	data.e[1] *= r.data.e[1];
-	data.e[2] *= r.data.e[2];
-	data.e[3] *= r.data.e[3];
-#endif
-	return *this;
-}
-
-mpl::int4 &mpl::int4::operator /=(const mpl::int4 &r)
-{
-	// No SSE/NEON for this
-	data.e[0] /= r.data.e[0];
-	data.e[1] /= r.data.e[1];
-	data.e[2] /= r.data.e[2];
-	data.e[3] /= r.data.e[3];
-	return *this;
-}
-
-mpl::int4 &mpl::int4::operator *=(int r)
-{
-#if defined(mplGCC_NEON)
-	data.reg = vmulq_n_s32(data.reg, r);
-#else
-	data.e[0] *= r;
-	data.e[1] *= r;
-	data.e[2] *= r;
-	data.e[3] *= r;
-#endif
-	return *this;
-}
-
-mpl::int4 &mpl::int4::operator /=(int r)
-{
-	// no SSE/NEON for this?
-	data.e[0] /= r;
-	data.e[1] /= r;
-	data.e[2] /= r;
-	data.e[3] /= r;
-	return *this;
-}
-
-mpl::int4 mpl::int4::operator +(const mpl::int4 &r) const
-{
-	int4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_add_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vaddq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] + r.data.e[0];
-	i.data.e[1] = data.e[1] + r.data.e[1];
-	i.data.e[2] = data.e[2] + r.data.e[2];
-	i.data.e[3] = data.e[3] + r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator -(const mpl::int4 &r) const
-{
-	int4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_sub_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vsubq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] - r.data.e[0];
-	i.data.e[1] = data.e[1] - r.data.e[1];
-	i.data.e[2] = data.e[2] - r.data.e[2];
-	i.data.e[3] = data.e[3] - r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator -( void ) const
-{
-	return int4(0) - *this;
-}
-
-mpl::int4 mpl::int4::operator *(const mpl::int4 &r) const
-{
-	int4 i;
-#if defined(mplGCC_NEON)
-	i.data.reg = vmulq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] * r.data.e[0];
-	i.data.e[1] = data.e[1] * r.data.e[1];
-	i.data.e[2] = data.e[2] * r.data.e[2];
-	i.data.e[3] = data.e[3] * r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator /(const mpl::int4 &r) const
-{
-	// No SSE/NEON for this?
-	int4 i;
-	i.data.e[0] = data.e[0] / r.data.e[0];
-	i.data.e[1] = data.e[1] / r.data.e[1];
-	i.data.e[2] = data.e[2] / r.data.e[2];
-	i.data.e[3] = data.e[3] / r.data.e[3];
-	return i;
-}
-
-mpl::int4 mpl::int4::operator *(int r) const
-{
-	int4 i;
-#if defined(mplGCC_NEON)
-	i.data.reg = vmulq_n_s32(data.reg, r);
-#else
-	i.data.e[0] = data.e[0] * r;
-	i.data.e[1] = data.e[1] * r;
-	i.data.e[2] = data.e[2] * r;
-	i.data.e[3] = data.e[3] * r;
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator /(int r) const
-{
-	// No SSE/NEON for this?
-	int4 i;
-	i.data.e[0] = data.e[0] / r;
-	i.data.e[1] = data.e[1] / r;
-	i.data.e[2] = data.e[2] / r;
-	i.data.e[3] = data.e[3] / r;
-	return i;
-}
-
-mpl::int4 &mpl::int4::operator &=(const int4 &r)
+mpl::mask4 &mpl::mask4::operator &=(const mask4 &r)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	data.reg = _mm_and_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = vandq_s32(data.reg, r.data.reg);
+	data.reg = vandq_u32(data.reg, r.data.reg);
 #else
 	data.e[0] &= r.data.e[0];
 	data.e[1] &= r.data.e[1];
@@ -319,12 +156,12 @@ mpl::int4 &mpl::int4::operator &=(const int4 &r)
 	return *this;
 }
 
-mpl::int4 &mpl::int4::operator |=(const int4 &r)
+mpl::mask4 &mpl::mask4::operator |=(const mask4 &r)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	data.reg = _mm_or_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = vorrq_s32(data.reg, r.data.reg);
+	data.reg = vorrq_u32(data.reg, r.data.reg);
 #else
 	data.e[0] |= r.data.e[0];
 	data.e[1] |= r.data.e[1];
@@ -334,12 +171,12 @@ mpl::int4 &mpl::int4::operator |=(const int4 &r)
 	return *this;
 }
 
-mpl::int4 &mpl::int4::operator ^=(const int4 &r)
+mpl::mask4 &mpl::mask4::operator ^=(const mask4 &r)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	data.reg = _mm_xor_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	data.reg = veorq_s32(data.reg, r.data.reg);
+	data.reg = veorq_u32(data.reg, r.data.reg);
 #else
 	data.e[0] ^= r.data.e[0];
 	data.e[1] ^= r.data.e[1];
@@ -349,7 +186,7 @@ mpl::int4 &mpl::int4::operator ^=(const int4 &r)
 	return *this;
 }
 
-mpl::int4 &mpl::int4::operator <<=(const int4 &r)
+mpl::mask4 &mpl::mask4::operator <<=(const mask4 &r)
 {
 	// Determine what shift mode to use
 //#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
@@ -363,7 +200,7 @@ mpl::int4 &mpl::int4::operator <<=(const int4 &r)
 	return *this;
 }
 
-mpl::int4 &mpl::int4::operator >>=(const int4 &r)
+mpl::mask4 &mpl::mask4::operator >>=(const mask4 &r)
 {
 	// Determine what shift mode to use
 //#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
@@ -377,13 +214,13 @@ mpl::int4 &mpl::int4::operator >>=(const int4 &r)
 	return *this;
 }
 
-mpl::int4 mpl::int4::operator &(const int4 &r) const
+mpl::mask4 mpl::mask4::operator &(const mask4 &r) const
 {
-	int4 i;
+	mask4 i;
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	i.data.reg = _mm_and_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	i.data.reg = vandq_s32(data.reg, r.data.reg);
+	i.data.reg = vandq_u32(data.reg, r.data.reg);
 #else
 	i.data.e[0] = data.e[0] & r.data.e[0];
 	i.data.e[1] = data.e[1] & r.data.e[1];
@@ -393,13 +230,13 @@ mpl::int4 mpl::int4::operator &(const int4 &r) const
 	return i;
 }
 
-mpl::int4 mpl::int4::operator |(const int4 &r) const
+mpl::mask4 mpl::mask4::operator |(const mask4 &r) const
 {
-	int4 i;
+	mask4 i;
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	i.data.reg = _mm_or_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	i.data.reg = vorrq_s32(data.reg, r.data.reg);
+	i.data.reg = vorrq_u32(data.reg, r.data.reg);
 #else
 	i.data.e[0] = data.e[0] | r.data.e[0];
 	i.data.e[1] = data.e[1] | r.data.e[1];
@@ -409,13 +246,13 @@ mpl::int4 mpl::int4::operator |(const int4 &r) const
 	return i;
 }
 
-mpl::int4 mpl::int4::operator ^(const int4 &r) const
+mpl::mask4 mpl::mask4::operator ^(const mask4 &r) const
 {
-	int4 i;
+	mask4 i;
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	i.data.reg = _mm_xor_si128(data.reg, r.data.reg);
 #elif defined(mplGCC_NEON)
-	i.data.reg = veorq_s32(data.reg, r.data.reg);
+	i.data.reg = veorq_u32(data.reg, r.data.reg);
 #else
 	i.data.e[0] = data.e[0] ^ r.data.e[0];
 	i.data.e[1] = data.e[1] ^ r.data.e[1];
@@ -425,61 +262,13 @@ mpl::int4 mpl::int4::operator ^(const int4 &r) const
 	return i;
 }
 
-mpl::int4 mpl::int4::operator &(const uint4 &r) const
+mpl::mask4 mpl::mask4::operator ~( void ) const
 {
-	int4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_and_si128(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vandq_s32(data.reg, *(int32x4)(&r.data.reg));
-#else
-	i.data.e[0] = data.e[0] & r.data.e[0];
-	i.data.e[1] = data.e[1] & r.data.e[1];
-	i.data.e[2] = data.e[2] & r.data.e[2];
-	i.data.e[3] = data.e[3] & r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator |(const uint4 &r) const
-{
-	int4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_or_si128(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vorrq_s32(data.reg, *(int32x4)(&r.data.reg));
-#else
-	i.data.e[0] = data.e[0] | r.data.e[0];
-	i.data.e[1] = data.e[1] | r.data.e[1];
-	i.data.e[2] = data.e[2] | r.data.e[2];
-	i.data.e[3] = data.e[3] | r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator ^(const uint4 &r) const
-{
-	int4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_xor_si128(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = veorq_s32(data.reg, *(int32x4)(&r.data.reg));
-#else
-	i.data.e[0] = data.e[0] ^ r.data.e[0];
-	i.data.e[1] = data.e[1] ^ r.data.e[1];
-	i.data.e[2] = data.e[2] ^ r.data.e[2];
-	i.data.e[3] = data.e[3] ^ r.data.e[3];
-#endif
-	return i;
-}
-
-mpl::int4 mpl::int4::operator ~( void ) const
-{
-	int4 i;
+	mask4 i;
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	i.data.reg = _mm_andnot_si128(data.reg, _mm_set1_epi32(-1));
 #elif defined(mplGCC_NEON)
-	i.data.reg = vmvnq_s32(data.reg);
+	i.data.reg = vmvnq_u32(data.reg);
 #else
 	i.data.e[0] = ~data.e[0];
 	i.data.e[1] = ~data.e[1];
@@ -489,10 +278,10 @@ mpl::int4 mpl::int4::operator ~( void ) const
 	return i;
 }
 
-mpl::int4 mpl::int4::operator <<(const int4 &r) const
+mpl::mask4 mpl::mask4::operator <<(const mask4 &r) const
 {
 	// Determine what shift mode to use
-	int4 i;
+	mask4 i;
 //#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 //#elif defined(mplGCC_NEON)
 //#else
@@ -504,10 +293,10 @@ mpl::int4 mpl::int4::operator <<(const int4 &r) const
 	return i;
 }
 
-mpl::int4 mpl::int4::operator >>(const int4 &r) const
+mpl::mask4 mpl::mask4::operator >>(const mask4 &r) const
 {
 	// Determine what shift mode to use
-	int4 i;
+	mask4 i;
 //#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 //#elif defined(mplGCC_NEON)
 //#else
@@ -516,102 +305,6 @@ mpl::int4 mpl::int4::operator >>(const int4 &r) const
 	i.data.e[2] = data.e[2] >> r.data.e[2];
 	i.data.e[3] = data.e[3] >> r.data.e[3];
 //#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator ==(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_cmpeq_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vceqq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] == r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] == r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] == r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] == r.data.e[3] ? 0xffffffff : 0x0;
-#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator !=(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_andnot_si128(_mm_cmpeq_epi8(data.reg, r.data.reg), _mm_set1_epi32(-1));
-#elif defined(mplGCC_NEON)
-	i.data.reg = vmvnq_s32(vceqq_s32(data.reg, r.data.reg));
-#else
-	i.data.e[0] = data.e[0] != r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] != r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] != r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] != r.data.e[3] ? 0xffffffff : 0x0;
-#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator >=(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_and_si128(_mm_cmpgt_epi32(data.reg, r.data.reg), _mm_set1_epi32(data.reg, r.data.reg));
-#elif defined(mplGCC_NEON)
-	i.data.reg = vcgeq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] >= r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] >= r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] >= r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] >= r.data.e[3] ? 0xffffffff : 0x0;
-#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator <=(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_and_si128(_mm_cmplt_epi32(data.reg, r.data.reg), _mm_cmpeq_epi32(data.reg, r.data.reg));
-#elif defined(mplGCC_NEON)
-	i.data.reg = vcleq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] <= r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] <= r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] <= r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] <= r.data.e[3] ? 0xffffffff : 0x0;
-#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator >(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_cmpgt_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vcgtq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] > r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] > r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] > r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] > r.data.e[3] ? 0xffffffff : 0x0;
-#endif
-	return i;
-}
-
-mpl::uint4 mpl::int4::operator >=(const int4 &r) const
-{
-	uint4 i;
-#if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
-	i.data.reg = _mm_cmplt_epi32(data.reg, r.data.reg);
-#elif defined(mplGCC_NEON)
-	i.data.reg = vcltq_s32(data.reg, r.data.reg);
-#else
-	i.data.e[0] = data.e[0] < r.data.e[0] ? 0xffffffff : 0x0;
-	i.data.e[1] = data.e[1] < r.data.e[1] ? 0xffffffff : 0x0;
-	i.data.e[2] = data.e[2] < r.data.e[2] ? 0xffffffff : 0x0;
-	i.data.e[3] = data.e[3] < r.data.e[3] ? 0xffffffff : 0x0;
-#endif
 	return i;
 }
 

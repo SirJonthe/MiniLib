@@ -44,7 +44,7 @@
 #endif
 
 // let user include OpenMP herself (headers are not needed even if we use pragma directives)
-
+//#include <omp.h>
 
 // a for loop that is optionally threaded (I think declaring directives inside macro might be undefined in C/C++, so this might not work)
 #ifdef _OPENMP
@@ -63,3 +63,5 @@
 #if !defined(mplGCC_SSE) || !defined(mplGCC_NEON) || !defined(mplMSVC_SSE)
 	#warning Performance: No SIMD support for current platform/compiler. Using fallback scalar mode.
 #endif
+
+#endif // MPL_COMMON_H_INCLUDED__

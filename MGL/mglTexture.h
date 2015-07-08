@@ -5,12 +5,9 @@
 #include "../MTL/mtlBits.h"
 #include "mglPixel.h"
 
-// variable bit depth (problem; how does the programmer set depth manually if Load interface is only common interface for assets?)
 // SIMD (RGBA SoA)
+	// Unsure how this will benefit random access (Mostly benefits pixel manipulation)
 // compression (vector quantization)
-// z order swizzle
-// device independent by default (i.e. red in byte index 0, green in byte index 1, etc.) (same problem as bit depth)
-// unpack pixels on access
 // dithering to remove vector quantization artifacts?
 class mglTexture : public mtlAssetInterface
 {
@@ -60,11 +57,12 @@ public:
 
 	// take bpp into account when we change to variable bit depth
 	mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + mtlEncodeMorton2(x & m_width_mask, y & m_height_mask) * m_format.bytes_per_pixel); }
-	//mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + (x + y * m_width) * m_format.bytes_per_pixel); }
 	mglPixel32 GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
 	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
 
-	mglPixelFormat GetPixelFormat( void ) const { return m_format; }
+	mglPixelFormat        GetPixelFormat( void )   const { return m_format; }
+	int                   GetBytesPerPixel( void ) const { return m_format.bytes_per_pixel; }
+	mglPixelFormat::Color GetColorMode( void )     const { return m_format.color; }
 
 	const char *Debug_GetFormatString( void ) const { return m_format_str.GetChars(); }
 };

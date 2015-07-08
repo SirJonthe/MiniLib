@@ -4,21 +4,22 @@
 #include "mglPixel.h"
 #include "../MTL/mtlAsset.h"
 
-// KNOWN BUGS:
-	// TGA reader can't load compressed 16-bit grayscale images (Chunk size exceeds pixel count)
-	// TGA reader can't load compressed 24-bit truecolor images (Chunk size exceeds pixel count)
-
 // no size constraints
 // always 32-bit RGBA
 // linear access
-// custom
+// custom byte order
+// SIMD SoA for fast pixel manipulation?
+// mglImage loads TGA (not mglTexture which only loads PQZ)
+// mglImage can convert to PQZ (since this is a very expensive operation, minutes)
+	// lossy compression
+	// decide how to handle non 2^n images
 class mglImage : public mtlAssetInterface
 {
 private:
-	mglPixel32    *m_pixels;
-	mglByteOrder32 m_order;
-	int            m_width;
-	int            m_height;
+	mglPixel32     *m_pixels;
+	mglByteOrder32  m_order;
+	int             m_width;
+	int             m_height;
 
 private:
 	mglImage(const mglImage&) {}
@@ -36,7 +37,7 @@ public:
 	int GetHeight( void ) const { return m_height; }
 	int GetArea( void )   const { return m_width*m_height; }
 
-	mglPixelFormat::Color GetColorMode( void ) const     { return mglPixelFormat::Color_Truecolor; }
+	mglPixelFormat::Color GetColorMode( void )     const { return mglPixelFormat::Color_Truecolor; }
 	int                   GetBytesPerPixel( void ) const { return 4; }
 
 	mglByteOrder32 GetByteOrder( void ) const                  { return m_order; }
