@@ -99,7 +99,8 @@ inline float4 max(const float4 &a, const float4 &b);
 inline float4 aligned_load(const float *v);
 inline void   unaligned_store(const float4 &f, float *v);
 inline void   aligned_store(const float4 &f, float *v);
-inline float4 fabs(const float4 &a);
+inline float4 fabs(const float4 &f);
+inline float4 round(const float4 &f);
 
 }
 
@@ -712,9 +713,14 @@ void mpl::unaligned_store(const float4 &f, float *out)
 #endif
 }
 
-mpl::float4 mpl::fabs(const mpl::float4 &a)
+mpl::float4 mpl::fabs(const mpl::float4 &f)
 {
-	return mpl::max(-a, a);
+	return mpl::max(-f, f);
+}
+
+mpl::float4 mpl::round(const float4 &f)
+{
+	return float4(int4(f + float4(0.5f)));
 }
 
 namespace mpl
@@ -817,6 +823,8 @@ public:
 inline int4 aligned_load(const int *v);
 inline void unaligned_store(const int4 &i, int *out);
 inline void aligned_store(const int4 &i, int *out);
+inline int4 min(const int4 &a, const int4 &b);
+inline int4 max(const int4 &a, const int4 &b);
 
 }
 
@@ -1509,6 +1517,34 @@ void mpl::aligned_store(const mpl::int4 &i, int *out)
 	out[2] = i.data.e[2];
 	out[3] = i.data.e[3];
 #endif
+}
+
+mpl::int4 mpl::min(const mpl::int4 &a, const mpl::int4 &b)
+{
+	int4 out;
+#if defined(mplGCC_NEON)
+	out.data.reg = vminq_s32(a.data.reg, b.data.reg);
+#else
+	out[0] = a[0] < b[0] ? a[0] : b[0];
+	out[1] = a[1] < b[1] ? a[1] : b[1];
+	out[2] = a[2] < b[2] ? a[2] : b[2];
+	out[3] = a[3] < b[3] ? a[3] : b[3];
+#endif
+	return out;
+}
+
+mpl::int4 mpl::max(const mpl::int4 &a, const mpl::int4 &b)
+{
+	int4 out;
+#if defined(mplGCC_NEON)
+	out.data.reg = vmaxq_s32(a.data.reg, b.data.reg);
+#else
+	out[0] = a[0] > b[0] ? a[0] : b[0];
+	out[1] = a[1] > b[1] ? a[1] : b[1];
+	out[2] = a[2] > b[2] ? a[2] : b[2];
+	out[3] = a[3] > b[3] ? a[3] : b[3];
+#endif
+	return out;
 }
 
 mpl::float4::float4(const mpl::int4 &i)
