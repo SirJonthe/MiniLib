@@ -35,7 +35,7 @@ enum TGA_SupportedPixelDepth
 
 bool mglTexture::VerifyDimension(int p_dimension) const
 {
-	return p_dimension >= 4  && mmlIsPow2((unsigned int)p_dimension);
+	return p_dimension >= 0x4 && p_dimension <= 0xffff && mmlIsPow2((unsigned int)p_dimension);
 }
 
 void mglTexture::UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, int bpp, int type) const
@@ -229,9 +229,29 @@ void mglTexture::Swizzle_Z( void )
 }
 
 // Super duper slow?
-void mglTexture::Compress_VQ( void )
+void mglTexture::Compress_VQ(const mtlByte *pixels, int total_size)
 {
+	if (total_size <= 1) { return; }
 
+	// allocate node?
+
+	unsigned long long r = 0, g = 0, b = 0, a = 0;
+
+	for (int i = 0; i < total_size; i += m_format.bytes_per_pixel) {
+		mglPixel32 p = DecodePixel(pixels+i);
+		r += p.bytes[0];
+		g += p.bytes[1];
+		b += p.bytes[2];
+		a += p.bytes[3];
+	}
+	mglPixel32 center;
+	center.bytes[0] = r / total_size;
+	center.bytes[1] = g / total_size;
+	center.bytes[2] = b / total_size;
+	center.bytes[3] = a / total_size;
+
+	// Compress_VQ(pixels, total_size >> 1, node);
+	// Compress_VQ(pixels + (total_size >> 1), total_size >> 1, node);
 }
 
 mglPixel32 mglTexture::DecodePixel(const mtlByte *in) const
@@ -355,7 +375,7 @@ bool mglTexture::Load(const mtlDirectory &p_filename)
 		if (!native_load) {
 			Swizzle_Z();
 			Pack_SOA();
-			Compress_VQ();
+			Compress_VQ(m_pixels, GetArea() * m_format.bytes_per_pixel);
 		}
 	} else {
 		mtlString error;

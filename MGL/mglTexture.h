@@ -8,9 +8,19 @@
 // SIMD (RGBA SoA)
 	// Unsure how this will benefit random access (Mostly benefits pixel manipulation)
 // compression (vector quantization)
+// compression (YUV)
+	// requires decompression to RGBA by multiplying YUV color by 3x3 matrix
 // dithering to remove vector quantization artifacts?
 class mglTexture : public mtlAssetInterface
 {
+private:
+	struct CodeNode // don't know if this is correct
+	{
+		mglPixel32 codes[0xff];
+		CodeNode *left;
+		CodeNode *right;
+	};
+
 private:
 	mtlByte        *m_pixels;
 	int             m_width;
@@ -32,7 +42,7 @@ private:
 	bool       LoadPQZ(const mtlDirectory &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
 	void       Swizzle_Z( void );
 	void       Pack_SOA( void ) {} // stores in SoA
-	void       Compress_VQ( void ); // uses Vector Quantization to compress (super duper slow???)
+	void       Compress_VQ(const mtlByte *pixels, int total_size); // uses Vector Quantization to compress (super duper slow???)
 	mglPixel32 DecodePixel(const mtlByte *in) const; // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
 	//void       EncodePixel(mglPixel32 in, mtlByte *out); // set the color of a pixel
 
