@@ -73,6 +73,7 @@ public:
 	mglPixelFormat        GetPixelFormat( void )   const { return m_format; }
 	int                   GetBytesPerPixel( void ) const { return m_format.bytes_per_pixel; }
 	mglPixelFormat::Color GetColorMode( void )     const { return m_format.color; }
+	static mglByteOrder32 GetByteOrder( void );
 
 	const char *Debug_GetFormatString( void ) const { return m_format_str.GetChars(); }
 };

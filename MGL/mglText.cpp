@@ -244,15 +244,18 @@ unsigned char mglExtractStencilBit(const unsigned char *stencil_bits, int num_bi
 	stencil_bits += y * (num_bits_width >> 3);
 	stencil_bits += x >> 3;
 	unsigned char bit = mtlReadBit(*stencil_bits, x & 7);
-	return bit != 0 ? 1 : 0;
+	return bit != 0 ? 0x0 : 0xff;
 }
 
-void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mglImage &dst, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, unsigned char *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	// implement with no scaling at first
 
+	if (dst_bpp != 3 && dst_bpp != 4) { return; }
+
 	int screen_x = x;
 	int screen_y = y;
+	unsigned char *dst0 = dst;
 
 	for (int t_i = 0; t_i < text.GetSize(); ++t_i) {
 		char ch = text[t_i];
@@ -272,41 +275,77 @@ void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_w
 		int ch_x = (ch_index % char_count_width) * char_width;
 		int ch_y = (ch_index / char_count_width) * char_height;
 
-		for (int j = 0; j < char_height; ++j) {
-			for (int i = 0; i < char_width; ++i) {
+		int start_i = screen_x < 0 ? -screen_x : 0;
+		int start_j = screen_y < 0 ? -screen_y : 0;
+		int end_i   = (screen_x + char_width)  >= dst_w ? char_width  - (dst_w - (screen_x + char_width))  : char_width;
+		int end_j   = (screen_y + char_height) >= dst_h ? char_height - (dst_h - (screen_y + char_height)) : char_height;
+
+		for (int j = start_j; j < end_j; ++j) {
+			dst = dst0 + (screen_x + (screen_y + j) * dst_w) * dst_bpp;
+			for (int i = start_i; i < end_i; ++i) {
 				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i, ch_y + j);
-				dst.GetPixelXY(x + i, y + j)->color |= mglRGB(bit & r, bit & g, bit & b, dst.GetByteOrder()).color;
+				dst[dst_order.index.r] |= (bit & r);
+				dst[dst_order.index.g] |= (bit & g);
+				dst[dst_order.index.b] |= (bit & b);
+				dst += dst_bpp;
 			}
 		}
-
 		screen_x += char_width;
 	}
 }
 
-void mglTextBig(const mtlChars &text, mglImage &dst, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+void mglTextBig(const mtlChars &text, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	mglText(
 		text,
 		font_big_bits, font_big_width,
 		font_big_char_count_width,
 		font_big_char_width_px, font_big_char_height_px,
-		dst,
+		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
 		x, y,
 		r, g, b,
 		scale
 	);
 }
 
-void mglTextSmall(const mtlChars &text, mglImage &dst, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+void mglTextBig(int num, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mtlString text;
+	text.FromInt(num);
+	mglTextBig(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
+}
+
+void mglTextBig(float num, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mtlString text;
+	text.FromFloat(num);
+	mglTextBig(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
+}
+
+void mglTextSmall(const mtlChars &text, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	mglText(
 		text,
 		font_small_bits, font_small_width,
 		font_small_char_count_width,
 		font_small_char_width_px, font_small_char_height_px,
-		dst,
+		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
 		x, y,
 		r, g, b,
 		scale
 	);
+}
+
+void mglTextSmall(int num, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mtlString text;
+	text.FromInt(num);
+	mglTextSmall(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
+}
+
+void mglTextSmall(float num, unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mtlString text;
+	text.FromFloat(num);
+	mglTextSmall(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
 }

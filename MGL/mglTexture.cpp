@@ -400,3 +400,13 @@ void mglTexture::Free( void )
 	SetError("");
 	m_format_str.Copy("");
 }
+
+mglByteOrder32 mglTexture::GetByteOrder( void )
+{
+	mglByteOrder32 byte_order;
+	byte_order.index.r = 0;
+	byte_order.index.g = 1;
+	byte_order.index.b = 2;
+	byte_order.index.a = 3;
+	return byte_order;
+}
