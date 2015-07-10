@@ -11,25 +11,21 @@
     <h2><a name="MTL">MTL, the minimal template library</a></h2>
     <h3>About</h3>
     <p>MTL is a non-intrusive template library designed to provide many of the
-      more
-      common algorithms and data structures used in C++.</p>
+      more common algorithms and data structures used in C++.</p>
     <h3>General design</h3>
     <p>MTL uses syntactic salt for many copy operations by disabling copy
       constructors and assignment operators in favor of a explicit Copy
       function.</p>
     <p>MTL does not use namespaces. Needless :: accessors will only serve to
-      make
-      code more difficult to read, while at the same time providing incentive
-      for
-      programmers to use the "using" directive to circumvent the namespace
-      alltogether, which is bad coding style. As such, MTL naming will always
-      begin
-      with mtl* as part of the class/function/variable/etc. name itself. Even
-      publicly available nested classes are avoided for the sake of readability.
-      The
-      code generally uses CamelCase.</p>
+      make code more difficult to read, while at the same time providing
+      incentive for programmers to use the "using" directive to circumvent the
+      namespace alltogether, which is bad coding style. As such, MTL naming will
+      always begin with mtl* as part of the class/function/variable/etc. name
+      itself. Even publicly available nested classes are avoided for the sake of
+      readability. The code generally uses CamelCase.</p>
     <h3>Classes</h3>
     <h4><a name="mtlArray" id="mtlArray">mtlArray</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <dl>
       <dd>A dynamically sized array of custom data type with memory pooling.
@@ -40,93 +36,71 @@
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>mtlArray()</em></p>
     <p style="margin-left:4em">Memory is initialized to zero. Pooling is enabled
-      by
-      default.</p>
+      by default.</p>
     <p style="margin-left:2em;"><em>mtlArray(int size)</em></p>
     <p style="margin-left:4em">Memory is allocated corresponding to the
-      requested
-      size. Pooling is enabled by default.</p>
+      requested size. Pooling is enabled by default.</p>
     <p style="margin-left:2em;"><em>~mtlArray()</em></p>
     <p style="margin-left:4em">Memory is deleted regardless of pooling options.</p>
     <p style="margin-left:2em;"><em>void Add(const type &amp;value)</em></p>
     <p style="margin-left:4em">Resizes the array by one and adds the specified
       input value last in the array. Note that if the resizing operation exceeds
-      the
-      memory pool limit then new memory is allocated and the old memory is
-      copied to
-      the new location.</p>
+      the memory pool limit then new memory is allocated and the old memory is
+      copied to the new location.</p>
     <p style="margin-left:2em;"><em>int BinarySearch(const type &amp;value)</em></p>
     <p style="margin-left:4em">Returns the index of the input value in the
-      array.
-      Requires the array to be sorted beforehand. Returns negative index if
-      value is
-      not found.</p>
+      array. Requires the array to be sorted beforehand. Returns negative index
+      if value is not found.</p>
     <p style="margin-left:2em;"><em>void Copy(const mtlArray &amp;array)</em></p>
     <p style="margin-left:4em">Creates new memory of appropriate size and copies
       the specified input array to the calling array. Retains memory pool size
-      and
-      does not reallocate memory unless necessary.</p>
+      and does not reallocate memory unless necessary.</p>
     <p style="margin-left:2em;"><em>void Copy(const mtlArray &amp;array, int
-        begin,
-        int end = -1)</em></p>
-    <p style="margin-left:4em">Creates new memory of appropriate size (size =
-      <em>end</em> - <em>begin</em>) and copies the specified segment of the
-      input
-      array to the calling array. <em>begin</em> and <em>end</em> are indices
-      to the
+        begin, int end = -1)</em></p>
+    <p style="margin-left:4em">Creates new memory of appropriate size (size = <em>end</em>
+      - <em>begin</em>) and copies the specified segment of the input array to
+      the calling array. <em>begin</em> and <em>end</em> are indices to the
       start and end values of the input array to be copied. When <em>end</em>
-      is
-      negative, <em>end</em> is set to <em>array.GetSize()</em>. The
-      programmer is
-      responsible to make sure that the indices are in range (besides <em>end</em>
-      being negative). Retains memory pool size and does not reallocate memory
-      unless
-      necessary.</p>
+      is negative, <em>end</em> is set to <em>array.GetSize()</em>. The
+      programmer is responsible to make sure that the indices are in range
+      (besides <em>end</em> being negative). Retains memory pool size and does
+      not reallocate memory unless necessary.</p>
     <p style="margin-left:2em;"><em>void Create(int size)</em></p>
     <p style="margin-left:4em">Creates new memory of appropriate size. If
-      pooling
-      is enabled new memory is only allocated if the requested size exceeds the
-      pool
-      size. Otherwise new memory is located and allocated. If pooling is not
-      enabled
-      new memory is always allocated.</p>
+      pooling is enabled new memory is only allocated if the requested size
+      exceeds the pool size. Otherwise new memory is located and allocated. If
+      pooling is not enabled new memory is always allocated.</p>
     <p style="margin-left:2em;"><em>void Free()</em></p>
     <p style="margin-left:4em">If pooling is disabled, the memory is freed,
-      array
-      size is set to zero, and pointers are set to null. If pooling is enabled
-      the
-      size of the array is simply set to zero.</p>
+      array size is set to zero, and pointers are set to null. If pooling is
+      enabled the size of the array is simply set to zero.</p>
     <p style="margin-left:2em;"><em>int GetCapacity() const</em></p>
     <p style="margin-left:4em">Gets the size of the pool. If pooling is not
-      enabled
-      then the current size is returned.</p>
+      enabled then the current size is returned.</p>
     <p style="margin-left:2em;">int GetSize() const</p>
     <p style="margin-left:4em">Returns the current size of the array.</p>
     <p style="margin-left:2em;"><em>void MergeSort(mtlArray &amp;out)</em></p>
     <p style="margin-left:4em">Takes the content of the calling array and places
       the sorted result into the <em>out</em> parameter. The programmer does
-      not need
-      to delete or allocate memory to store content in the out parameter, as the
-      sorting function does so automatically.</p>
-    <p style="margin-left:2em;"><em>operator const type*() const</em> and
-      <em>operator type*()</em></p>
+      not need to delete or allocate memory to store content in the out
+      parameter, as the sorting function does so automatically.</p>
+    <p style="margin-left:2em;"><em>operator const type*() const</em> and <em>operator
+        type*()</em></p>
     <p style="margin-left:4em">Implicitly converts the array pointer to a raw
       pointer-to-array.</p>
     <p style="margin-left:2em;"><em>void Resize(int size)</em></p>
     <p style="margin-left:4em">Increases array size to requested size and
-      preserves
-      old values. Allocates new memory if requested size exceeds pool size.
-      Frees old
-      memory if allocating new memory is necessary.</p>
+      preserves old values. Allocates new memory if requested size exceeds pool
+      size. Frees old memory if allocating new memory is necessary.</p>
     <p style="margin-left:2em;"><em>void SetCapacity(int capacity)</em></p>
     <p style="margin-left:4em">Alters the pool size and preserves array values.
-      If
-      pooling is not enabled, this is equivalent to Resize(int).</p>
+      If pooling is not enabled, this is equivalent to Resize(int).</p>
     <p style="margin-left:2em;"><em>bool poolMemory</em></p>
     <p style="margin-left:4em">Public boolean variable. Toggles memory pooling.
       Enabled by default.</p>
     <p>See also: <a href="#mtlList">mtlList</a></p>
     <h4><a name="mtlAsset" id="mtlAsset">mtlAsset</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <dl>
       <dd>A template class used lika a shared pointer class for assets loaded
@@ -145,6 +119,7 @@
     <p>Public interface:</p>
     <p>See also: <a href="#mtlAssetInterface">mtlAssetInterface</a></p>
     <h4><a name="mtlAssetIn" id="mtlAssetInterface">mtlAssetInterface</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <dl>
       <dd>mtlAssetInterface provides the interface used by mtlAsset to load
@@ -158,16 +133,14 @@
     <p>Public interface: </p>
     <p>See also: <a href="#mtlAsset">mtlAsset</a>, <a href="#mtlDirectory">mtlDirectory</a></p>
     <h4><a name="mtlBase">mtlBase</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">The class which must be inherited by the master
       base class of anything implementing the RTTI provided by MTL via
-      mtlInherit.
-      Note that all master base classes that inherit mtlBase directly will be
-      considered the same class according to the RTTI provided by MTL (even
-      though
-      they are not) as the type ID is zero for mtlBase. Construction must look
-      like
-      the following:</p>
+      mtlInherit. Note that all master base classes that inherit mtlBase
+      directly will be considered the same class according to the RTTI provided
+      by MTL (even though they are not) as the type ID is zero for mtlBase.
+      Construction must look like the following:</p>
     <p style="margin-left:4em">BaseClass::BaseClass(/*args*/) : public
       mtlBase(this)/*, more init code*/ {/*more init code*/}</p>
     <p style="margin-left:2em;">Sub classes are created according to the
@@ -176,8 +149,7 @@
       mtlInherit&lt;BaseClass, SubClass&gt; /*rest of declaration*/</p>
     <p style="margin-left:4em">/*construction*/ SubClass::SubClass(/*args*/) :
       public mtlInherit&lt;BaseClass,SubClass&gt;(this)/*, more init code*/
-      {/*more
-      init code*/}</p>
+      {/*more init code*/}</p>
     <p>Files: MTL/mtlType.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -185,6 +157,7 @@
     <p style="margin-left:4em">description</p>
     <p>See also: <a href="#mtlInherit">mtlInherit</a></p>
     <h4><a name="mtlBinaryTree">mtlBinaryTree</a></h4>
+    <p>Type: Template clas</p>
     <p>About:</p>
     <p style="margin-left:2em;">A binary tree. Works with anything for which the
       comparison operators &gt; (greater) and == (equality) are defined.</p>
@@ -196,21 +169,16 @@
     <p>See also: <a href="#mtlNode">mtlNode</a></p>
     <p></p>
     <h4><a name="mtlChars">mtlChars</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A reference to a string of characters. However,
       this class does not make a separate copy of a string. Rather, it
-      references the
-      data of an existing string, such as that in an mtlString, char*, or
-      char[]. As
-      such, it is loosely tied to the lifetime of the data it references, in so
-      far
-      as it is not valid once the data it references is destroyed. Care must be
-      taken
-      so that the data an mtlChar references does not go out of scope. mtlChars
-      is
-      useful when referencing entire, or parts, of other strings when you do not
-      wish
-      to copy it.</p>
+      references the data of an existing string, such as that in an mtlString,
+      char*, or char[]. As such, it is loosely tied to the lifetime of the data
+      it references, in so far as it is not valid once the data it references is
+      destroyed. Care must be taken so that the data an mtlChar references does
+      not go out of scope. mtlChars is useful when referencing entire, or parts,
+      of other strings when you do not wish to copy it.</p>
     <p>Files: MTL/mtlString.h, MTL/mtlString.cpp</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -219,10 +187,10 @@
     <p>See also: <a href="#mtlString">mtlString</a></p>
     <p></p>
     <h4><a name="mtlDirectory">mtlDirectory</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A class for handling paths to files and folders
-      on
-      the hard drive.</p>
+      on the hard drive.</p>
     <p>Files: MTL/mtlDirectory.h, MTL/mtlDirectory.cpp</p>
     <p>Inherits: </p>
     <p>Public interface:</p>
@@ -231,16 +199,13 @@
     <p>See also: <a href="#mtlString">mtlString</a></p>
     <p></p>
     <h4><a name="mtlDuplex">mtlDuplex</a></h4>
+    <p>Type: Template clas</p>
     <p>About:</p>
     <p style="margin-left:2em;">A class for handing mutual connections between
-      two
-      classes where both classes can access the public interfaces of the other,
-      and
-      where if one class discontinues the connection the other class
-      automatically
-      loses its connection to the discontinuing class as well. The class is used
-      like
-      so:</p>
+      two classes where both classes can access the public interfaces of the
+      other, and where if one class discontinues the connection the other class
+      automatically loses its connection to the discontinuing class as well. The
+      class is used like so:</p>
     <p style="margin-left:4em">class B; /*forward declaration*/</p>
     <p style="margin-left:4em">class A : public mtlDublex&lt;A,B&gt; /*rest of
       declaration*/</p>
@@ -260,10 +225,10 @@
     <p>See also: N/A</p>
     <p></p>
     <h4><a name="mtlExclusive">mtlExclusive</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A pointer class that exclusively owns the data
-      it
-      points to. Only itself may allocate and delete the data it references.</p>
+      it points to. Only itself may allocate and delete the data it references.</p>
     <p>Files: MTL/mtlPointer.h</p>
     <p>Inherits:N/A</p>
     <p>Public interface:</p>
@@ -272,6 +237,7 @@
     <p>See also: <a href="#mtlShared">mtlShared</a>, <a href="#mtlReference">mtlReference</a></p>
     <p></p>
     <h4><a name="mtlFNVConstHasher">mtlFNVConstHasher</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A class not intended for public use that
       facilitates constant string hashing at compile-time. Template.</p>
@@ -283,6 +249,7 @@
     <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
     <h4><a name="mtlHash">mtlHash</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A hash value.</p>
     <p>Files: MTL/mtlString.h, MTL/mtlString.cpp</p>
@@ -293,6 +260,7 @@
     <p>See also: <a href="#mtlFNVConstHasher">mtlFNVConstHasher</a>, <a href="#mtlHashInterface">mtlHashInterface</a></p>
     <p></p>
     <h4><a name="mtlHashInterface">mtlHashInterface</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">An interface for hashing arbitrary data.</p>
     <p>Files: MTL/mtlString.h</p>
@@ -303,6 +271,7 @@
     <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
     <h4><a name="mtlHashTable">mtlHashTable</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A hash table.</p>
     <p>Files: MTL/mtlHashTable.h</p>
@@ -313,24 +282,21 @@
     <p>See also: <a href="#mtlHash">mtlHash</a></p>
     <p></p>
     <h4><a name="mtlInherit">mtlInherit</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A class used for implementing the RTTI provided
-      by
-      MTL. Template. Used by inheriting the mtlInherit class rather than the
-      base
-      class directly, like so:</p>
+      by MTL. Template. Used by inheriting the mtlInherit class rather than the
+      base class directly, like so:</p>
     <p style="margin-left:4em">class SubClass : public mtlInherit&lt;BaseClass,
       SubClass&gt; /*rest of the declaration*/</p>
     <p style="margin-left:2em;">The second template parameter corresponds to the
       inheriting class in order to make a distinction between two classes that
       inherit from the same base class. During contruction the mtlInherit class
-      must
-      be initialized using the self-referencing pointer of the sub class, like
-      so:</p>
+      must be initialized using the self-referencing pointer of the sub class,
+      like so:</p>
     <p style="margin-left:4em">SubClass::SubClass(/*args*/) :
       mtlInherit&lt;BaseClass, SubClass&gt;(this) /*, more init code*/ {/*more
-      init
-      code*/}</p>
+      init code*/}</p>
     <p style="margin-left:2em;">Note that the base class must also inherit
       mtlInherit (if the base class is itself a sub class of another class) or
       mtlBase if the base class is the absolute base class of all subsequent sub
@@ -343,6 +309,7 @@
     <p>See also: <a href="#mtlBase">mtlBase</a></p>
     <p></p>
     <h4><a name="mtlItem">mtlItem</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A reference to an item inside of a doubly-linked
       list.</p>
@@ -353,6 +320,7 @@
     <p style="margin-left:4em">description</p>
     <p>See also: <a href="#mtlList">mtlList</a></p>
     <h4><a name="mtlList">mtlList</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A doubly-linked list.</p>
     <p>Files: MTL/mtlList.h</p>
@@ -363,12 +331,11 @@
     <p>See also: <a href="#mtlItem">mtlItem</a></p>
     <p></p>
     <h4><a name="mtlMathParser">mtlMathParser</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">Parses and evaulates mathematical expressions.
-      Has
-      support for creating and assigning variables and constants. Has support
-      for
-      stacked scopes of variables and constants.</p>
+      Has support for creating and assigning variables and constants. Has
+      support for stacked scopes of variables and constants.</p>
     <p>Files: MTL/mtlMathParser.h, MTL/mtlMathParser.cpp</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -377,6 +344,7 @@
     <p>See also: N/A</p>
     <p></p>
     <h4><a name="mtlNode">mtlNode</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">The class for referencing a brach in
       mtlBinaryTree.</p>
@@ -388,10 +356,10 @@
     <p>See also: <a href="#mtlBinaryTree">mtlBinaryTree</a></p>
     <p></p>
     <h4><a name="mtlParser">mtlParser</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A formatted parser with limited regular
-      expression
-      support (own variant).</p>
+      expression support (own variant).</p>
     <p>Files: MTL/mtlParser.h, MTL/mtlParser.cpp</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -400,6 +368,7 @@
     <p>See also: N/A</p>
     <p></p>
     <h4><a name="mtlRandom">mtlRandom</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A class for generating random numbers.</p>
     <p>Files: MTL/mtlRandom.h, MTL/mtlRandom.cpp</p>
@@ -410,19 +379,15 @@
     <p>See also: N/A</p>
     <p></p>
     <h4><a name="mtlReference">mtlReference</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A reference to an mtlShared or mtlExclusive
       pointer. This class only observes data inside a shared or exclusive
-      pointer
-      without affecting their internal reference counters. Returns a null
-      pointer if
-      the observed data is deleted. As such, this is a "safe" way to copy a
-      pointer
-      to data that might be deleted during the lifetime of that copied pointer
-      since
-      mtlReference will return a null pointer should the data be deleted even
-      during
-      its own lifetime. </p>
+      pointer without affecting their internal reference counters. Returns a
+      null pointer if the observed data is deleted. As such, this is a "safe"
+      way to copy a pointer to data that might be deleted during the lifetime of
+      that copied pointer since mtlReference will return a null pointer should
+      the data be deleted even during its own lifetime. </p>
     <p>Files: MTL/mtlPointer.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -431,12 +396,11 @@
     <p>See also: <a href="#mtlShared">mtlShared</a>, <a href="#mtlExclusive">mtlExclusive</a></p>
     <p></p>
     <h4><a name="mtlShared">mtlShared</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A shared pointer. Allocates memory once, shares
-      it
-      between instances, and automatically deletes memory once all instances
-      release
-      the resource.</p>
+      it between instances, and automatically deletes memory once all instances
+      release the resource.</p>
     <p>Files: MTL/mtlPointer.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -445,6 +409,7 @@
     <p>See also: <a href="#mtlExclusive">mtlExclusive</a>, <a href="#mtlReference">mtlReference</a></p>
     <p></p>
     <h4><a name="mtlString">mtlString</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A separate copy of a string.</p>
     <p>Files: MTL/mtlString.h, MTL/mtlString.cpp</p>
@@ -455,11 +420,11 @@
     <p>See also: <a href="#mtlChars">mtlChars</a></p>
     <p></p>
     <h4><a name="mtlStringMap">mtlStringMap</a></h4>
+    <p>Type: Template class</p>
     <p>About:</p>
     <p style="margin-left:2em;">Similar to a hash table, but uses mtlString as
       keys. Used as the basis for asset management in mtlAsset. Access times are
-      not
-      constant as structure internally uses a binary tree to store data.</p>
+      not constant as structure internally uses a binary tree to store data.</p>
     <p>Files: MTL/mtlStringMap.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
@@ -487,9 +452,10 @@
       which are hidden from plain sight anyway).</p>
     <h3>Classes</h3>
     <h4><a name="mglFloat4">mgl::float4</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <p style="margin-left:2em;">A group of 4 floating-point values.</p>
-    <p>Files: MPL/mplFloat4.h</p>
+    <p>Files: MPL/mplTypes.h</p>
     <p>Inherits: N/A</p>
     <p>Public interface:</p>
     <p style="margin-left:2em;"><em>operator float*()</em></p>
@@ -563,24 +529,92 @@
       and <em>r</em>. Result is not stored, but returned.</p>
     <p style="margin-left:4em"></p>
     <p style="margin-left:4em"></p>
-    <p>See also: N/A</p>
+    <p>See also: mpl::mask4</p>
     <h2><a name="MGL">MGL, the minimal graphics library</a></h2>
     <h3>About</h3>
     <p>MGL is a non-intrusive graphics library that combines the functionality
-      from
-      MTL, MML, and MPL. MGL is not a graphics engine, nor a game engine
-      (although
-      initially conceived as such). Instead, MGL is the library on which you
-      build a
-      graphics engine. As such, it contains many useful algorithms and data
-      structures to achieve that goal.</p>
+      from MTL, MML, and MPL. MGL is not a graphics engine, nor a game engine
+      (although initially conceived as such). Instead, MGL is the library on
+      which you build a graphics engine. As such, it contains many useful
+      algorithms and data structures to achieve that goal.</p>
     <h3>General design</h3>
     <p>MGL uses syntactic salt for potentially expensive operations to make the
       programmer aware of the penalty of that action.</p>
-    <p>Like MTL and MML, names follow the mgl* and the CamelCase
-      naming convention. Namespaces are avoided.</p>
+    <p>Like MTL and MML, names follow the mgl* and the CamelCase naming
+      convention. Namespaces are avoided.</p>
     <h3>Classes</h3>
+    <h4><a name="mglTexture" id="mglTextBig">mglTextBig</a></h4>
+    <p>Type: Function</p>
+    <p>About:</p>
+    <dl>
+      <dd>Print text (big font) to pixel data at given pixel coordinates. Clips
+        text at edges of the destination buffer.</dd>
+    </dl>
+    <p>Files: MGL/mglText.h</p>
+    <p>Variations:</p>
+    <p style="margin-left:2em;"><em>void mglTextBig(const mtlChars &amp;text,
+        unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+        int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int
+        scale = 1)</em></p>
+    <p style="margin-left:4em">Print the string <em>text</em> to the pixel data
+      <em>dst</em> at the pixel coordinates <em>x</em>, <em>y</em> at the
+      given scale <em>scale</em> in the color <em>r</em>, <em>g</em>, <em>b</em>.
+      Only supports a destination pixel format of 3 or 4 bytes per pixel (<em>dst_bytes_per_pixel</em>),
+      although alpha channel will remain unchanged even for RGBA (4 bytes per
+      pixel) surfaces. <em>dst_order</em> dictates the order in which the
+      destination buffer stores the separate color channels. Use mglDeviceByteOrder
+      for the video buffer if you are unsure of its format.</p>
+    <p style="margin-left:2em;"><em>void mglTextBig(int num</em><em><em>,
+          unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+          int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b,
+          int scale = 1</em>)</em></p>
+    <p style="margin-left:4em">Identical to the string version of the function,
+      except prints an integer.</p>
+    <p style="margin-left:2em;"><em>void mglTextBig(float num</em><em><em>,
+          unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+          int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b,
+          int scale = 1</em>)</em></p>
+    <p style="margin-left:4em">Identical to the string version of the function,
+      except prints a floating point number.</p>
+    <p>See also: <a href="#mglTextSmall">mglTextSmall</a>, mglByteOrder32,
+      mglDeviceByteOrder</p>
+    <h4><a name="mglTexture" id="mglTextSmall">mglTextSmall</a></h4>
+    <p>Type: Function</p>
+    <p>About:</p>
+    <dl>
+      <dd>Print text (small font) to pixel data at given pixel coordinates.
+        Clips text at edges of the destination buffer.</dd>
+    </dl>
+    <p>Files: MGL/mglText.h</p>
+    <p>Variations:</p>
+    <p style="margin-left:2em;"><em>void mglTextSmall(const mtlChars &amp;text,
+        unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+        int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int
+        scale = 1)</em></p>
+    <p style="margin-left:4em">Print the string <em>text</em> to the pixel data
+      <em>dst</em> at the pixel coordinates <em>x</em>, <em>y</em> at the
+      given scale <em>scale</em> in the color <em>r</em>, <em>g</em>, <em>b</em>.
+      Only supports a destination pixel format of 3 or 4 bytes per pixel (<em>dst_bytes_per_pixel</em>),
+      although alpha channel will remain unchanged even for RGBA (4 bytes per
+      pixel) surfaces. <em>dst_order</em> dictates the order in which the
+      destination buffer stores the separate color channels. Use
+      mglDeviceByteOrder for the video buffer if you are unsure of its format.</p>
+    <p style="margin-left:2em;"><em>void mglTextSmall(int num</em><em><em>,
+          unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+          int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b,
+          int scale = 1</em>)</em></p>
+    <p style="margin-left:4em">Identical to the string version of the function,
+      except prints an integer.</p>
+    <p style="margin-left:2em;"><em>void mglTextSmall(float num</em><em><em>,
+          unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
+          int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b,
+          int scale = 1</em>)</em></p>
+    <p style="margin-left:4em">Identical to the string version of the function,
+      except prints a floating point number.</p>
+    <p>See also: <a href="#mglTextBig">mglTextBig</a>, mglByteOrder32,
+      mglDeviceByteOrder</p>
     <h4><a name="mglTexture" id="mglTexture">mglTexture</a></h4>
+    <p>Type: Class</p>
     <p>About:</p>
     <dl>
       <dd>A class containing 32-bit pixel data stored using Morton order
