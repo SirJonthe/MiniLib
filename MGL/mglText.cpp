@@ -276,7 +276,9 @@ void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_w
 		int ch_y = (ch_index / char_count_width) * char_height;
 
 		int start_i = screen_x < 0 ? -screen_x : 0;
+		screen_x    = screen_x < 0 ? 0         : screen_x;
 		int start_j = screen_y < 0 ? -screen_y : 0;
+		screen_y    = screen_y < 0 ? 0         : screen_y;
 		int end_i   = (screen_x + char_width)  >= dst_w ? char_width  - (dst_w - (screen_x + char_width))  : char_width;
 		int end_j   = (screen_y + char_height) >= dst_h ? char_height - (dst_h - (screen_y + char_height)) : char_height;
 
