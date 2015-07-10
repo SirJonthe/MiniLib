@@ -255,25 +255,41 @@ void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_w
 
 	int screen_x = x;
 	int screen_y = y;
+
+	if (screen_y >= dst_h) { return; } // text can never be on screen
+
 	unsigned char *dst0 = dst;
+
+	int char_width0  = char_width;
+	int char_height0 = char_height;
+	char_width  *= scale;
+	char_height *= scale;
 
 	for (int t_i = 0; t_i < text.GetSize(); ++t_i) {
 		char ch = text[t_i];
 		if (mtlChars::IsNewline(ch)) {
 			screen_x = x;
 			screen_y += char_height;
+			if (screen_y >= dst_h) {
+				return; // text falls outside of screen
+			}
 			continue;
-		} else if (mtlChars::IsWhitespace(ch)) {
+		}
+
+		if (mtlChars::IsWhitespace(ch) || screen_y < 0 || screen_x < 0 || screen_x >= dst_w) {
+			// white space, or
+			// character is outside of screen
 			screen_x += char_width;
 			continue;
 		}
+
 		if (ch < first_char || ch > last_char) {
 			ch = last_char + 1;
 		}
 
 		int ch_index = ch - first_char;
-		int ch_x = (ch_index % char_count_width) * char_width;
-		int ch_y = (ch_index / char_count_width) * char_height;
+		int ch_x = (ch_index % char_count_width) * char_width0;
+		int ch_y = (ch_index / char_count_width) * char_height0;
 
 		int start_i = screen_x < 0 ? -screen_x : 0;
 		screen_x    = screen_x < 0 ? 0         : screen_x;
@@ -284,8 +300,9 @@ void mglText(const mtlChars &text, const unsigned char *stencil_bits, int font_w
 
 		for (int j = start_j; j < end_j; ++j) {
 			dst = dst0 + (screen_x + (screen_y + j) * dst_w) * dst_bpp;
+			int scaled_j = j / scale;
 			for (int i = start_i; i < end_i; ++i) {
-				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i, ch_y + j);
+				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i / scale, ch_y + scaled_j); // we can avoid a division per pixel by doing fixed point arithmetic
 				dst[dst_order.index.r] |= (bit & r);
 				dst[dst_order.index.g] |= (bit & g);
 				dst[dst_order.index.b] |= (bit & b);
