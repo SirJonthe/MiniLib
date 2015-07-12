@@ -1,6 +1,8 @@
 #ifndef MTL_BITS_H_INCLUDED__
 #define MTL_BITS_H_INCLUDED__
 
+#include <climits>
+
 typedef unsigned long long int mtlFlags;
 typedef unsigned char          mtlByte;
 
@@ -93,10 +95,13 @@ inline unsigned int mtlDecodeMorton3Z(unsigned long long code)
 }
 
 template < typename type_t >
+inline type_t mtlReadBit(const mtlByte *in_bits, unsigned int i) { return mtlReadBit(in_bits[i >> 3], i & 7); }
+
+template < typename type_t >
 inline type_t mtlReadBit(type_t in_bits, unsigned int i) { return in_bits & (1 << i); }
 
 template < typename type_t >
-inline bool mtlGetBitState(type_t in_bits, unsigned int i) { return bool(mtlReadBit(in_bits, i) >> i); }
+inline type_t mtlGetBitState(type_t in_bits, unsigned int i) { return mtlReadBit(in_bits, i) != 0 ? -1 : 0; }
 
 template < typename type_t >
 inline type_t mtlSetBit(unsigned int i, bool state) { return (((type_t)state) << i); }
