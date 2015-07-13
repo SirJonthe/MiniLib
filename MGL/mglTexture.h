@@ -5,6 +5,38 @@
 #include "../MTL/mtlBits.h"
 #include "mglPixel.h"
 
+/*class mglPixelAccessor
+{
+protected:
+	int m_width,       m_height;
+	int m_width_shift, m_height_shift;
+	int m_width_mask,  m_height_mask;
+
+public:
+	mglPixelAccessor(int width, int height);
+
+	virtual bool VerifyDimension(int dim) const = 0;
+	virtual int Index(int x, int y) const = 0;
+};
+
+class mglLinearPixelAccessor : public mglPixelAccessor
+{
+public:
+	bool VerifyDimension(int) const { return true; }
+	int Index(int x, int y) const { return x + (y << m_width_shift); }
+};
+
+class mglMortonPixelAccessor : public mglPixelAccessor
+{
+public:
+	bool VerifyDimension(int dim) const { return mmlIsPow2(dim); }
+	int Index(int x, int y) const { return mtlEncodeMorton2(x, y); }
+};
+
+class mglTiledPixelAccessor : public mglPixelAccessor
+{
+};*/
+
 // SIMD (RGBA SoA)
 	// Unsure how this will benefit random access (Mostly benefits pixel manipulation)
 // compression (vector quantization)
