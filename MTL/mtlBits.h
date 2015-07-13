@@ -104,11 +104,21 @@ template < typename type_t >
 inline type_t mtlGetBitState(type_t in_bits, unsigned int i) { return mtlReadBit(in_bits, i) != 0 ? -1 : 0; }
 
 template < typename type_t >
+inline type_t mtlGetBitState(const mtlByte *in_bits, unsigned int i) { return mtlGetBitState(in_bits[i >> 3], i & 7); }
+
+template < typename type_t >
 inline type_t mtlSetBit(unsigned int i, bool state) { return (((type_t)state) << i); }
+
 template < typename type_t >
 inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return in_bits & mtlSetBit<type_t>(i, state); }
 
 template < typename type_t >
+inline void mtlSetBit(mtlByte *in_bits, unsigned int i, bool state) { in_bits[i >> 3] = mtlSetBit(in_bits[i >> 3], i & 7, state); }
+
+template < typename type_t >
 inline type_t mtlToggleBit(type_t in_bits, unsigned int i) { return in_bits ^ (1 << i); }
+
+template < typename type_t >
+inline void mtlToggleBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlToggleBit(in_bits[i >> 3], i & 7); }
 
 #endif
