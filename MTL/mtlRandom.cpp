@@ -28,8 +28,8 @@ unsigned int mtlRandom::GetUint( void )
 
 unsigned int mtlRandom::GetUint(unsigned int min, unsigned int max)
 {
-	if (max == min) { return min; }
 	unsigned int r = GetUint();
+	if (max <= min) { return min; }
 	return (r % (max-min)) + min;
 }
 
@@ -40,8 +40,8 @@ int mtlRandom::GetInt( void )
 
 int mtlRandom::GetInt(int min, int max)
 {
-	if (max == min) { return min; }
 	int r = GetInt();
+	if (max <= min) { return min; }
 	return abs(r % (max-min)) + min;
 }
 
