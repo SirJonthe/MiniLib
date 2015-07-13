@@ -54,25 +54,27 @@ private:
 
 class mglNoiseGenerator
 {
-public:
-				  mglNoiseGenerator( void );
-	void          SetNoiseSeed(unsigned int seed);
-	void          SetRanomizerSeeds(unsigned int z, unsigned int w);
-	template < typename dist_t >
-	//void          SetRandomizerDistribution( void ) { m_rand.SetDistribution<dist_t>(); }
-	void          SetScale(float scale);
-	float         GetScale( void ) const;
-	virtual float Noise(float x, float y, float z) const = 0;
-
-protected:
-	mtlRandom GetRandomizer( void ) const { return m_rand; }
-
 private:
 	//mtlRandomizer	m_rand;
 	mtlRandom    m_rand;
 	unsigned int m_seed;
 	float        m_scale;
-	mmlVector<2> m_offset;
+	mmlVector<3> m_offset;
+
+protected:
+	mtlRandom GetRandomizer( void ) const { return m_rand; }
+
+public:
+				  mglNoiseGenerator( void );
+	void          SetNoiseSeed(unsigned int seed);
+	void          SetRanomizerSeeds(unsigned int z, unsigned int w);
+	//template < typename dist_t >
+	//void          SetRandomizerDistribution( void ) { m_rand.SetDistribution<dist_t>(); }
+	void          SetScale(float scale);
+	float         GetScale( void ) const;
+	virtual float Noise(float x, float y, float z) const = 0;
+	void          SetOffset(float x, float y, float z) { m_offset = mmlVector<3>(x, y, z); }
+	mmlVector<3>  GetOffset( void ) const { return m_offset; }
 };
 
 class mglPerlinNoiseGenerator : public mglNoiseGenerator
@@ -96,6 +98,10 @@ class mglVoronoiNoiseGenerator : public mglNoiseGenerator
 
 class mglHalfspaceNoiseGenerator : public mglNoiseGenerator
 {
+private:
+	int m_halfspaces;
+	int m_colorShift;
+
 public:
 				  mglHalfspaceNoiseGenerator( void );
 	void          SetHalfspaceDivisionCount(int halfspaces);
@@ -103,10 +109,6 @@ public:
 	void          SetColorShift(int colorShift);
 	virtual float Noise(float x, float y, float z) const;
 	void          Noise(unsigned char *input, int bpp, int w, int h) const;
-
-private:
-	int m_halfspaces;
-	int m_colorShift;
 };
 
 #endif // MGL_NOISE_H_INCLUDED__

@@ -50,7 +50,7 @@ float mtlRandomizer::GetRandomFloat(float min, float max)
 	return (r * (max-min)) + min;
 }*/
 
-mglNoiseGenerator::mglNoiseGenerator( void ) : m_rand(), m_seed(0), m_scale(1.0f), m_offset(0.0f, 0.0f)
+mglNoiseGenerator::mglNoiseGenerator( void ) : m_rand(), m_seed(0), m_scale(1.0f), m_offset(0.0f, 0.0f, 0.0f)
 {}
 
 void mglNoiseGenerator::SetNoiseSeed(unsigned int seed)
@@ -60,7 +60,7 @@ void mglNoiseGenerator::SetNoiseSeed(unsigned int seed)
 
 void mglNoiseGenerator::SetRanomizerSeeds(unsigned int z, unsigned int w)
 {
-	m_rand.SetSeeds(z, w);
+	m_rand.SetSeed(z, w);
 }
 
 void mglNoiseGenerator::SetScale(float scale)
@@ -95,14 +95,15 @@ float mglPerlinNoiseGenerator::Grad(int hash, float x, float y, float z) const
 float mglPerlinNoiseGenerator::Noise(float x, float y, float z) const
 {
 	float scale = 1.0f / GetScale();
-	x = (x + m_offset[0]) * scale;
-	y = (y + m_offset[1]) * scale;
-	z *= scale;
+	mmlVector<3> offset = GetOffset();
+	x = (x + offset[0]) * scale;
+	y = (y + offset[1]) * scale;
+	z = (z + offset[2]) * scale;
 
 	// right now noise is generated around 0,0 as center
 	// alter this to make x, y center so that scaling scales from center
 
-	mtlRandom rand = GetRandomizer();
+	//mtlRandom rand = GetRandomizer();
 
 	static const unsigned char p[256] = {
 		151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
@@ -143,7 +144,8 @@ float mglPerlinNoiseGenerator::Noise(float x, float y, float z) const
 	int BB = p[B + 1] + Z;
 
 	float res = Lerp(w, Lerp(v, Lerp(u, Grad(p[AA], x, y, z), Grad(p[BA], x-1, y, z)), Lerp(u, Grad(p[AB], x, y-1, z), Grad(p[BB], x-1, y-1, z))),	Lerp(v, Lerp(u, Grad(p[AA+1], x, y, z-1), Grad(p[BA+1], x-1, y, z-1)), Lerp(u, Grad(p[AB+1], x, y-1, z-1), Grad(p[BB+1], x-1, y-1, z-1))));
-	return rand.GetDistribution((res + 1.0f) / 2.0f);
+	//return rand.GetDistribution((res + 1.0f) / 2.0f);
+	return (res + 1.0f) / 2.0f;
 }
 
 mglHalfspaceNoiseGenerator::mglHalfspaceNoiseGenerator( void ) : m_halfspaces(1), m_colorShift(3)

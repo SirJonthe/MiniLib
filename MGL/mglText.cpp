@@ -1,14 +1,14 @@
 #include "mglText.h"
 
-#define first_char '!'
-#define last_char  '~'
+#define first_char mglFont_FirstChar
+#define last_char  mglFont_LastChar
 
 #define font_big_width             128
 #define font_big_height            128
 #define font_big_char_count_width  12
 #define font_big_char_count_height 8
-#define font_big_char_width_px     10
-#define font_big_char_height_px    16
+#define font_big_char_width_px     mglFontBig_CharWidthPx
+#define font_big_char_height_px    mglFontBig_CharHeightPx
 
 static const mtlByte font_big_bits[] = {
    0xf8, 0x23, 0x1e, 0xf1, 0xd7, 0xc7, 0x07, 0x3f, 0xfe, 0xc1, 0xe0, 0xbf,
@@ -186,10 +186,10 @@ static const mtlByte font_big_bits[] = {
 
 #define font_small_width              64
 #define font_small_height             64
-#define font_small_char_count_width  10
-#define font_small_char_count_height 10
-#define font_small_char_width_px      6
-#define font_small_char_height_px     6
+#define font_small_char_count_width   10
+#define font_small_char_count_height  10
+#define font_small_char_width_px      mglFontSmall_CharWidthPx
+#define font_small_char_height_px     mglFontSmall_CharHeightPx
 
 static const mtlByte font_small_bits[] = {
    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7d, 0xbd, 0x06, 0x77,
