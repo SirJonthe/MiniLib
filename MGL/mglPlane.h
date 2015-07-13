@@ -18,11 +18,11 @@ private:
 	mmlVector<3> m_normal;
 
 private:
-	float GetSignedDistance(const mmlVector<3> &point) const { return mmlDot(point - m_position, m_normal); }
+	float   GetSignedDistance(const mmlVector<3> &point) const { return mmlDot(point - m_position, m_normal); }
 	mglClip DetermineSide(float dist) const;
-	bool IsBehind(float dist) const;
-	bool IsInFront(float dist) const;
-	bool IsCoinciding(float dist) const;
+	bool    IsBehind(float dist) const;
+	bool    IsInFront(float dist) const;
+	bool    IsCoinciding(float dist) const;
 
 public:
 	mglPlane( void ) {} // do nothing
@@ -40,7 +40,7 @@ public:
 	bool IsCoinciding(const mmlVector<3> &point) const;
 
 	const mmlVector<3> &GetPosition( void ) const { return m_position; }
-	const mmlVector<3> &GetNormal( void ) const { return m_normal; }
+	const mmlVector<3> &GetNormal( void )   const { return m_normal; }
 };
 
 template < int n >
