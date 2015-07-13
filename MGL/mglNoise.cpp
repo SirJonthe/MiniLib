@@ -177,9 +177,9 @@ void mglHalfspaceNoiseGenerator::Noise(unsigned char *input, int bpp, int w, int
 	}
 	mtlRandom rand = GetRandomizer();
 	for (int i = 0; i < m_halfspaces; ++i) {
-		int color_offset = rand.GetRandomInt(-m_colorShift+1, m_colorShift);
-		mmlVector<2> p1(rand.GetRandomFloat() * (float)w, rand.GetRandomFloat() * (float)h);
-		mmlVector<2> p2(rand.GetRandomFloat() * (float)w, rand.GetRandomFloat() * (float)h);
+		int color_offset = rand.GetInt(-m_colorShift+1, m_colorShift);
+		mmlVector<2> p1(rand.GetFloat() * (float)w, rand.GetFloat() * (float)h);
+		mmlVector<2> p2(rand.GetFloat() * (float)w, rand.GetFloat() * (float)h);
 		mmlVector<2> tan = p2 - p1;
 		mmlVector<2> normal(-tan[1], tan[0]);
 		for (int y = 0; y < h; ++y) {
