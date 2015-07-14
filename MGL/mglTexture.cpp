@@ -8,6 +8,8 @@ enum TGA_RelevantHeaderField
 {
 	COLOR_MAP_TYPE = 1,
 	IMAGE_TYPE     = 2,
+	ORIGIN_X       = 8,
+	ORIGIN_Y       = 10,
 	IMAGE_WIDTH    = 12,
 	IMAGE_HEIGHT   = 14,
 	PIXEL_DEPTH    = 16,
@@ -84,7 +86,7 @@ void mglTexture::UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, i
 	default: break;
 	}
 }
-
+#include <iostream>
 bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 {
 	// Take into account origin of the image axis
@@ -198,6 +200,45 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 				}
 			}
 		}
+
+		unsigned short origin_x = *(unsigned short*)(header+ORIGIN_X);
+		unsigned short origin_y = *(unsigned short*)(header+ORIGIN_Y);
+
+		if (origin_x != 0) {
+			int y = 0;
+			for (int y = 0; y < m_height; ++y) {
+				int x_right = 0;
+				int x_left  = m_width - 1 - m_format.bytes_per_pixel;
+				for (int x = 0; x < (m_width >> 1); ++x) {
+					for (int b = 0; b < m_format.bytes_per_pixel; ++b) {
+						mtlByte tmp               = m_pixels[y + x_right + b];
+						m_pixels[y + x_right + b] = m_pixels[y + x_left + b];
+						m_pixels[y + x_left + b]  = tmp;
+					}
+					x_right += m_format.bytes_per_pixel;
+					x_left  -= m_format.bytes_per_pixel;
+				}
+				y += m_width * m_format.bytes_per_pixel;
+			}
+		}
+
+		if (origin_y != 0) {
+			int y_top    = 0;
+			int y_bottom = (m_height - 1) * m_format.bytes_per_pixel;
+			for (int y = 0; y < (m_height >> 1); ++y) {
+				for (int x = 0; x < m_width * m_format.bytes_per_pixel; x += m_format.bytes_per_pixel) {
+					for (int b = 0; b < m_format.bytes_per_pixel; ++b) {
+						mtlByte tmp                = m_pixels[y_top + x + b];
+						m_pixels[y_top + x + b]    = m_pixels[y_bottom + x + b];
+						m_pixels[y_bottom + x + b] = tmp;
+					}
+				}
+				y_top    += m_width * m_format.bytes_per_pixel;
+				y_bottom -= m_width * m_format.bytes_per_pixel;
+			}
+		}
+
+		std::cout << origin_x << "x" << origin_y << std::endl;
 
 	} else {
 		SetError("[TGA] Unknown image type");
