@@ -86,7 +86,7 @@ void mglTexture::UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, i
 	default: break;
 	}
 }
-#include <iostream>
+
 bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 {
 	// Take into account origin of the image axis
@@ -237,8 +237,6 @@ bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
 				y_bottom -= m_width * m_format.bytes_per_pixel;
 			}
 		}
-
-		std::cout << origin_x << "x" << origin_y << std::endl;
 
 	} else {
 		SetError("[TGA] Unknown image type");
