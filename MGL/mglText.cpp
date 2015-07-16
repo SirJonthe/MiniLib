@@ -4,12 +4,14 @@
 #define first_char mglFont_FirstChar
 #define last_char  mglFont_LastChar
 
-#define font_big_width             128
-#define font_big_height            128
 #define font_big_char_count_width  12
 #define font_big_char_count_height 8
 #define font_big_char_width_px     mglFontBig_CharWidthPx
 #define font_big_char_height_px    mglFontBig_CharHeightPx
+
+// XBM data format
+#define font_big_width             128
+#define font_big_height            128
 
 static const mtlByte font_big_bits[] = {
    0xf8, 0x23, 0x1e, 0xf1, 0xd7, 0xc7, 0x07, 0x3f, 0xfe, 0xc1, 0xe0, 0xbf,
@@ -185,12 +187,14 @@ static const mtlByte font_big_bits[] = {
    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-#define font_small_width              64
-#define font_small_height             64
 #define font_small_char_count_width   10
 #define font_small_char_count_height  10
 #define font_small_char_width_px      mglFontSmall_CharWidthPx
 #define font_small_char_height_px     mglFontSmall_CharHeightPx
+
+// XBM data format
+#define font_small_width              64
+#define font_small_height             64
 
 static const mtlByte font_small_bits[] = {
    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7d, 0xbd, 0x06, 0x77,
@@ -238,27 +242,32 @@ static const mtlByte font_small_bits[] = {
    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-unsigned char mglExtractStencilBit(const mtlByte *stencil_bits, int num_bits_width, int x, int y)
+mtlByte mglExtractStencilBit(const mtlByte *stencil_bits, int num_bits_width, int x, int y)
 {
 	// Don't use CHAR_BITS:
-	// Each byte has 8 bits of data regardless of if the byte is larger than 8 bits
+	// Each byte in the XBM format has 8 bits of data regardless of if the byte is larger than 8 bits
 	//stencil_bits += y * (num_bits_width >> 3);
 	//stencil_bits += x >> 3;
 	//unsigned char bit = mtlReadBit(*stencil_bits, x & 7);
-	unsigned char bit = mtlReadBit<unsigned char>(stencil_bits, x + y * num_bits_width);
+	mtlByte bit = mtlReadBit<mtlByte>(stencil_bits, x + y * num_bits_width);
 	return bit != 0 ? 0x0 : 0xff;
 }
+
+typedef mml_fixed_real<unsigned int,16> fixed;
 
 void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	// implement with no scaling at first
 
-	if (dst_bpp != 3 && dst_bpp != 4) { return; }
+	if ((dst_bpp != 3 && dst_bpp != 4) || scale <= 0) { return; }
 
-	int screen_x = x;
-	int screen_y = y;
+	//int screen_x = x;
+	//int screen_y = y;
+	const int newline_x = x;
 
-	if (screen_y >= dst_h) { return; } // text can never be on screen
+	if (y >= dst_h) { // text can never re-enter screen
+		return;
+	}
 
 	unsigned char *dst0 = dst;
 
@@ -270,18 +279,18 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 	for (int t_i = 0; t_i < text.GetSize(); ++t_i) {
 		char ch = text[t_i];
 		if (mtlChars::IsNewline(ch)) {
-			screen_x = x;
-			screen_y += char_height;
-			if (screen_y >= dst_h) {
-				return; // text falls outside of screen
+			x = newline_x;
+			y += char_height;
+			if (y >= dst_h) { // text can never re-enter screen
+				return;
 			}
 			continue;
 		}
 
-		if (mtlChars::IsWhitespace(ch) || screen_y < 0 || screen_x < 0 || screen_x >= dst_w) {
+		if (mtlChars::IsWhitespace(ch) || y + char_height < 0 || x + char_width < 0 || x >= dst_w) {
 			// white space, or
 			// character is outside of screen
-			screen_x += char_width;
+			x += char_width;
 			continue;
 		}
 
@@ -293,25 +302,47 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int ch_x = (ch_index % char_count_width) * char_width0;
 		int ch_y = (ch_index / char_count_width) * char_height0;
 
-		int start_i = screen_x < 0 ? -screen_x : 0;
-		screen_x    = screen_x < 0 ? 0         : screen_x;
-		int start_j = screen_y < 0 ? -screen_y : 0;
-		screen_y    = screen_y < 0 ? 0         : screen_y;
-		int end_i   = (screen_x + char_width)  >= dst_w ? dst_w - screen_x : char_width;
-		int end_j   = (screen_y + char_height) >= dst_h ? dst_h - screen_y : char_height;
+		int start_i = x < 0 ? -x : 0; // this needs to be fixed_real for correctness
+		int clip_x  = x < 0 ? 0  : x;
+		int start_j = y < 0 ? -y : 0; // this needs to be fixed_real for correctness
+		int clip_y  = y < 0 ? 0  : y;
+		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
+		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
 
 		for (int j = start_j; j < end_j; ++j) {
-			dst = dst0 + (screen_x + (screen_y + j) * dst_w) * dst_bpp;
+			dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
 			int scaled_j = j / scale;
 			for (int i = start_i; i < end_i; ++i) {
-				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i / scale, ch_y + scaled_j); // we can avoid a division per pixel by doing fixed point arithmetic
+				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i / scale, ch_y + scaled_j); // we can avoid a division per pixel by doing fixed point arithmetic
 				dst[dst_order.index.r] |= (bit & r);
 				dst[dst_order.index.g] |= (bit & g);
 				dst[dst_order.index.b] |= (bit & b);
 				dst += dst_bpp;
 			}
 		}
-		screen_x += char_width;
+		x += char_width;
+
+		/*fixed start_i = screen_x < 0 ? fixed(-screen_x) / fixed(scale) : 0;
+		screen_x      = screen_x < 0 ? 0                               : screen_x;
+		fixed start_j = screen_y < 0 ? fixed(-screen_y) / fixed(scale) : 0;
+		screen_y      = screen_y < 0 ? 0                               : screen_y;
+		int end_i   = (screen_x + char_width)  >= dst_w ? dst_w - screen_x : char_width;
+		int end_j   = (screen_y + char_height) >= dst_h ? dst_h - screen_y : char_height;
+
+		fixed delta_i = / ();
+		fixed delta_j = ;
+
+		for (int j = start_j.to_int(); j < end_j; ++j) {
+			dst = dst0 + (screen_x + (screen_y +j) * dst_w) * dst_bpp;
+			for (int i = start_i.to_int(); i < end_i; ++i) {
+				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + scale_x.to_int(), ch_y + scale_y.to_int());
+				dst[dst_order.index.r] |= (bit & r);
+				dst[dst_order.index.g] |= (bit & g);
+				dst[dst_order.index.b] |= (bit & b);
+				dst += dst_bpp;
+			}
+		}
+		screen_x += char_width;*/
 	}
 }
 
