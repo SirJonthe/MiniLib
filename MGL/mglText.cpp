@@ -300,7 +300,7 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int ch_x = (ch_index % char_count_width) * char_width0;
 		int ch_y = (ch_index / char_count_width) * char_height0;
 
-		/*int start_i = x < 0 ? -x : 0;
+		int start_i = x < 0 ? -x : 0;
 		int clip_x  = x < 0 ?  0 : x;
 		int start_j = y < 0 ? -y : 0;
 		int clip_y  = y < 0 ?  0 : y;
@@ -318,15 +318,9 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 				dst += dst_bpp;
 			}
 		}
-		x += char_width;*/
+		x += char_width;
 
-		int start_i = x < 0 ? -x : 0;
-		int clip_x  = x < 0 ?  0 : x;
-		int start_j = y < 0 ? -y : 0;
-		int clip_y  = y < 0 ?  0 : y;
-		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
-		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
-		int size_i  = end_i - start_i;
+		/*int size_i  = end_i - start_i;
 		int size_j  = end_j - start_j;
 
 		if (size_i == 0 || size_j == 0) { // watch out for division by zero
@@ -355,7 +349,7 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 			ix = ix_start;
 			iy += idelta_y;
 		}
-		x += char_width;
+		x += char_width;*/
 	}
 }
 
