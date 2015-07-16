@@ -300,12 +300,9 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int end_i   = (screen_x + char_width)  >= dst_w ? dst_w - screen_x : char_width;
 		int end_j   = (screen_y + char_height) >= dst_h ? dst_h - screen_y : char_height;
 
-		//mml_fixed_real<unsigned int, 16> x_scale = ch_x;
-		//mml_fixed_real<unsigned int, 16> y_scale = ch_y;
-
 		for (int j = start_j; j < end_j; ++j) {
 			dst = dst0 + (screen_x + (screen_y + j) * dst_w) * dst_bpp;
-			//int scaled_j = j / scale;
+			int scaled_j = j / scale;
 			for (int i = start_i; i < end_i; ++i) {
 				unsigned char bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i / scale, ch_y + scaled_j); // we can avoid a division per pixel by doing fixed point arithmetic
 				dst[dst_order.index.r] |= (bit & r);

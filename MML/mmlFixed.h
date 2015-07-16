@@ -10,6 +10,7 @@
 #define MML_FIXED_H_INCLUDED__
 
 #include <climits>
+#include "mmlMath.h"
 
 //
 // compile time information about our type
@@ -230,7 +231,7 @@ public:
 // arithmetic shift for signed types.
 //
 template < typename base_t >
-base_t mml_shift_left(base_t x, unsigned int shift)
+inline base_t mml_shift_left(base_t x, unsigned int shift)
 {
 #ifdef NO_ARITHMETIC_SHIFT
 	return (x << shift) | (x & mml_info::signbit());
@@ -239,10 +240,10 @@ base_t mml_shift_left(base_t x, unsigned int shift)
 #endif
 }
 
-template <> unsigned char mml_shift_left(unsigned char x, unsigned int shift) { return x << shift; }
-template <> unsigned short mml_shift_left(unsigned short x, unsigned int shift) { return x << shift; }
-template <> unsigned int mml_shift_left(unsigned int x, unsigned int shift) { return x << shift; }
-template <> unsigned long long mml_shift_left(unsigned long long x, unsigned int shift) { return x << shift; }
+template <> inline unsigned char mml_shift_left(unsigned char x, unsigned int shift) { return x << shift; }
+template <> inline unsigned short mml_shift_left(unsigned short x, unsigned int shift) { return x << shift; }
+template <> inline unsigned int mml_shift_left(unsigned int x, unsigned int shift) { return x << shift; }
+template <> inline unsigned long long mml_shift_left(unsigned long long x, unsigned int shift) { return x << shift; }
 
 //
 // mml_shift_right
@@ -250,7 +251,7 @@ template <> unsigned long long mml_shift_left(unsigned long long x, unsigned int
 // arithmetic shift for signed types.
 //
 template < typename base_t >
-base_t mml_shift_right(base_t x, unsigned int shift)
+inline base_t mml_shift_right(base_t x, unsigned int shift)
 {
 #ifdef NO_ARITHMETIC_SHIFT
 	mml_unsigned c = x < 0 ? ~((mml_unsigned)0) : (mml_unsigned)0;
@@ -260,10 +261,10 @@ base_t mml_shift_right(base_t x, unsigned int shift)
 #endif
 }
 
-template <> unsigned char mml_shift_right(unsigned char x, unsigned int shift) { return x >> shift; }
-template <> unsigned short mml_shift_right(unsigned short x, unsigned int shift) { return x >> shift; }
-template <> unsigned int mml_shift_right(unsigned int x, unsigned int shift) { return x >> shift; }
-template <> unsigned long long mml_shift_right(unsigned long long x, unsigned int shift) { return x >> shift; }
+template <> inline unsigned char mml_shift_right(unsigned char x, unsigned int shift) { return x >> shift; }
+template <> inline unsigned short mml_shift_right(unsigned short x, unsigned int shift) { return x >> shift; }
+template <> inline unsigned int mml_shift_right(unsigned int x, unsigned int shift) { return x >> shift; }
+template <> inline unsigned long long mml_shift_right(unsigned long long x, unsigned int shift) { return x >> shift; }
 
 //
 // mml_signed_shift_left
@@ -271,7 +272,7 @@ template <> unsigned long long mml_shift_right(unsigned long long x, unsigned in
 // shift in opposite direction.
 //
 template < typename base_t >
-base_t mml_signed_shift_left(base_t x, int shift)
+inline base_t mml_signed_shift_left(base_t x, int shift)
 {
 	return (shift < 0) ? mml_right_shift(x, (unsigned int)(-shift)) : mml_left_shift(x, (unsigned int)shift);
 }
@@ -282,7 +283,7 @@ base_t mml_signed_shift_left(base_t x, int shift)
 // shift in opposite direction.
 //
 template < typename base_t >
-base_t mml_signed_shift_right(base_t x, int shift)
+inline base_t mml_signed_shift_right(base_t x, int shift)
 {
 	return (shift < 0) ? mml_left_shift(x, (unsigned int)(-shift)) : mml_right_shift(x, (unsigned int)shift);
 }
@@ -293,9 +294,9 @@ base_t mml_signed_shift_right(base_t x, int shift)
 // format, e.g. short -> int. Interleaves
 // bits so that 1011 -> 11001111.
 //
-template < typename base_t > mml_next mml_unpack_one(base_t x) { return 0; }
+template < typename base_t > inline mml_next mml_unpack_one(base_t x) { return 0; }
 
-template <> unsigned short mml_unpack_one(unsigned char x)
+template <> inline unsigned short mml_unpack_one(unsigned char x)
 {
 	unsigned short y = (unsigned short)x;
 	y = (y | (y << 4)) & 0x0F0F;
@@ -304,7 +305,7 @@ template <> unsigned short mml_unpack_one(unsigned char x)
 	return y | (y << 1);
 }
 
-template <> unsigned int mml_unpack_one(unsigned short x)
+template <> inline unsigned int mml_unpack_one(unsigned short x)
 {
 	unsigned int y = (unsigned int)x;
 	y = (y | (y << 8)) & 0x00FF00FF;
@@ -314,7 +315,7 @@ template <> unsigned int mml_unpack_one(unsigned short x)
 	return y | (y << 1);
 }
 
-template <> unsigned long long mml_unpack_one(unsigned int x)
+template <> inline unsigned long long mml_unpack_one(unsigned int x)
 {
 	unsigned long long y = (unsigned long long)x;
 	y = (y | (y << 16)) & 0x0000FFFF0000FFFF;
@@ -325,17 +326,17 @@ template <> unsigned long long mml_unpack_one(unsigned int x)
 	return y | (y << 1);
 }
 
-template<> short mml_unpack_one(char x)
+template<> inline short mml_unpack_one(char x)
 {
 	return short(mml_unpack_one((unsigned char)x) & ~(0x4000));
 }
 
-template<> int mml_unpack_one(short x)
+template<> inline int mml_unpack_one(short x)
 {
 	return int(mml_unpack_one((unsigned short)x) & ~(0x40000000));
 }
 
-template<> long long mml_unpack_one(int x)
+template<> inline long long mml_unpack_one(int x)
 {
 	return (long long)(mml_unpack_one((unsigned int)x) & ~(0x4000000000000000));
 }
@@ -344,27 +345,27 @@ template<> long long mml_unpack_one(int x)
 // mml_unpack
 // Unpacks an arbitrary format to an arbitrary format.
 //
-template < typename unpack_t, typename base_t > unpack_t mml_unpack(base_t x) { return 0; }
+template < typename unpack_t, typename base_t > inline unpack_t mml_unpack(base_t x) { return 0; }
 
-template <> unsigned char mml_unpack(unsigned char x) { return x; }
-template <> unsigned short mml_unpack(unsigned char x) { return mml_unpack_one(x); }
-template <> unsigned int mml_unpack(unsigned char x) { return mml_unpack_one(mml_unpack_one(x)); }
-template <> unsigned long long mml_unpack(unsigned char x) { return mml_unpack_one(mml_unpack_one(mml_unpack_one(x))); }
-template <> unsigned short mml_unpack(unsigned short x) { return x; }
-template <> unsigned int mml_unpack(unsigned short x) { return mml_unpack_one(x); }
-template <> unsigned long long mml_unpack(unsigned short x) { return mml_unpack_one(mml_unpack_one(x)); }
-template <> unsigned int mml_unpack(unsigned int x) { return x; }
-template <> unsigned long long mml_unpack(unsigned int x) { return mml_unpack_one(x); }
+template <> inline unsigned char mml_unpack(unsigned char x) { return x; }
+template <> inline unsigned short mml_unpack(unsigned char x) { return mml_unpack_one(x); }
+template <> inline unsigned int mml_unpack(unsigned char x) { return mml_unpack_one(mml_unpack_one(x)); }
+template <> inline unsigned long long mml_unpack(unsigned char x) { return mml_unpack_one(mml_unpack_one(mml_unpack_one(x))); }
+template <> inline unsigned short mml_unpack(unsigned short x) { return x; }
+template <> inline unsigned int mml_unpack(unsigned short x) { return mml_unpack_one(x); }
+template <> inline unsigned long long mml_unpack(unsigned short x) { return mml_unpack_one(mml_unpack_one(x)); }
+template <> inline unsigned int mml_unpack(unsigned int x) { return x; }
+template <> inline unsigned long long mml_unpack(unsigned int x) { return mml_unpack_one(x); }
 
-template <> char mml_unpack(char x) { return x; }
-template <> short mml_unpack(char x) { return mml_unpack_one(x); }
-template <> int mml_unpack(char x) { return mml_unpack_one(mml_unpack_one(x)); }
-template <> long long mml_unpack(char x) { return mml_unpack_one(mml_unpack_one(mml_unpack_one(x))); }
-template <> short mml_unpack(short x) { return x; }
-template <> int mml_unpack(short x) { return mml_unpack_one(x); }
-template <> long long mml_unpack(short x) { return mml_unpack_one(mml_unpack_one(x)); }
-template <> int mml_unpack(int x) { return x; }
-template <> long long mml_unpack(int x) { return mml_unpack_one(x); }
+template <> inline char mml_unpack(char x) { return x; }
+template <> inline short mml_unpack(char x) { return mml_unpack_one(x); }
+template <> inline int mml_unpack(char x) { return mml_unpack_one(mml_unpack_one(x)); }
+template <> inline long long mml_unpack(char x) { return mml_unpack_one(mml_unpack_one(mml_unpack_one(x))); }
+template <> inline short mml_unpack(short x) { return x; }
+template <> inline int mml_unpack(short x) { return mml_unpack_one(x); }
+template <> inline long long mml_unpack(short x) { return mml_unpack_one(mml_unpack_one(x)); }
+template <> inline int mml_unpack(int x) { return x; }
+template <> inline long long mml_unpack(int x) { return mml_unpack_one(x); }
 
 #define mml_uniform_one mml_info::max()
 
@@ -411,7 +412,7 @@ template <> class mml_fixed_uniform<unsigned long long> {};
 template <> class mml_fixed_uniform<long long> {};
 
 template < typename base_t >
-inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator+=(mml_fixed_uniform<base_t> r)
+mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator+=(mml_fixed_uniform<base_t> r)
 {
 	x = mmlClamp(
 		mml_info::upcast(mml_info::min()),
@@ -422,7 +423,7 @@ inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator+=(mml_fixe
 }
 
 template < typename base_t >
-inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator-=(mml_fixed_uniform<base_t> r)
+mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator-=(mml_fixed_uniform<base_t> r)
 {
 	x = mmlClamp(
 		mml_info::upcast(mml_info::min()),
@@ -433,7 +434,7 @@ inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator-=(mml_fixe
 }
 
 template < typename base_t >
-inline mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator*=(mml_fixed_uniform<base_t> r)
+mml_fixed_uniform<base_t> &mml_fixed_uniform<base_t>::operator*=(mml_fixed_uniform<base_t> r)
 {
 	/*
 	mml_next lx = (mml_next)x;
