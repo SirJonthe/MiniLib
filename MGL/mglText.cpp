@@ -261,8 +261,6 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 
 	if ((dst_bpp != 3 && dst_bpp != 4) || scale <= 0) { return; }
 
-	//int screen_x = x;
-	//int screen_y = y;
 	const int newline_x = x;
 
 	if (y >= dst_h) { // text can never re-enter screen
@@ -302,10 +300,10 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int ch_x = (ch_index % char_count_width) * char_width0;
 		int ch_y = (ch_index / char_count_width) * char_height0;
 
-		int start_i = x < 0 ? -x : 0; // this needs to be fixed_real for correctness
-		int clip_x  = x < 0 ? 0  : x;
-		int start_j = y < 0 ? -y : 0; // this needs to be fixed_real for correctness
-		int clip_y  = y < 0 ? 0  : y;
+		/*int start_i = x < 0 ? -x : 0;
+		int clip_x  = x < 0 ?  0 : x;
+		int start_j = y < 0 ? -y : 0;
+		int clip_y  = y < 0 ?  0 : y;
 		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
 		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
 
@@ -320,29 +318,44 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 				dst += dst_bpp;
 			}
 		}
-		x += char_width;
+		x += char_width;*/
 
-		/*fixed start_i = screen_x < 0 ? fixed(-screen_x) / fixed(scale) : 0;
-		screen_x      = screen_x < 0 ? 0                               : screen_x;
-		fixed start_j = screen_y < 0 ? fixed(-screen_y) / fixed(scale) : 0;
-		screen_y      = screen_y < 0 ? 0                               : screen_y;
-		int end_i   = (screen_x + char_width)  >= dst_w ? dst_w - screen_x : char_width;
-		int end_j   = (screen_y + char_height) >= dst_h ? dst_h - screen_y : char_height;
+		int start_i = x < 0 ? -x : 0;
+		int clip_x  = x < 0 ?  0 : x;
+		int start_j = y < 0 ? -y : 0;
+		int clip_y  = y < 0 ?  0 : y;
+		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
+		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
+		int size_i  = end_i - start_i;
+		int size_j  = end_j - start_j;
 
-		fixed delta_i = / ();
-		fixed delta_j = ;
+		if (size_i == 0 || size_j == 0) { // watch out for division by zero
+			continue;
+		}
 
-		for (int j = start_j.to_int(); j < end_j; ++j) {
-			dst = dst0 + (screen_x + (screen_y +j) * dst_w) * dst_bpp;
-			for (int i = start_i.to_int(); i < end_i; ++i) {
-				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + scale_x.to_int(), ch_y + scale_y.to_int());
+		fixed iscale   = fixed(scale);
+		fixed ix       = fixed(start_i) / iscale;
+		fixed iy       = fixed(start_j) / iscale;
+		fixed ix_start = ix;
+		fixed idelta_x = (fixed(end_i) / iscale - ix) / fixed(size_i);
+		fixed idelta_y = (fixed(end_j) / iscale - iy) / fixed(size_j);
+
+		for (int j = 0; j < size_j; ++j) {
+			dst = dst0 + (clip_x + (clip_y + j) * dst_w) * dst_bpp;
+			unsigned int bit_row = ch_y + iy.to_int();
+			for (int i = 0; i < size_i; ++i) {
+				unsigned int bit_col = ch_x + ix.to_int();
+				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row);
 				dst[dst_order.index.r] |= (bit & r);
 				dst[dst_order.index.g] |= (bit & g);
 				dst[dst_order.index.b] |= (bit & b);
 				dst += dst_bpp;
+				ix += idelta_x;
 			}
+			ix = ix_start;
+			iy += idelta_y;
 		}
-		screen_x += char_width;*/
+		x += char_width;
 	}
 }
 
