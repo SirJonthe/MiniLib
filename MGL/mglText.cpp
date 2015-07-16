@@ -308,18 +308,20 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
 
 		// Rendering and scaling using a division per pixel
-		//for (int j = start_j; j < end_j; ++j) {
-		//	dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
-		//	int scaled_j = j / scale;
-		//	for (int i = start_i; i < end_i; ++i) {
-		//		mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, ch_x + i / scale, ch_y + scaled_j); // we can avoid a division per pixel by doing fixed point arithmetic
-		//		dst[dst_order.index.r] |= (bit & r);
-		//		dst[dst_order.index.g] |= (bit & g);
-		//		dst[dst_order.index.b] |= (bit & b);
-		//		dst += dst_bpp;
-		//	}
-		//}
-		//x += char_width;
+		/*for (int j = start_j; j < end_j; ++j) {
+			dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
+			int scaled_j = j / scale;
+			int bit_row = ch_y + scaled_j;
+			for (int i = start_i; i < end_i; ++i) {
+				int bit_col = ch_x + i / scale;
+				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row); // we can avoid a division per pixel by doing fixed point arithmetic
+				dst[dst_order.index.r] |= (bit & r);
+				dst[dst_order.index.g] |= (bit & g);
+				dst[dst_order.index.b] |= (bit & b);
+				dst += dst_bpp;
+			}
+		}
+		x += char_width;*/
 
 		// Rendering and scaling using a shift per pixel
 		int size_i  = end_i - start_i;
