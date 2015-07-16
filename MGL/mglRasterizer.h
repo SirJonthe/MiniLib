@@ -33,7 +33,7 @@ protected:
 protected:
 	virtual void	UpdateAPIProjectionMatrix( void ) = 0;
 public:
-	explicit				mglRasterizer(const mglFramebuffer<> *p_framebuffer) : framebuffer(p_framebuffer), m_videoFormat(mglDeviceByteOrder()) {}
+	explicit				mglRasterizer(const mglFramebuffer<> *p_framebuffer) : framebuffer(p_framebuffer), m_videoFormat(mglVideoByteOrder()) {}
 	virtual					~mglRasterizer( void ) {}
 	void					SetCameraTransform(const mglTransform &p_camTransform);
 	void					SetProjectionMatrix(float p_vFov, float p_near, float p_far);

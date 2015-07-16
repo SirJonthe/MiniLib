@@ -29,7 +29,7 @@ struct mglPixelFormat
 	} color;
 };
 
-inline const mglByteOrder32 &mglDeviceByteOrder( void )
+inline const mglByteOrder32 &mglVideoByteOrder( void )
 {
 	// the following should take care of endianness
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux) || defined(__gnu_linux__)
@@ -43,7 +43,7 @@ inline const mglByteOrder32 &mglDeviceByteOrder( void )
 	return standard_order;
 }
 
-inline mglPixel32 mglRGBA(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrder32 fmt = mglDeviceByteOrder())
+inline mglPixel32 mglRGBA(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrder32 fmt = mglVideoByteOrder())
 {
 	mglPixel32 out;
 	out.bytes[fmt.index.r] = r;
@@ -53,7 +53,7 @@ inline mglPixel32 mglRGBA(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrd
 	return out;
 }
 
-inline mglPixel32 mglRGB(mtlByte r, mtlByte g, mtlByte b, mglByteOrder32 fmt = mglDeviceByteOrder())
+inline mglPixel32 mglRGB(mtlByte r, mtlByte g, mtlByte b, mglByteOrder32 fmt = mglVideoByteOrder())
 {
 
 	mglPixel32 out;
