@@ -29,7 +29,7 @@ struct mglPixelFormat
 	} color;
 };
 
-inline const mglByteOrder32 &mglVideoByteOrder( void )
+inline mglByteOrder32 mglVideoByteOrder( void )
 {
 	// the following should take care of endianness
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux) || defined(__gnu_linux__)
