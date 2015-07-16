@@ -307,7 +307,7 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
 		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
 
-		for (int j = start_j; j < end_j; ++j) {
+		/*for (int j = start_j; j < end_j; ++j) {
 			dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
 			int scaled_j = j / scale;
 			for (int i = start_i; i < end_i; ++i) {
@@ -318,12 +318,12 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 				dst += dst_bpp;
 			}
 		}
-		x += char_width;
+		x += char_width;*/
 
-		/*int size_i  = end_i - start_i;
+		int size_i  = end_i - start_i;
 		int size_j  = end_j - start_j;
 
-		if (size_i == 0 || size_j == 0) { // watch out for division by zero
+		if (size_i <= 1 || size_j <= 1) { // watch out for division by zero
 			continue;
 		}
 
@@ -331,8 +331,8 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		fixed ix       = fixed(start_i) / iscale;
 		fixed iy       = fixed(start_j) / iscale;
 		fixed ix_start = ix;
-		fixed idelta_x = (fixed(end_i) / iscale - ix) / fixed(size_i);
-		fixed idelta_y = (fixed(end_j) / iscale - iy) / fixed(size_j);
+		fixed idelta_x = (fixed(end_i) / iscale - ix) / fixed(size_i - 1);
+		fixed idelta_y = (fixed(end_j) / iscale - iy) / fixed(size_j - 1);
 
 		for (int j = 0; j < size_j; ++j) {
 			dst = dst0 + (clip_x + (clip_y + j) * dst_w) * dst_bpp;
@@ -349,7 +349,7 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 			ix = ix_start;
 			iy += idelta_y;
 		}
-		x += char_width;*/
+		x += char_width;
 	}
 }
 
