@@ -22,7 +22,7 @@ private:
 	Format						m_format;
 };
 
-typedef mglGeometry<2> mglGeometry2;
-typedef mglGeometry<3> mglGeometry3;
+typedef mglGeometry<2> mglGeometry2D;
+typedef mglGeometry<3> mglGeometry3D;
 
 #endif // MGL_GEOMETRY_H_INCLUDED__
