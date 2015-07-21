@@ -127,9 +127,9 @@ float mglPerlinNoiseGenerator::Noise(float x, float y, float z) const
 	// right now noise is generated around 0,0 as center
 	// alter this to make x, y center so that scaling scales from center
 
-	int X = ((int)floor(x)) & 255;
-	int Y = ((int)floor(y)) & 255;
-	int Z = ((int)floor(z)) & 255;
+	int X = (int)floor(x);
+	int Y = (int)floor(y);
+	int Z = (int)floor(z);
 
 	x -= floor(x);
 	y -= floor(y);
