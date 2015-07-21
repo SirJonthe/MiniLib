@@ -80,9 +80,10 @@ public:
 class mglPerlinNoiseGenerator : public mglNoiseGenerator
 {
 private:
-	float Lerp(float d, float u, float v) const;
-	float Grad(int hash, float x, float y, float z) const;
-	float Fade(float d) const;
+	unsigned char Perm(unsigned int i)                      const;
+	float         Lerp(float d, float u, float v)           const;
+	float         Grad(int hash, float x, float y, float z) const;
+	float         Fade(float d)                             const;
 
 public:
 	virtual float Noise(float x, float y, float z) const;
