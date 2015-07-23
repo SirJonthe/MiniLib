@@ -105,10 +105,10 @@ public:
 
 	int                 GetIndex(int axis) const { return m_xyz[axis]; }
 
-	int                 GetImpactAxis( void ) const { return m_side; }
+	int                 GetImpactAxis( void )     const { return m_side; }
 	float               GetImpactDistance( void ) const { return fabs((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]); }
 	mmlVector<2>        GetImpactPosition( void ) const { return m_origin + m_direction * GetImpactDistance(); }
-	float               GetImpactU( void ) const;
+	float               GetImpactU( void )        const;
 
 	const mmlVector<2> &GetOrigin( void ) const { return m_origin; }
 };
