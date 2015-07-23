@@ -8,7 +8,10 @@ void mglDifferentialAnalyzer3D::SetInitialState(const mglRay3D &p_ray)
 	m_xyz[1] = int( p_ray.origin[1] );
 	m_xyz[2] = int( p_ray.origin[2] );
 	for (int i = 0; i < 3; ++i) {
-		m_delta[i] = (m_direction * (1.0f / m_direction[i])).Len(); // THIS DELTA IS WRONG - SEE 2D DELTA
+		// Wrong:
+			// When m_direction[i] is 0.0f then Len() returns -NaN when Inf is expected
+			// See 2D version for correct implementation
+		m_delta[i] = (m_direction * (1.0f / m_direction[i])).Len();
 		if (m_direction[i] < 0.0f) {
 			m_step[i] = -1;
 			m_lengths[i] = (p_ray.origin[i] - m_xyz[i]) * m_delta[i];
@@ -49,8 +52,13 @@ void mglDifferentialAnalyzer2D::SetInitialState(const mglRay2D &p_ray)
 	m_xyz[0] = int( p_ray.origin[0] );
 	m_xyz[1] = int( p_ray.origin[1] );
 	for (int i = 0; i < 2; ++i) {
+		// Wrong:
+			// When m_direction[i] is 0.0f then Len() returns -NaN when Inf is expected
 		//m_delta[i] = (m_direction * (1.0f / m_direction[i])).Len();
-		m_delta[i] = sqrt(1 + (m_direction[(i+1)&1]*m_direction[(i+1)&1]) / (m_direction[i]*m_direction[i]));
+		// Reference:
+			// double deltaDistX = sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
+			// double deltaDistY = sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
+		m_delta[i] = sqrt(1.0f + (m_direction[(i+1)&1]*m_direction[(i+1)&1]) / (m_direction[i]*m_direction[i]));
 		if (m_direction[i] < 0.0f) {
 			m_step[i] = -1;
 			m_lengths[i] = (p_ray.origin[i] - m_xyz[i]) * m_delta[i];
