@@ -212,6 +212,7 @@ type_t &mtlList<type_t>::AddLast( void )
 	m_last = node;
 	if (m_first == NULL) { m_first = m_last; }
 	++m_size;
+	return m_last->m_item;
 }
 
 template < typename type_t >
@@ -230,6 +231,7 @@ type_t &mtlList<type_t>::AddFirst( void )
 	m_first = node;
 	if (m_last == NULL) { m_last = m_first; }
 	++m_size;
+	return m_first->m_item;
 }
 
 template < typename type_t >
