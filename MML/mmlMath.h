@@ -104,13 +104,13 @@ inline bool mmlIsNAN(float x)
 inline bool mmlIsInf(float x)
 {
    volatile float tmp = x;
-   return (tmp == x) && ((temp - x) != 0.0f) && (x > 0.0f);
+   return (tmp == x) && ((tmp - x) != 0.0f) && (x > 0.0f);
 }
 
 inline bool mmlIsNegInf(float x)
 {
 	volatile float tmp = x;
-	return (tmp == x) && ((temp - x) != 0.0f) && (x < 0.0f);
+	return (tmp == x) && ((tmp - x) != 0.0f) && (x < 0.0f);
 }
 
 /*inline bool mmlIsNAN(float x)
