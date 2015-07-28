@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#define __mtlclip0(x) (x < 0) ? 0 : x
+#define __mtlclip0(x) ((x < 0) ? 0 : x)
 
 template < typename type_t >
 inline void mtlClear(type_t *mem, int num) { memset(mem, 0, sizeof(type_t) * num); }
