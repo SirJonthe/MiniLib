@@ -549,6 +549,17 @@
     <dl>
       <dd>Print text (big font) to pixel data at given pixel coordinates. Clips
         text at edges of the destination buffer.</dd>
+      <dd><br>
+      </dd>
+      <dd>These functions render text in software, meaning there is no built-in
+        hardware support. Direct access to the font pixel data is not permitted.
+        Hardware support can be implemented by creating a destination pixel
+        buffer of a desired format, render all font characters to that buffer
+        using mglTextBig (see also mglFont_FirstChar, mglFont_LastChar, mglFontBig_CharWidthPx,
+        mglFontBig_CharHeightPx), generate a UV mesh to access individual
+        characters and then upload all relevant data to the graphics card. Keep
+        in mind that the font is not designed to be readable at non-integer
+        scales.</dd>
     </dl>
     <p>Files: MGL/mglText.h</p>
     <p>Variations:</p>
@@ -562,8 +573,8 @@
       Only supports a destination pixel format of 3 or 4 bytes per pixel (<em>dst_bytes_per_pixel</em>),
       although alpha channel will remain unchanged even for RGBA (4 bytes per
       pixel) surfaces. <em>dst_order</em> dictates the order in which the
-      destination buffer stores the separate color channels. Use mglDeviceByteOrder
-      for the video buffer if you are unsure of its format.</p>
+      destination buffer stores the separate color channels. Use
+      mglDeviceByteOrder for the video buffer if you are unsure of its format.</p>
     <p style="margin-left:2em;"><em>void mglTextBig(int num</em><em><em>,
           unsigned char *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order,
           int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b,
@@ -576,14 +587,26 @@
           int scale = 1</em>)</em></p>
     <p style="margin-left:4em">Identical to the string version of the function,
       except prints a floating point number.</p>
-    <p>See also: <a href="#mglTextSmall">mglTextSmall</a>, mglByteOrder32,
-      mglDeviceByteOrder</p>
+    <p>See also: <a href="#mglTextSmall">mglTextSmall</a>, mglFont_FirstChar,
+      mglFont_LastChar, mglFontBig_CharWidthPx, mglFontBig_CharHeightPx,
+      mglByteOrder32, mglDeviceByteOrder</p>
     <h4><a name="mglTexture" id="mglTextSmall">mglTextSmall</a></h4>
     <p>Type: Function</p>
     <p>About:</p>
     <dl>
       <dd>Print text (small font) to pixel data at given pixel coordinates.
         Clips text at edges of the destination buffer.</dd>
+      <dd><br>
+      </dd>
+      <dd>These functions render text in software, meaning there is no built-in
+        hardware support. Direct access to the font pixel data is not permitted.
+        Hardware support can be implemented by creating a destination pixel
+        buffer of a desired format, render all font characters to that buffer
+        using mglTextSmall (see also mglFont_FirstChar, mglFont_LastChar,
+        mglFontSmall_CharWidthPx, mglFontSmall_CharHeightPx), generate a UV mesh
+        to access individual characters and then upload all relevant data to the
+        graphics card. Keep in mind that the font is not designed to be readable
+        at non-integer scales.</dd>
     </dl>
     <p>Files: MGL/mglText.h</p>
     <p>Variations:</p>
@@ -611,8 +634,10 @@
           int scale = 1</em>)</em></p>
     <p style="margin-left:4em">Identical to the string version of the function,
       except prints a floating point number.</p>
-    <p>See also: <a href="#mglTextBig">mglTextBig</a>, mglByteOrder32,
-      mglDeviceByteOrder</p>
+    <em></em>
+    <p>See also: <a href="#mglTextBig">mglTextBig</a>, mglFont_FirstChar,
+      mglFont_LastChar, mglFontSmall_CharWidthPx, mglFontSmall_CharHeightPx,
+      mglByteOrder32, mglDeviceByteOrder</p>
     <h4><a name="mglTexture" id="mglTexture">mglTexture</a></h4>
     <p>Type: Class</p>
     <p>About:</p>
