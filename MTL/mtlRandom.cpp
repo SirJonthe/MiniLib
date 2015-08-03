@@ -13,6 +13,7 @@ void mtlRandom::SetSeed(unsigned long long seed, unsigned long long inc)
 {
 	m_state = seed;
 	m_inc = inc | 1;
+	GetUint(); // Generate a dummy value to avoid an oft recurring initial value
 }
 
 unsigned int mtlRandom::GetUint( void )
