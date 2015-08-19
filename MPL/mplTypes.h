@@ -153,6 +153,8 @@ mpl::float4::float4(const float *v)
 {
 #if defined(mplGCC_SSE) || defined(mplMSVC_SSE)
 	data.reg = _mm_loadu_ps(v);
+#elif defined(mplGCC_NEON)
+	data.reg = vld1q_f32(v)
 #else
 	data.e[0] = v[0];
 	data.e[1] = v[1];
