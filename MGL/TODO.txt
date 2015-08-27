@@ -12,3 +12,34 @@ On daya layout
  - Mid-point displacement
  - Diamond-Square
  - Voronoi
+
+==MGL repurpose==
+
+--do not--
+make a game engine
+depend on a graphics implementation
+
+--geometry--
+some collision detection (poly vs poly)
+spatial data structures (BSP, sparse voxel octree etc)
+transforms with scene graphs
+ray tracing/casting/surfing against grids and shapes (2d/3d)
+clipping
+extrusion volume generators
+some offline calculations? (PVS, lightmap)
+
+--software--
+bit font rendering onto different kinds of buffers
+texture blitting and scaling (use memset for speed)
+rasterizer with a few modes for antialiasing and perspective correction
+
+--ideal--
+skeletal animation / blending
+
+--fringe--
+some model/texture loaders?
+A star (A*)?
+
+--in short--
+i.e. all the tools you need to build a graphics engine short of actually
+building a graphics engine
