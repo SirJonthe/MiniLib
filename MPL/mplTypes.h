@@ -596,7 +596,7 @@ mpl::float4 mpl::sqrt(const mpl::float4 &f)
 	s.data.reg = _mm_sqrt_ps(f.data.reg);
 #elif defined(mplGCC_NEON)
 	s.data.reg = vrsqrteq_f32(f.data.reg);
-	s.data.reg = vrecpeq_f32(r.data.reg);
+	s.data.reg = vrecpeq_f32(s.data.reg);
 	s.data.reg = vmulq_f32(vrecpsq_f32(f.data.reg, s.data.reg), s.data.reg);
 	s.data.reg = vmulq_f32(vrecpsq_f32(f.data.reg, s.data.reg), s.data.reg);
 #else
