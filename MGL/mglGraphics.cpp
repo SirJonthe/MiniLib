@@ -84,22 +84,22 @@ void mglDrawCircleQuadrant(mmlVector<2> mid, float rad, unsigned int quadrant_ma
 	float cy = (float)mid[1] - 0.5f;
 
 	while (x0 >= y0) {
-		if (quadrant & 8) {
+		if (quadrant_mask & 8) {
 			mglDrawPixel((int)(cx + x0), (int)(cy + y0), r, g, b, pixels, bpp, width, height, byte_order);
 			mglDrawPixel((int)(cx + y0), (int)(cy + x0), r, g, b, pixels, bpp, width, height, byte_order);
 		}
 
 		if (x0 != 0.0f) {
-			if (quadrant & 4) mglDrawPixel((int)(cx - x0), (int)(cy + y0), r, g, b, pixels, bpp, width, height, byte_order);
-			if (quadrant & 1) mglDrawPixel((int)(cx + y0), (int)(cy - x0), r, g, b, pixels, bpp, width, height, byte_order);
+			if (quadrant_mask & 4) mglDrawPixel((int)(cx - x0), (int)(cy + y0), r, g, b, pixels, bpp, width, height, byte_order);
+			if (quadrant_mask & 1) mglDrawPixel((int)(cx + y0), (int)(cy - x0), r, g, b, pixels, bpp, width, height, byte_order);
 		}
 
 		if (y0 != 0.0f) {
-			if (quadrant & 1) mglDrawPixel((int)(cx + x0), (int)(cy - y0), r, g, b, pixels, bpp, width, height, byte_order);
-			if (quadrant & 4) mglDrawPixel((int)(cx - y0), (int)(cy + x0), r, g, b, pixels, bpp, width, height, byte_order);
+			if (quadrant_mask & 1) mglDrawPixel((int)(cx + x0), (int)(cy - y0), r, g, b, pixels, bpp, width, height, byte_order);
+			if (quadrant_mask & 4) mglDrawPixel((int)(cx - y0), (int)(cy + x0), r, g, b, pixels, bpp, width, height, byte_order);
 		}
 
-		if (quadrant & 2 && x0 != 0.0f && y0 != 0.0f) {
+		if (quadrant_mask & 2 && x0 != 0.0f && y0 != 0.0f) {
 			mglDrawPixel((int)(cx - x0), (int)(cy - y0), r, g, b, pixels, bpp, width, height, byte_order);
 			mglDrawPixel((int)(cx - y0), (int)(cy - x0), r, g, b, pixels, bpp, width, height, byte_order);
 		}
