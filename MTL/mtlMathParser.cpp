@@ -7,6 +7,7 @@
 //
 
 #include "mtlMathParser.h"
+#include "mtlParser.h"
 #include <cmath>
 
 float mtlMathParser::OperationNode::Evaluate( void ) const
@@ -36,9 +37,60 @@ float mtlMathParser::OperationNode::Evaluate( void ) const
 	return result;
 }
 
+bool mtlMathParser::OperationNode::IsConstant( void ) const
+{
+	return left->IsConstant() && right->IsConstant();
+}
+
+int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out) const
+{
+	int ldepth = left->GetOrder(depth, out);
+	int rdepth = right->GetOrder(depth + 1, out);
+
+	out.Append((char)(depth + 'A'));
+	out.Append('=');
+	out.Append((char)(depth + 'A'));
+	switch (operation) {
+		case '+':
+			out.Append('+');
+			break;
+		case '-':
+			out.Append('-');
+			break;
+		case '*':
+			out.Append('*');
+			break;
+		case '/':
+			out.Append('/');
+			break;
+		case '^':
+			out.Append('^');
+			break;
+	}
+	out.Append((char)(depth + 1 + 'A'));
+	out.Append(';');
+	return ldepth < rdepth ? rdepth : ldepth;
+}
+
 float mtlMathParser::ValueNode::Evaluate( void ) const
 {
 	return value;
+}
+
+bool mtlMathParser::ValueNode::IsConstant( void ) const
+{
+	return constant;
+}
+
+int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out) const
+{
+	out.Append((char)(depth + 'A'));
+	out.Append('=');
+	mtlString num;
+	num.FromFloat(value);
+	out.Append(num);
+	out.Append(';');
+	return depth;
 }
 
 mtlMathParser::mtlMathParser( void ) : /*m_expression(), m_result(0.0f), m_root(NULL),*/ m_scope_stack()
@@ -163,10 +215,12 @@ bool mtlMathParser::GenerateTermTree(mtlMathParser::TermNode *& node, mtlChars e
 		valNode->left = NULL;
 		valNode->right = NULL;
 		valNode->value = 0.0f;
+		valNode->constant = false;
 		if (!expression.ToFloat(valNode->value)) {
-			const float *constant = GetValue(expression);
-			if (constant != NULL) {
-				valNode->value = *constant;
+			const Symbol *val = GetSymbol(expression);
+			if (val != NULL) {
+				valNode->value    = val->value;
+				valNode->constant = val->constant;
 			} else {
 				retval = false;
 			}
@@ -342,6 +396,10 @@ bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 	mtlChars expr_part;
 	if (expr_sides.GetSize() > 1) {
 		var_part = expr_sides.GetFirst()->GetItem().GetTrimmed();
+		if (var_part.GetSize() <= 0) {
+			value = 0.0f;
+			return false;
+		}
 		expr_part = expr_sides.GetFirst()->GetNext()->GetItem();
 	} else {
 		expr_part = expr_sides.GetFirst()->GetItem();
@@ -359,6 +417,63 @@ bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 
 	DestroyTermTree(term_tree);
 	return success;
+}
+
+int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &out)
+{
+	out.Free();
+	int depth = 0;
+
+	TermNode *term_tree;
+
+	mtlList<mtlChars> expr_sides;
+	expression.SplitByChar(expr_sides, '=');
+	mtlChars var_part;
+	mtlChars expr_part;
+	if (expr_sides.GetSize() > 1) {
+		var_part = expr_sides.GetFirst()->GetItem().GetTrimmed();
+		if (var_part.GetSize() <= 0) {
+			return false;
+		}
+		expr_part = expr_sides.GetFirst()->GetNext()->GetItem();
+	} else {
+		expr_part = expr_sides.GetFirst()->GetItem();
+	}
+	bool success = (expr_sides.GetSize() <= 2) && IsBraceBalanced(expr_part) && IsLegalChars(expr_part) && GenerateTermTree(term_tree, expr_part);
+
+	if (success) {
+		depth = term_tree->GetOrder(0, out) + 1;
+	}
+
+	DestroyTermTree(term_tree);
+	return depth;
+}
+
+bool mtlMathParser::IsConstExpression(const mtlChars &expression)
+{
+	TermNode *term_tree;
+
+	mtlList<mtlChars> expr_sides;
+	expression.SplitByChar(expr_sides, '=');
+	mtlChars var_part;
+	mtlChars expr_part;
+	if (expr_sides.GetSize() > 1) {
+		var_part = expr_sides.GetFirst()->GetItem().GetTrimmed();
+		if (var_part.GetSize() <= 0) {
+			return false;
+		}
+		expr_part = expr_sides.GetFirst()->GetNext()->GetItem();
+	} else {
+		expr_part = expr_sides.GetFirst()->GetItem();
+	}
+	bool ret_val = (expr_sides.GetSize() <= 2) && IsBraceBalanced(expr_part) && IsLegalChars(expr_part) && GenerateTermTree(term_tree, expr_part);
+
+	if (ret_val) {
+		ret_val = term_tree->IsConstant();
+	}
+
+	DestroyTermTree(term_tree);
+	return ret_val;
 }
 
 void mtlMathParser::Copy(const mtlMathParser &parser)
@@ -423,12 +538,3 @@ void mtlMathParser::ClearLocalScopes( void )
 		m_scope_stack.RemoveLast();
 	}
 }
-
-/*float mtlMathParser::Evaluate( void ) const
-{
-	float result = 0.0f;
-	if (m_root != NULL) {
-		result = m_root->Evaluate();
-	}
-	return result;
-}*/

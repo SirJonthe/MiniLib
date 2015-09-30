@@ -20,27 +20,34 @@ private:
 		TermNode *left;
 		TermNode *right;
 
-		virtual float Evaluate( void ) const = 0;
+		virtual float Evaluate( void )                    const = 0;
+		virtual bool  IsConstant( void )                  const = 0;
+		virtual int   GetOrder(int depth, mtlString &out) const = 0;
 	};
 
 	struct OperationNode : public TermNode
 	{
 		char operation;
 
-		float Evaluate( void ) const;
+		float Evaluate( void )                    const;
+		bool  IsConstant( void )                  const;
+		int   GetOrder(int depth, mtlString &out) const;
 	};
 
 	struct ValueNode : public TermNode
 	{
 		float value;
+		bool  constant;
 
-		float Evaluate( void ) const;
+		float Evaluate( void )                    const;
+		bool  IsConstant( void )                  const;
+		int   GetOrder(int depth, mtlString &out) const;
 	};
 
 	struct Symbol
 	{
 		float value;
-		bool constant;
+		bool  constant;
 	};
 
 	struct Scope
@@ -69,10 +76,6 @@ private:
 	
 public:
 					mtlMathParser( void );
-	//				~mtlMathParser( void );
-
-	//void			SetConstant(const mtlChars &name, float value);
-	//float			GetConstant(const mtlChars &name) const;
 
 	float			*GetValue(const mtlChars &name);
 	const float		*GetValue(const mtlChars &name) const;
@@ -84,9 +87,8 @@ public:
 	bool			GetVariable(const mtlChars &name, float &value) const;
 
 	bool			Evaluate(const mtlChars &expression, float &value);
-
-	//bool			SetExpression(const mtlChars &expression);
-	//const mtlString	&GetExpression( void ) const;
+	int				GetOrderOfOperations(const mtlChars &expression, mtlString &out);
+	bool			IsConstExpression(const mtlChars &expression);
 	
 	void			Copy(const mtlMathParser &parser);
 
@@ -94,8 +96,6 @@ public:
 	void			PopScope( void );
 	void			ClearAllScopes( void );
 	void			ClearLocalScopes( void );
-
-	//float			Evaluate( void ) const;
 };
 
 #endif
