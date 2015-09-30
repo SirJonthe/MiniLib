@@ -422,7 +422,13 @@ int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &o
 	bool success = (expr_sides.GetSize() <= 2) && IsBraceBalanced(expr_part) && IsLegalChars(expr_part) && GenerateTermTree(term_tree, expr_part);
 
 	if (success) {
-		depth = term_tree->GetOrder(0, out) + 1;
+		depth = term_tree->GetTermDepth(0) + 1;
+		float temp_var = new float[depth];
+		bool  temp_var_init = new bool[depth];
+		for (int i = 0; i < depth; ++i) {
+			temp_var_init[i] = false;
+		}
+		term_tree->GetOrder(0, out, temp_var, temp_var_init);
 	}
 
 	DestroyTermTree(term_tree);
