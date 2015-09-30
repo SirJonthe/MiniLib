@@ -34,6 +34,7 @@ public:
 	inline mtlItem<type_t>			*Remove( void );
 	inline const type_t				&GetItem( void ) const;
 	inline type_t					&GetItem( void );
+	inline mtlItem<type_t>          *Insert( void );
 	inline mtlItem<type_t>			*Insert(const type_t &p_data);
 	inline mtlItem<type_t>			*Insert(mtlItem<type_t> *p_item);
 	inline mtlItem<type_t>			*Insert(mtlList<type_t> &src);
@@ -60,6 +61,7 @@ public:
 	type_t							&AddFirst( void );
 	void							RemoveLast( void );
 	void							RemoveFirst( void );
+	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_at);
 	mtlItem<type_t>					*Insert(const type_t &p_value, mtlItem<type_t> *p_at);
 	mtlItem<type_t>					*Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at);
 	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_at);
@@ -160,21 +162,27 @@ type_t &mtlItem<type_t>::GetItem( void )
 }
 
 template < typename type_t >
+mtlItem<type_t> *mtlItem<type_t>::Insert( void )
+{
+	return m_parent->Insert(this);
+}
+
+template < typename type_t >
 mtlItem<type_t> *mtlItem<type_t>::Insert(const type_t &p_data)
 {
-	return m_parent->Insert(p_data);
+	return m_parent->Insert(p_data, this);
 }
 
 template < typename type_t >
 mtlItem<type_t> *mtlItem<type_t>::Insert(mtlItem<type_t> *p_item)
 {
-	return m_parent->Insert(p_item);
+	return m_parent->Insert(p_item, this);
 }
 
 template < typename type_t >
 mtlItem<type_t> *mtlItem<type_t>::Insert(mtlList<type_t> &src)
 {
-	return m_parent->Insert(src);
+	return m_parent->Insert(src, this);
 }
 
 template < typename type_t >
@@ -258,6 +266,23 @@ void mtlList<type_t>::RemoveFirst( void )
 	}
 	delete node;
 	--m_size;
+}
+
+template < typename type_t >
+mtlItem<type_t> *mtlList<type_t>::Insert(mtlItem<type_t> *p_at)
+{
+	if (p_at == NULL) {
+		AddLast();
+		return m_last;
+	} else if (p_at->m_parent != this) {
+		return NULL;
+	} else if (p_at == m_first) {
+		AddFirst();
+		return m_first;
+	}
+	mtlItem<type_t> *node = new mtlItem<type_t>(this, p_at, p_at->m_prev); // Looks like error, but list now references this memory
+	++m_size;
+	return p_at->m_prev;
 }
 
 template < typename type_t >
