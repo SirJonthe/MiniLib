@@ -23,6 +23,7 @@ private:
 		virtual float Evaluate( void )                    const = 0;
 		virtual bool  IsConstant( void )                  const = 0;
 		virtual int   GetOrder(int depth, mtlString &out) const = 0;
+		virtual int   GetTermDepth(int depth)             const = 0;
 	};
 
 	struct OperationNode : public TermNode
@@ -32,6 +33,7 @@ private:
 		float Evaluate( void )                    const;
 		bool  IsConstant( void )                  const;
 		int   GetOrder(int depth, mtlString &out) const;
+		int   GetTermDepth(int depth)             const;
 	};
 
 	struct ValueNode : public TermNode
@@ -42,6 +44,7 @@ private:
 		float Evaluate( void )                    const;
 		bool  IsConstant( void )                  const;
 		int   GetOrder(int depth, mtlString &out) const;
+		int   GetTermDepth(int depth)             const;
 	};
 
 	struct Symbol

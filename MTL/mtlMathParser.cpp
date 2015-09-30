@@ -72,6 +72,13 @@ int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out) const
 	return ldepth < rdepth ? rdepth : ldepth;
 }
 
+int mtlMathParser::OperationNode::GetTermDepth(int depth) const
+{
+	int ldepth = left->GetTermDepth(depth);
+	int rdepth = right->GetTermDepth(depth+1);
+	return ldepth < rdepth ? rdepth : ldepth;
+}
+
 float mtlMathParser::ValueNode::Evaluate( void ) const
 {
 	return value;
@@ -93,29 +100,15 @@ int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out) const
 	return depth;
 }
 
-mtlMathParser::mtlMathParser( void ) : /*m_expression(), m_result(0.0f), m_root(NULL),*/ m_scope_stack()
+int mtlMathParser::ValueNode::GetTermDepth(int depth) const
+{
+	return depth;
+}
+
+mtlMathParser::mtlMathParser( void ) : m_scope_stack()
 {
 	m_scope_stack.AddLast();
 }
-
-/*mtlMathParser::~mtlMathParser( void )
-{
-	DestroyTermTree(m_root);
-}*/
-
-/*void mtlMathParser::SanitizeExpression( void )
-{
-	int skipped = 0;
-	for (int i = 0; i < m_expression.GetSize(); ++i) {
-		char ch = m_expression.GetChars()[i];
-		if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
-			++skipped;
-		} else {
-			m_expression.GetChars()[i - skipped] = ch;
-		}
-	}
-	m_expression.SetSize(m_expression.GetSize() - skipped);
-}*/
 
 bool mtlMathParser::IsBraceBalanced(const mtlChars &expression) const
 {
@@ -303,19 +296,6 @@ const mtlMathParser::Symbol *mtlMathParser::GetSymbol(const mtlChars &name) cons
 	return found_value;
 }
 
-/*void mtlMathParser::SetConstant(const mtlChars &name, float value)
-{
-	if (IsLegalNameConvention(name)) {
-		(*m_constants.CreateEntry(name)) = value;
-	}
-}
-
-float mtlMathParser::GetConstant(const mtlChars &name) const
-{
-	const float *value = m_constants.GetEntry(name);
-	return value != NULL ? *value : 0.0f;
-}*/
-
 float *mtlMathParser::GetValue(const mtlChars &name)
 {
 	Symbol *sym = GetSymbol(name);
@@ -485,34 +465,6 @@ void mtlMathParser::Copy(const mtlMathParser &parser)
 		i = i->GetNext();
 	}
 }
-
-/*bool mtlMathParser::SetExpression(const mtlChars &expression)
-{
-	DestroyTermTree(m_root);
-	m_root = NULL;
-
-	m_expression.Copy(expression);
-	SanitizeExpression();
-
-	bool retVal = IsBraceBalanced() && IsLegalChars() && GenerateTermTree(m_root, m_expression);
-	if (!retVal) {
-		m_expression.Free();
-		DestroyTermTree(m_root);
-		m_root = NULL;
-	}
-
-	return retVal;
-}
-
-const mtlString &mtlMathParser::GetExpression( void ) const
-{
-	return m_expression;
-}*/
-
-/*void mtlMathParser::CopyConstants(const mtlMathParser &expr)
-{
-	m_constants.Copy(expr.m_constants);
-}*/
 
 void mtlMathParser::PushScope( void )
 {
