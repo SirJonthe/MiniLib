@@ -8,6 +8,7 @@
 
 #include "mtlMathParser.h"
 #include "mtlParser.h"
+#include "mtlArray.h"
 #include <cmath>
 
 float mtlMathParser::OperationNode::Evaluate( void ) const
@@ -42,10 +43,10 @@ bool mtlMathParser::OperationNode::IsConstant( void ) const
 	return left->IsConstant() && right->IsConstant();
 }
 
-int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out) const
+int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const
 {
-	int ldepth = left->GetOrder(depth, out);
-	int rdepth = right->GetOrder(depth + 1, out);
+	int ldepth = left->GetOrder(depth, out, temp_var, temp_var_init);
+	int rdepth = right->GetOrder(depth + 1, out, temp_var, temp_var_init);
 
 	out.Append((char)(depth + 'A'));
 	out.Append('=');
@@ -89,14 +90,19 @@ bool mtlMathParser::ValueNode::IsConstant( void ) const
 	return constant;
 }
 
-int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out) const
+int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const
 {
-	out.Append((char)(depth + 'A'));
-	out.Append('=');
-	mtlString num;
-	num.FromFloat(value);
-	out.Append(num);
-	out.Append(';');
+	if ((temp_var_init[depth] && temp_var[depth] != value) || !temp_var_init[depth]) {
+		out.Append((char)(depth + 'A'));
+		out.Append('=');
+		mtlString num;
+		num.FromFloat(value);
+		out.Append(num);
+		out.Append(';');
+
+		temp_var_init[depth] = true;
+		temp_var[depth] = value;
+	}
 	return depth;
 }
 
@@ -423,8 +429,8 @@ int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &o
 
 	if (success) {
 		depth = term_tree->GetTermDepth(0) + 1;
-		float temp_var = new float[depth];
-		bool  temp_var_init = new bool[depth];
+		mtlArray<float> temp_var(depth);
+		mtlArray<bool>  temp_var_init(depth);
 		for (int i = 0; i < depth; ++i) {
 			temp_var_init[i] = false;
 		}
