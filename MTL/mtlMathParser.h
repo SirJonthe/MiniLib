@@ -20,37 +20,37 @@ private:
 		TermNode *left;
 		TermNode *right;
 
-		virtual float Evaluate( void )                                                          const = 0;
-		virtual bool  IsConstant( void )                                                        const = 0;
-		virtual int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const = 0;
-		virtual int   GetTermDepth(int depth)                                                   const = 0;
+		virtual float Evaluate( void )        const = 0;
+		virtual bool  IsConstant( void )      const = 0;
+		virtual int   GetTermDepth(int depth) const = 0;
+		virtual int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init, bool show_symbols) const = 0;
 	};
 
 	struct OperationNode : public TermNode
 	{
 		char operation;
 
-		float Evaluate( void )                                                          const;
-		bool  IsConstant( void )                                                        const;
-		int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const;
-		int   GetTermDepth(int depth)                                                   const;
-	};
-
-	struct ValueNode : public TermNode
-	{
-		float value;
-		bool  constant;
-
-		float Evaluate( void )                                                          const;
-		bool  IsConstant( void )                                                        const;
-		int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const;
-		int   GetTermDepth(int depth)                                                   const;
+		float Evaluate( void )        const;
+		bool  IsConstant( void )      const;
+		int   GetTermDepth(int depth) const;
+		int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init, bool show_symbols) const;
 	};
 
 	struct Symbol
 	{
-		float value;
-		bool  constant;
+		mtlChars name;
+		float    value;
+		bool     constant;
+	};
+
+	struct ValueNode : public TermNode
+	{
+		Symbol sym;
+
+		float Evaluate( void )        const;
+		bool  IsConstant( void )      const;
+		int   GetTermDepth(int depth) const;
+		int   GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init, bool show_symbols) const;
 	};
 
 	struct Scope
@@ -85,7 +85,7 @@ public:
 	bool         GetVariable(const mtlChars &name, float &value) const;
 
 	bool         Evaluate(const mtlChars &expression, float &value);
-	int          GetOrderOfOperations(const mtlChars &expression, mtlString &out);
+	int          GetOrderOfOperations(const mtlChars &expression, mtlString &out, bool show_symbols = false);
 	bool         IsConstExpression(const mtlChars &expression);
 	
 	void         Copy(const mtlMathParser &parser);

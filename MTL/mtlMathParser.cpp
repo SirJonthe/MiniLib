@@ -43,36 +43,6 @@ bool mtlMathParser::OperationNode::IsConstant( void ) const
 	return left->IsConstant() && right->IsConstant();
 }
 
-int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const
-{
-	int ldepth = left->GetOrder(depth, out, temp_var, temp_var_init);
-	int rdepth = right->GetOrder(depth + 1, out, temp_var, temp_var_init);
-
-	out.Append((char)(depth + 'A'));
-	out.Append('=');
-	out.Append((char)(depth + 'A'));
-	switch (operation) {
-		case '+':
-			out.Append('+');
-			break;
-		case '-':
-			out.Append('-');
-			break;
-		case '*':
-			out.Append('*');
-			break;
-		case '/':
-			out.Append('/');
-			break;
-		case '^':
-			out.Append('^');
-			break;
-	}
-	out.Append((char)(depth + 1 + 'A'));
-	out.Append(';');
-	return ldepth < rdepth ? rdepth : ldepth;
-}
-
 int mtlMathParser::OperationNode::GetTermDepth(int depth) const
 {
 	int ldepth = left->GetTermDepth(depth);
@@ -80,34 +50,77 @@ int mtlMathParser::OperationNode::GetTermDepth(int depth) const
 	return ldepth < rdepth ? rdepth : ldepth;
 }
 
+int mtlMathParser::OperationNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init, bool show_symbols) const
+{
+	int ldepth = left->GetOrder(depth, out, temp_var, temp_var_init, show_symbols);
+	int rdepth = right->GetOrder(depth + 1, out, temp_var, temp_var_init, show_symbols);
+
+	mtlString num;
+
+	out.Append('[');
+	num.FromInt(depth);
+	out.Append(num);
+	out.Append(']');
+	switch (operation) {
+		case '+':
+			out.Append("+=");
+			break;
+		case '-':
+			out.Append("-=");
+			break;
+		case '*':
+			out.Append("*=");
+			break;
+		case '/':
+			out.Append("/=");
+			break;
+		case '^':
+			out.Append("^=");
+			break;
+	}
+	out.Append('[');
+	num.FromInt(depth + 1);
+	out.Append(num);
+	out.Append(']');
+	out.Append(';');
+	return ldepth < rdepth ? rdepth : ldepth;
+}
+
 float mtlMathParser::ValueNode::Evaluate( void ) const
 {
-	return value;
+	return sym.value;
 }
 
 bool mtlMathParser::ValueNode::IsConstant( void ) const
 {
-	return constant;
-}
-
-int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init) const
-{
-	if ((temp_var_init[depth] && temp_var[depth] != value) || !temp_var_init[depth]) {
-		out.Append((char)(depth + 'A'));
-		out.Append('=');
-		mtlString num;
-		num.FromFloat(value);
-		out.Append(num);
-		out.Append(';');
-
-		temp_var_init[depth] = true;
-		temp_var[depth] = value;
-	}
-	return depth;
+	return sym.constant;
 }
 
 int mtlMathParser::ValueNode::GetTermDepth(int depth) const
 {
+	return depth;
+}
+
+int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out, float *temp_var, bool *temp_var_init, bool show_symbols) const
+{
+	if ((temp_var_init[depth] && temp_var[depth] != sym.value) || !temp_var_init[depth]) {
+		mtlString num;
+		num.FromInt(depth);
+		out.Append('[');
+		out.Append(num);
+		out.Append(']');
+		out.Append('=');
+		if (!show_symbols || sym.name.GetSize() <= 0) {
+			num.FromFloat(sym.value);
+			out.Append(num);
+		} else {
+			out.Append(sym.name);
+		}
+		out.Append(';');
+
+		temp_var_init[depth] = true;
+		temp_var[depth] = sym.value;
+	}
 	return depth;
 }
 
@@ -213,13 +226,14 @@ bool mtlMathParser::GenerateTermTree(mtlMathParser::TermNode *& node, mtlChars e
 		ValueNode *valNode = new ValueNode;
 		valNode->left = NULL;
 		valNode->right = NULL;
-		valNode->value = 0.0f;
-		valNode->constant = false;
-		if (!expression.ToFloat(valNode->value)) {
+		valNode->sym.value = 0.0f;
+		valNode->sym.constant = true;
+		if (!expression.ToFloat(valNode->sym.value)) {
 			const Symbol *val = GetSymbol(expression);
 			if (val != NULL) {
-				valNode->value    = val->value;
-				valNode->constant = val->constant;
+				valNode->sym.name     = val->name;
+				valNode->sym.value    = val->value;
+				valNode->sym.constant = val->constant;
 			} else {
 				retval = false;
 			}
@@ -324,6 +338,7 @@ bool mtlMathParser::SetConstant(const mtlChars &name, float value)
 		ret_val = IsLegalNameConvention(name);
 		if (ret_val) {
 			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
+			sym->name = name;
 			sym->constant = true;
 		}
 	}
@@ -353,6 +368,7 @@ bool mtlMathParser::SetVariable(const mtlChars &name, float value)
 		ret_val = IsLegalNameConvention(name);
 		if (ret_val) {
 			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
+			sym->name = name;
 			sym->constant = false;
 		}
 	}
@@ -405,7 +421,7 @@ bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 	return success;
 }
 
-int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &out)
+int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &out, bool show_symbols)
 {
 	out.Free();
 	int depth = 0;
@@ -434,7 +450,7 @@ int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &o
 		for (int i = 0; i < depth; ++i) {
 			temp_var_init[i] = false;
 		}
-		term_tree->GetOrder(0, out, temp_var, temp_var_init);
+		term_tree->GetOrder(0, out, temp_var, temp_var_init, show_symbols);
 	}
 
 	DestroyTermTree(term_tree);
