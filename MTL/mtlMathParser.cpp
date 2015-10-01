@@ -125,9 +125,7 @@ int mtlMathParser::ValueNode::GetOrder(int depth, mtlString &out, float *temp_va
 }
 
 mtlMathParser::mtlMathParser( void ) : m_scope_stack()
-{
-	m_scope_stack.AddLast();
-}
+{}
 
 bool mtlMathParser::IsBraceBalanced(const mtlChars &expression) const
 {
@@ -337,6 +335,7 @@ bool mtlMathParser::SetConstant(const mtlChars &name, float value)
 	} else {
 		ret_val = IsLegalNameConvention(name);
 		if (ret_val) {
+			if (m_scope_stack.GetSize() == 0) { PushScope(); }
 			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
 			sym->name = name;
 			sym->constant = true;
@@ -367,6 +366,7 @@ bool mtlMathParser::SetVariable(const mtlChars &name, float value)
 	} else {
 		ret_val = IsLegalNameConvention(name);
 		if (ret_val) {
+			if (m_scope_stack.GetSize() == 0) { PushScope(); }
 			sym = m_scope_stack.GetLast()->GetItem().m_defs.CreateEntry(name);
 			sym->name = name;
 			sym->constant = false;
