@@ -23,6 +23,7 @@ public:
 	inline				~mtlArray( void );
 	void				Copy(const mtlArray<type_t> &p_array);
 	void				Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end = -1);
+	void				Copy(const type_t *p_array, int p_size);
 	void				Create(int p_size);
 	void				Resize(int p_size);
 	void				MergeSort(mtlArray<type_t> &p_out) const;
@@ -116,6 +117,13 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array, int p_begin, int p_
 	if (p_end < 0) { p_end = p_array.GetSize(); }
 	Create(p_end - p_begin);
 	mtlCopy(m_arr, p_array.m_arr+p_begin, m_size);
+}
+
+template < typename type_t >
+void mtlArray<type_t>::Copy(const type_t *p_array, int p_size)
+{
+	Create(p_size);
+	mtlCopy(m_arr, p_array, p_size);
 }
 
 template < typename type_t >
