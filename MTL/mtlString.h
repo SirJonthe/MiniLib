@@ -58,6 +58,9 @@ public:
 	bool					ToBool(bool &p_out) const;
 	bool					ToInt(int &p_out) const;
 	bool					ToFloat(float &p_out) const;
+	bool					IsBool( void ) const;
+	bool					IsInt( void ) const;
+	bool					IsFloat( void ) const;
 
 	void					Trim( void );
 	void					TrimBraces( void );
@@ -158,6 +161,9 @@ public:
 	inline bool			ToBool(bool &p_out) const;
 	inline bool			ToInt(int &p_out) const;
 	inline bool			ToFloat(float &p_out) const;
+	inline bool			IsBool( void ) const;
+	inline bool			IsInt( void ) const;
+	inline bool			IsFloat( void ) const;
 	bool				FromBool(bool b);
 	bool				FromInt(int i);
 	bool				FromFloat(float f);
@@ -492,6 +498,21 @@ bool mtlString::ToInt(int &p_out) const
 bool mtlString::ToFloat(float &p_out) const
 {
 	return mtlChars(*this).ToFloat(p_out);
+}
+
+bool mtlString::IsBool( void ) const
+{
+	return mtlChars(*this).IsBool();
+}
+
+bool mtlString::IsInt( void ) const
+{
+	return mtlChars(*this).IsInt();
+}
+
+bool mtlString::IsFloat( void ) const
+{
+	return mtlChars(*this).IsFloat();
 }
 
 bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const

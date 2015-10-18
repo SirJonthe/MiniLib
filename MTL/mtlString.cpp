@@ -211,6 +211,24 @@ bool mtlChars::ToFloat(float &p_out) const
 	return true;
 }
 
+bool mtlChars::IsBool( void ) const
+{
+	bool dummy;
+	return ToBool(dummy);
+}
+
+bool mtlChars::IsInt( void ) const
+{
+	int dummy;
+	return ToInt(dummy);
+}
+
+bool mtlChars::IsFloat( void ) const
+{
+	float dummy;
+	return ToFloat(dummy);
+}
+
 void mtlChars::Trim( void )
 {
 	for (int i = 0; i < m_size; ++i) {
