@@ -386,7 +386,7 @@ void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bo
 				}
 			}
 		}
-		if (p_str.GetSize() == 0 && mtlChars::SameAsAll(m_str+i, p_str.m_str, p_str.m_size)) {
+		if (p_str.GetSize() != 0 && mtlChars::SameAsAll(m_str+i, p_str.m_str, p_str.m_size)) {
 			mtlChars str(*this, start, i);
 			if (p_ignoreWhitespace) {
 				str.Trim();
