@@ -235,10 +235,80 @@ mtlByte mglExtractStencilBit(const mtlByte *stencil_bits, int num_bits_width, in
 
 typedef mml_fixed_real<unsigned int,16> fixed;
 
-void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
-	// implement with no scaling at first
+	unsigned char *dst0 = dst;
 
+	int char_width0  = char_width;
+	int char_height0 = char_height;
+	char_width  *= scale;
+	char_height *= scale;
+
+	if (ch < first_char || ch > last_char) {
+		ch = last_char + 1;
+	}
+
+	int ch_index = ch - first_char;
+	int ch_x = (ch_index % char_count_width) * char_width0;
+	int ch_y = (ch_index / char_count_width) * char_height0;
+
+	int start_i = x < 0 ? -x : 0;
+	int clip_x  = x < 0 ?  0 : x;
+	int start_j = y < 0 ? -y : 0;
+	int clip_y  = y < 0 ?  0 : y;
+	int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
+	int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
+
+	// Rendering and scaling using a division per pixel
+	/*for (int j = start_j; j < end_j; ++j) {
+		dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
+		int scaled_j = j / scale;
+		int bit_row = ch_y + scaled_j;
+		for (int i = start_i; i < end_i; ++i) {
+			int bit_col = ch_x + i / scale;
+			mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row); // we can avoid a division per pixel by doing fixed point arithmetic
+			dst[dst_order.index.r] |= (bit & r);
+			dst[dst_order.index.g] |= (bit & g);
+			dst[dst_order.index.b] |= (bit & b);
+			dst += dst_bpp;
+		}
+	}
+	x += char_width;*/
+
+	// Rendering and scaling using a shift per pixel
+	int size_i  = end_i - start_i;
+	int size_j  = end_j - start_j;
+
+	if (size_i <= 1 || size_j <= 1) { // watch out for division by zero
+		return;
+	}
+
+	fixed iscale   = fixed(scale);
+	fixed ix       = fixed(start_i) / iscale;
+	fixed iy       = fixed(start_j) / iscale;
+	fixed ix_start = ix;
+	fixed idelta_x = (fixed(end_i) / iscale - ix) / fixed(size_i - 1);
+	fixed idelta_y = (fixed(end_j) / iscale - iy) / fixed(size_j - 1);
+
+	for (int j = 0; j < size_j; ++j) {
+		dst = dst0 + (clip_x + (clip_y + j) * dst_w) * dst_bpp;
+		unsigned int bit_row = ch_y + iy.to_int();
+		for (int i = 0; i < size_i; ++i) {
+			unsigned int bit_col = ch_x + ix.to_int();
+			mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row);
+			dst[dst_order.index.r] |= (bit & r);
+			dst[dst_order.index.g] |= (bit & g);
+			dst[dst_order.index.b] |= (bit & b);
+			dst += dst_bpp;
+			ix += idelta_x;
+		}
+		ix = ix_start;
+		iy += idelta_y;
+	}
+}
+
+/*void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
 	if ((dst_bpp != 3 && dst_bpp != 4) || scale <= 0) { return; }
 
 	const int newline_x = x;
@@ -247,97 +317,62 @@ void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, 
 		return;
 	}
 
-	unsigned char *dst0 = dst;
-
-	int char_width0  = char_width;
-	int char_height0 = char_height;
-	char_width  *= scale;
-	char_height *= scale;
+	const int scaled_char_width = char_width * scale;
+	const int scaled_char_height = char_height * scale;
 
 	for (int t_i = 0; t_i < text.GetSize(); ++t_i) {
 		char ch = text[t_i];
 		if (mtlChars::IsNewline(ch)) {
 			x = newline_x;
-			y += char_height;
+			y += scaled_char_height;
 			if (y >= dst_h) { // text can never re-enter screen
 				return;
 			}
 			continue;
 		}
 
-		if (mtlChars::IsWhitespace(ch) || y + char_height < 0 || x + char_width < 0 || x >= dst_w) {
+		if (mtlChars::IsWhitespace(ch) || y + scaled_char_height < 0 || x + scaled_char_width < 0 || x >= dst_w) {
 			// white space, or
 			// character is outside of screen
-			x += char_width;
+			x += scaled_char_width;
 			continue;
 		}
 
-		if (ch < first_char || ch > last_char) {
-			ch = last_char + 1;
-		}
+		mglDrawChar(ch, stencil_bits, font_width, char_count_width, char_width, char_height, dst, dst_bpp, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
 
-		int ch_index = ch - first_char;
-		int ch_x = (ch_index % char_count_width) * char_width0;
-		int ch_y = (ch_index / char_count_width) * char_height0;
-
-		int start_i = x < 0 ? -x : 0;
-		int clip_x  = x < 0 ?  0 : x;
-		int start_j = y < 0 ? -y : 0;
-		int clip_y  = y < 0 ?  0 : y;
-		int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
-		int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
-
-		// Rendering and scaling using a division per pixel
-		/*for (int j = start_j; j < end_j; ++j) {
-			dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
-			int scaled_j = j / scale;
-			int bit_row = ch_y + scaled_j;
-			for (int i = start_i; i < end_i; ++i) {
-				int bit_col = ch_x + i / scale;
-				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row); // we can avoid a division per pixel by doing fixed point arithmetic
-				dst[dst_order.index.r] |= (bit & r);
-				dst[dst_order.index.g] |= (bit & g);
-				dst[dst_order.index.b] |= (bit & b);
-				dst += dst_bpp;
-			}
-		}
-		x += char_width;*/
-
-		// Rendering and scaling using a shift per pixel
-		int size_i  = end_i - start_i;
-		int size_j  = end_j - start_j;
-
-		if (size_i <= 1 || size_j <= 1) { // watch out for division by zero
-			continue;
-		}
-
-		fixed iscale   = fixed(scale);
-		fixed ix       = fixed(start_i) / iscale;
-		fixed iy       = fixed(start_j) / iscale;
-		fixed ix_start = ix;
-		fixed idelta_x = (fixed(end_i) / iscale - ix) / fixed(size_i - 1);
-		fixed idelta_y = (fixed(end_j) / iscale - iy) / fixed(size_j - 1);
-
-		for (int j = 0; j < size_j; ++j) {
-			dst = dst0 + (clip_x + (clip_y + j) * dst_w) * dst_bpp;
-			unsigned int bit_row = ch_y + iy.to_int();
-			for (int i = 0; i < size_i; ++i) {
-				unsigned int bit_col = ch_x + ix.to_int();
-				mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row);
-				dst[dst_order.index.r] |= (bit & r);
-				dst[dst_order.index.g] |= (bit & g);
-				dst[dst_order.index.b] |= (bit & b);
-				dst += dst_bpp;
-				ix += idelta_x;
-			}
-			ix = ix_start;
-			iy += idelta_y;
-		}
-		x += char_width;
+		x += scaled_char_width;
 	}
+}*/
+
+void mglDrawCharBig(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mglDrawChar(
+		ch,
+		font_big_bits, font_big_width,
+		font_big_char_count_width,
+		font_big_char_width_px, font_big_char_height_px,
+		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
+		x, y,
+		r, g, b,
+		scale
+	);
 }
 
-void mglTextBig(const mtlChars &text, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+void mglDrawCharSmall(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
+{
+	mglDrawChar(
+		ch,
+		font_small_bits, font_small_width,
+		font_small_char_count_width,
+		font_small_char_width_px, font_small_char_height_px,
+		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
+		x, y,
+		r, g, b,
+		scale
+	);
+}
+
+/*void mglTextBig(const mtlChars &text, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	mglText(
 		text,
@@ -403,4 +438,4 @@ void mglTextSmall(float num, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder
 	mtlString text;
 	text.FromFloat(num);
 	mglTextSmall(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
+}*/
