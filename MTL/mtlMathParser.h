@@ -20,6 +20,8 @@ private:
 		TermNode *left;
 		TermNode *right;
 
+		TermNode( void ) : left(NULL), right(NULL) {}
+
 		virtual float Evaluate( void )        const = 0;
 		virtual bool  IsConstant( void )      const = 0;
 		virtual int   GetTermDepth(int depth) const = 0;

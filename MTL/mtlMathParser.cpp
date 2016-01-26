@@ -149,7 +149,7 @@ bool mtlMathParser::IsLegalChars(const mtlChars &expression) const
 {
 	for (int i = 0; i < expression.GetSize(); ++i) {
 		char ch = expression.GetChars()[i];
-		if (!mtlChars::IsWhitespace(ch) && !mtlChars::IsAlphanumeric(ch) && ch != '_' && ch != '(' && ch != ')' && !mtlChars::IsMath(ch)) {
+		if (!mtlChars::IsWhitespace(ch) && !mtlChars::IsAlphanumeric(ch) && ch != '_' && ch != '(' && ch != ')' && ch != '.' && !mtlChars::IsMath(ch)) {
 			return false;
 		}
 	}
@@ -390,7 +390,7 @@ bool mtlMathParser::GetVariable(const mtlChars &name, float &value) const
 
 bool mtlMathParser::Evaluate(const mtlChars &expression, float &value)
 {
-	TermNode *term_tree;
+	TermNode *term_tree = NULL;
 
 	mtlList<mtlChars> expr_sides;
 	expression.SplitByChar(expr_sides, '=');
@@ -426,7 +426,7 @@ int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &o
 	out.Free();
 	int depth = 0;
 
-	TermNode *term_tree;
+	TermNode *term_tree = NULL;
 
 	mtlList<mtlChars> expr_sides;
 	expression.SplitByChar(expr_sides, '=');
@@ -459,7 +459,7 @@ int mtlMathParser::GetOrderOfOperations(const mtlChars &expression, mtlString &o
 
 bool mtlMathParser::IsConstExpression(const mtlChars &expression)
 {
-	TermNode *term_tree;
+	TermNode *term_tree = NULL;
 
 	mtlList<mtlChars> expr_sides;
 	expression.SplitByChar(expr_sides, '=');
