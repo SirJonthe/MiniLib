@@ -43,13 +43,16 @@ inline long long mmlFloor(double x)              { return (long long)(x + double
 inline int       mmlCeil(float x)                { return (1<<15) - int(float(1<<15) - x); }
 inline long long mmlCeil(double x)               { return (1<<31) - (long long)(double(1<<31) - x); }
 
-template < typename T > inline T    mmlMin2(const T &pA, const T &pB)                    { return (pA < pB) ? (pA) : (pB); }
-template < typename T > inline T    mmlMax2(const T &pA, const T &pB)                    { return (pA > pB) ? (pA) : (pB); }
-template < typename T > inline T    mmlMin3(const T &pA, const T &pB, const T &pC)       { return mmlMin2(mmlMin2(pA,pB),pC); }
-template < typename T > inline T    mmlMax3(const T &pA, const T &pB, const T &pC)       { return mmlMax2(mmlMax2(pA,pB),pC); }
-template < typename T > inline T    mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
+template < typename T > inline T mmlMin(const T &pA, const T &pB)                     { return (pA < pB) ? (pA) : (pB); }
+template < typename T > inline T mmlMax(const T &pA, const T &pB)                     { return (pA > pB) ? (pA) : (pB); }
+template < typename T > inline T mmlMin(const T &pA, const T &pB, const T &pC)        { return mmlMin(mmlMin(pA,pB),pC); }
+template < typename T > inline T mmlMax(const T &pA, const T &pB, const T &pC)        { return mmlMax(mmlMax(pA,pB),pC); }
+template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
 
-template < typename T > inline void mmlSwap(T &pA, T &pB)                                { T temp = pA; pA = pB; pB = temp; }
+#define mmlAtLeast mmlMax
+#define mmlAtMost  mmlMin
+
+template < typename T > inline void mmlSwap(T &pA, T &pB) { T temp = pA; pA = pB; pB = temp; }
 
 template < typename TA, typename TB > inline TA mmlLerp(TA a, TA b, TB x)                             { return a + (b - a) * x; }
 template < typename TA, typename TB > inline TA mmlBilerp(TA i00, TA i10, TA i01, TA i11, TB x, TB y) { return mmlLerp(mmlLerp(i00, i10, x), mmlLerp(i01, i11, x), y); }

@@ -120,10 +120,10 @@ void mglFillBox(mmlVector<2> p1, mmlVector<2> p2, mtlByte r, mtlByte g, mtlByte 
 {
 	if (p1[0] > p2[1]) { mmlSwap(p1[0], p2[0]); }
 	if (p1[1] > p2[1]) { mmlSwap(p1[1], p2[1]); }
-	const int x0 = mmlMax2((int)p1[0], 0) * bpp;
-	const int y0 = mmlMax2((int)p1[1], 0);
-	const int x1 = mmlMin2((int)p2[0], width) * bpp;
-	const int y1 = mmlMin2((int)p2[1], height);
+	const int x0 = mmlMax((int)p1[0], 0) * bpp;
+	const int y0 = mmlMax((int)p1[1], 0);
+	const int x1 = mmlMin((int)p2[0], width) * bpp;
+	const int y1 = mmlMin((int)p2[1], height);
 	const int yn = y1 - y0;
 	const int stride = width * bpp;
 	pixels += y0 * stride;
@@ -150,8 +150,8 @@ void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte 
 
 	int sy1 = (int)ceil((*va)[1]);
 	int sy2 = (int)ceil((*vb)[1]);
-	const int ey1 = mmlMin2((int)ceil((*vb)[1]), height);
-	const int ey2 = mmlMin2((int)ceil((*vc)[1]), height);
+	const int ey1 = mmlMin((int)ceil((*vb)[1]), height);
+	const int ey2 = mmlMin((int)ceil((*vc)[1]), height);
 
 	const float DIFF1 = ceil((*va)[1]) - (*va)[1];
 	const float DIFF2 = ceil((*vb)[1]) - (*vb)[1];
@@ -173,8 +173,8 @@ void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte 
 		}
 
 		for (int y = sy1; y < ey1; ++y, pixels+=stride, start+=D12, end+=D13){
-			const int x0 = mmlMax2(0, (int)start) * bpp;
-			const int x1 = mmlMin2(width, (int)end) * bpp;
+			const int x0 = mmlMax(0, (int)start) * bpp;
+			const int x1 = mmlMin(width, (int)end) * bpp;
 			for (int x = x0; x < x1; x+=bpp) {
 				pixels[x + byte_order.index.r] = r;
 				pixels[x + byte_order.index.g] = g;
@@ -189,8 +189,8 @@ void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte 
 		}
 
 		for (int y = sy2; y < ey2; ++y, pixels+=stride, start+=D23, end+=D13){
-			const int x0 = mmlMax2(0, (int)start) * bpp;
-			const int x1 = mmlMin2(width, (int)end) * bpp;
+			const int x0 = mmlMax(0, (int)start) * bpp;
+			const int x1 = mmlMin(width, (int)end) * bpp;
 			for (int x = x0; x < x1; x+=bpp) {
 				pixels[x + byte_order.index.r] = r;
 				pixels[x + byte_order.index.g] = g;
@@ -207,8 +207,8 @@ void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte 
 		}
 
 		for (int y = sy1; y < ey1; ++y, pixels+=stride, start+=D13, end+=D12){
-			const int x0 = mmlMax2(0, (int)start) * bpp;
-			const int x1 = mmlMin2(width, (int)end) * bpp;
+			const int x0 = mmlMax(0, (int)start) * bpp;
+			const int x1 = mmlMin(width, (int)end) * bpp;
 			for (int x = x0; x < x1; x+=bpp) {
 				pixels[x + byte_order.index.r] = r;
 				pixels[x + byte_order.index.g] = g;
@@ -223,8 +223,8 @@ void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte 
 		}
 
 		for (int y = sy2; y < ey2; ++y, pixels+=stride, start+=D13, end+=D23){
-			const int x0 = mmlMax2(0, (int)start) * bpp;
-			const int x1 = mmlMin2(width, (int)end) * bpp;
+			const int x0 = mmlMax(0, (int)start) * bpp;
+			const int x1 = mmlMin(width, (int)end) * bpp;
 			for (int x = x0; x < x1; x+=bpp) {
 				pixels[x + byte_order.index.r] = r;
 				pixels[x + byte_order.index.g] = g;

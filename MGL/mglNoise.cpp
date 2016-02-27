@@ -65,7 +65,7 @@ void mglNoiseGenerator::SetRanomizerSeeds(unsigned int z, unsigned int w)
 
 void mglNoiseGenerator::SetScale(float scale)
 {
-	m_scale = mmlMax2(scale, 1.0f);
+	m_scale = mmlMax(scale, 1.0f);
 }
 
 float mglNoiseGenerator::GetScale( void ) const

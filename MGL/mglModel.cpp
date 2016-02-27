@@ -554,7 +554,7 @@ mtlItem<mglStaticModel::Triangle> *mglStaticModel::FindBestSplittingTriangle(mgl
 void mglStaticModel::SplitGeometryRecursively(mglStaticModel::Node *node, int depth)
 {
 	if (node->triangles.GetSize() <= 1) { return; } // end of the line
-	m_depth = mmlMax2(m_depth, depth);
+	m_depth = mmlMax(m_depth, depth);
 	node->front = new Node(node);
 	node->back = new Node(node);
 	mtlItem<Triangle> *splitTri = FindBestSplittingTriangle(node);

@@ -90,7 +90,7 @@ void mglParticleDynamics2D::Advect(int b, float *d, const float *d0, const float
 
 void mglParticleDynamics2D::Project(float *u, float *v, float *p, float *div) const
 {
-	const int max_dim = mmlMax2(m_width, m_height);
+	const int max_dim = mmlMax(m_width, m_height);
 	FOR2D
 		div[XY(i,j)] = -0.5f * (u[XY(i+1,j)] - u[XY(i-1,j)] + v[XY(i,j+1)] - v[XY(i,j-1)]) / max_dim;
 		p[XY(i,j)] = 0.0f;

@@ -126,7 +126,7 @@ void mglTexturedRasterizer::RenderScanlineSubAffine(int x1, int x2, int, float w
 	const float dAffine = 1.0f / fAffineStep;
 	mmlVector<2> affineUV1 = t1 * (1.0f / w1);
 	for (int i = x1; i < x2; i+=affineStep) {
-		x1 = mmlMin2(x1+affineStep, x2);
+		x1 = mmlMin(x1+affineStep, x2);
 		t1 += dta;
 		w1 += dwa;
 		const mmlVector<2> affineUV2 = t1 * (1.0f / w1);
@@ -211,7 +211,7 @@ void mglTexturedRasterizer::RenderScanlineDitherSubAffine(int x1, int x2, int y,
 	const float dAffine = 1.0f / fAffineStep;
 	mmlVector<2> affineUV1 = t1 * (1.0f / w1);
 	for (int i = x1; i < x2; i+=affineStep) {
-		x1 = mmlMin2(x1+affineStep, x2);
+		x1 = mmlMin(x1+affineStep, x2);
 		t1 += dta;
 		w1 += dwa;
 		const mmlVector<2> affineUV2 = t1 * (1.0f / w1);
@@ -302,8 +302,8 @@ void mglTexturedRasterizer::RenderTriangle(mmlVector<5> va, mmlVector<5> vb, mml
 	
 	int sy1 = (int)ceil((*a)[1]);
 	int sy2 = (int)ceil((*b)[1]);
-	const int ey1 = mmlMin2((int)ceil((*b)[1]), height);
-	const int ey2 = mmlMin2((int)ceil((*c)[1]), height);
+	const int ey1 = mmlMin((int)ceil((*b)[1]), height);
+	const int ey2 = mmlMin((int)ceil((*c)[1]), height);
 	
 	unsigned int *pixels = framebuffer->GetPixels(sy1);
 	
@@ -461,7 +461,7 @@ void mglTexturedRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4>
 
 	const int centerX = framebuffer->GetWidth() >> 1;
 	const int centerY = framebuffer->GetHeight() >> 1;
-	const float FramebufferScale = (float)mmlMin2(framebuffer->GetWidth(), framebuffer->GetHeight());
+	const float FramebufferScale = (float)mmlMin(framebuffer->GetWidth(), framebuffer->GetHeight());
 
 	const mmlMatrix<4,4> objToCam = m_worldToCamera * p_objToWorld;
 	const mmlMatrix<4,4> camToObj = mmlInv(objToCam);
@@ -548,7 +548,7 @@ void mglTexturedRasterizer::Render(const mglModel &p_model, const mmlMatrix<4,4>
 
 void mglTexturedRasterizer::Render(const mglStaticModel &p_model, const mmlMatrix<4,4> &p_objToWorld)
 {
-	const float FramebufferScale = (float)mmlMin2(framebuffer->GetWidth(), framebuffer->GetHeight());
+	const float FramebufferScale = (float)mmlMin(framebuffer->GetWidth(), framebuffer->GetHeight());
 	const mmlMatrix<4,4> objToCam = m_worldToCamera * p_objToWorld;
 	const mmlMatrix<4,4> camToObj = mmlInv(objToCam);
 	const mmlVector<3> cameraInObjectSpace = m_cameraPosition * camToObj; // is position relevant? shouldn't it be camera direction?
@@ -569,8 +569,8 @@ void mglTexturedRasterizer::Debug_RenderTriangle(const mmlVector<4> &a, const mm
 
 void mglFlatRasterizer::RenderScanline(int x1, int x2, unsigned int color, unsigned int *pixels)
 {
-	x1 = mmlMax2(x1, 0);
-	x2 = mmlMin2(x2, framebuffer->GetWidth()-1);
+	x1 = mmlMax(x1, 0);
+	x2 = mmlMin(x2, framebuffer->GetWidth()-1);
 	for (int x = x1; x < x2; ++x) {
 		pixels[x] = color;
 	}
@@ -592,8 +592,8 @@ void mglFlatRasterizer::RenderTriangle(mmlVector<2> va, mmlVector<2> vb, mmlVect
 
 	int sy1 = (int)ceil((*a)[1]);
 	int sy2 = (int)ceil((*b)[1]);
-	const int ey1 = mmlMin2((int)ceil((*b)[1]), height);
-	const int ey2 = mmlMin2((int)ceil((*c)[1]), height);
+	const int ey1 = mmlMin((int)ceil((*b)[1]), height);
+	const int ey2 = mmlMin((int)ceil((*c)[1]), height);
 
 	unsigned int *pixels = framebuffer->GetPixels(sy1);
 
@@ -748,7 +748,7 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 
 	const int centerX = framebuffer->GetWidth() >> 1;
 	const int centerY = framebuffer->GetHeight() >> 1;
-	const float FramebufferScale = (float)mmlMin2(framebuffer->GetWidth(), framebuffer->GetHeight());
+	const float FramebufferScale = (float)mmlMin(framebuffer->GetWidth(), framebuffer->GetHeight());
 
 	const mmlMatrix<4,4> objToCam = m_worldToCamera * p_objToWorld;
 	const mmlMatrix<4,4> camToObj = mmlInv(objToCam);
@@ -822,7 +822,7 @@ void mglFlatRasterizer::Render(const mglModel &p_model, const mmlMatrix<4, 4> &p
 
 void mglFlatRasterizer::Render(const mglStaticModel &p_model, const mmlMatrix<4, 4> &p_objToWorld)
 {
-	const float FramebufferScale = (float)mmlMin2(framebuffer->GetWidth(), framebuffer->GetHeight());
+	const float FramebufferScale = (float)mmlMin(framebuffer->GetWidth(), framebuffer->GetHeight());
 	const mmlMatrix<4,4> objToCam = m_worldToCamera * p_objToWorld;
 	const mmlMatrix<4,4> camToObj = mmlInv(objToCam);
 	const mmlVector<3> cameraInObjectSpace = m_cameraPosition * camToObj; // is position relevant? shouldn't it be camera direction?
