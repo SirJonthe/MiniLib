@@ -9,7 +9,10 @@ class mtlReference;
 template < typename type_t >
 class mtlShared
 {
-	friend class mtlReference<type_t>;
+	template < typename T >
+	friend class mtlReference;
+	template < typename T >
+	friend class mtlShared;
 
 private:
 	type_t	*m_obj; // delete if count==0
@@ -180,7 +183,8 @@ mtlShared<type_t> mtlShared<type_t>::Create( void )
 template < typename type_t >
 class mtlExclusive
 {
-	friend class mtlReference<type_t>;
+	template < typename T >
+	friend class mtlReference;
 
 private:
 	type_t	*m_obj;
