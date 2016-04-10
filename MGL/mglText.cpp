@@ -295,10 +295,11 @@ void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_
 		unsigned int bit_row = ch_y + iy.to_int();
 		for (int i = 0; i < size_i; ++i) {
 			unsigned int bit_col = ch_x + ix.to_int();
-			mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row);
-			dst[dst_order.index.r] |= (bit & r);
-			dst[dst_order.index.g] |= (bit & g);
-			dst[dst_order.index.b] |= (bit & b);
+			if (mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row) != 0) {
+				dst[dst_order.index.r] = r;
+				dst[dst_order.index.g] = g;
+				dst[dst_order.index.b] = b;
+			}
 			dst += dst_bpp;
 			ix += idelta_x;
 		}
