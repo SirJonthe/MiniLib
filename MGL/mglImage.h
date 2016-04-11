@@ -23,7 +23,7 @@ private:
 
 private:
 	mglImage(const mglImage&) {}
-	mglImage &operator=(const mglImage&) { return*this; }
+	mglImage &operator=(const mglImage&) { return *this; }
 
 public:
 	mglImage( void );
