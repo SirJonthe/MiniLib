@@ -259,22 +259,6 @@ void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_
 	int end_i   = (x + char_width)  >= dst_w ? dst_w - x : char_width;
 	int end_j   = (y + char_height) >= dst_h ? dst_h - y : char_height;
 
-	// Rendering and scaling using a division per pixel
-	/*for (int j = start_j; j < end_j; ++j) {
-		dst = dst0 + (clip_x + (clip_y + (j - start_j)) * dst_w) * dst_bpp;
-		int scaled_j = j / scale;
-		int bit_row = ch_y + scaled_j;
-		for (int i = start_i; i < end_i; ++i) {
-			int bit_col = ch_x + i / scale;
-			mtlByte bit = mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row); // we can avoid a division per pixel by doing fixed point arithmetic
-			dst[dst_order.index.r] |= (bit & r);
-			dst[dst_order.index.g] |= (bit & g);
-			dst[dst_order.index.b] |= (bit & b);
-			dst += dst_bpp;
-		}
-	}
-	x += char_width;*/
-
 	// Rendering and scaling using a shift per pixel
 	int size_i  = end_i - start_i;
 	int size_j  = end_j - start_j;
@@ -308,43 +292,6 @@ void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_
 	}
 }
 
-/*void mglText(const mtlChars &text, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	if ((dst_bpp != 3 && dst_bpp != 4) || scale <= 0) { return; }
-
-	const int newline_x = x;
-
-	if (y >= dst_h) { // text can never re-enter screen
-		return;
-	}
-
-	const int scaled_char_width = char_width * scale;
-	const int scaled_char_height = char_height * scale;
-
-	for (int t_i = 0; t_i < text.GetSize(); ++t_i) {
-		char ch = text[t_i];
-		if (mtlChars::IsNewline(ch)) {
-			x = newline_x;
-			y += scaled_char_height;
-			if (y >= dst_h) { // text can never re-enter screen
-				return;
-			}
-			continue;
-		}
-
-		if (mtlChars::IsWhitespace(ch) || y + scaled_char_height < 0 || x + scaled_char_width < 0 || x >= dst_w) {
-			// white space, or
-			// character is outside of screen
-			x += scaled_char_width;
-			continue;
-		}
-
-		mglDrawChar(ch, stencil_bits, font_width, char_count_width, char_width, char_height, dst, dst_bpp, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-
-		x += scaled_char_width;
-	}
-}*/
-
 void mglDrawCharBig(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
 	mglDrawChar(
@@ -372,71 +319,3 @@ void mglDrawCharSmall(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrd
 		scale
 	);
 }
-
-/*void mglTextBig(const mtlChars &text, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mglText(
-		text,
-		font_big_bits, font_big_width,
-		font_big_char_count_width,
-		font_big_char_width_px, font_big_char_height_px,
-		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
-		x, y,
-		r, g, b,
-		scale
-	);
-}
-
-void mglTextBig(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	char chars[2] = { ch, 0 };
-	mglTextBig(chars, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
-
-void mglTextBig(int num, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mtlString text;
-	text.FromInt(num);
-	mglTextBig(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
-
-void mglTextBig(float num, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mtlString text;
-	text.FromFloat(num);
-	mglTextBig(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
-
-void mglTextSmall(const mtlChars &text, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mglText(
-		text,
-		font_small_bits, font_small_width,
-		font_small_char_count_width,
-		font_small_char_width_px, font_small_char_height_px,
-		dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h,
-		x, y,
-		r, g, b,
-		scale
-	);
-}
-
-void mglTextSmall(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	char chars[2] = { ch, 0 };
-	mglTextSmall(chars, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
-
-void mglTextSmall(int num, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mtlString text;
-	text.FromInt(num);
-	mglTextSmall(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}
-
-void mglTextSmall(float num, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
-{
-	mtlString text;
-	text.FromFloat(num);
-	mglTextSmall(text, dst, dst_bytes_per_pixel, dst_order, dst_w, dst_h, x, y, r, g, b, scale);
-}*/
