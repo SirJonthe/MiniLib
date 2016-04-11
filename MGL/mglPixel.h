@@ -22,7 +22,8 @@ union mglByteOrder32
 
 struct mglPixelFormat
 {
-	int bytes_per_pixel; // traditionally 1, 2, 3, 4
+	int            bytes_per_pixel; // traditionally 1, 2, 3, 4
+	mglByteOrder32 byte_order;
 	enum Color {
 		Color_Grayscale, // 1 byte = gray, 2 bytes = gray+alpha
 		Color_Truecolor  // 2 bytes = rgba5551, 3 = rgb888, 4 = rgba8888
@@ -62,35 +63,6 @@ inline mglPixel32 mglRGB(mtlByte r, mtlByte g, mtlByte b, mglByteOrder32 fmt = m
 	out.bytes[fmt.index.b] = b;
 	out.bytes[fmt.index.a] = 0xff;
 	return out;
-}
-
-namespace mglPixelManip
-{
-	inline unsigned char Mul(mtlByte a, mtlByte b)
-	{
-		return mglMul8(a, b);
-	}
-	inline mglPixel32 Mul(mglPixel32 a, mglPixel32 b) {
-		mglPixel32 out;
-		out.bytes[0] = Mul(a.bytes[0], b.bytes[0]);
-		out.bytes[1] = Mul(a.bytes[1], b.bytes[1]);
-		out.bytes[2] = Mul(a.bytes[2], b.bytes[2]);
-		out.bytes[3] = Mul(a.bytes[3], b.bytes[3]);
-		return out;
-	}
-	// returns the dot product between two 32 bit colors
-	// unsigned, so returns 0-255 range
-	// MAKE SURE OF 2 THINGS:
-	// 1) The input RGB/RGBA colors are normalized (length = 255)
-	// 2) For RGB normalization, make sure alpha is 0
-	inline mtlByte Dot(mglPixel32 a, mglPixel32 b)
-	{
-		return
-			Mul(a.bytes[0], b.bytes[0]) +
-			Mul(a.bytes[1], b.bytes[1]) +
-			Mul(a.bytes[2], b.bytes[2]) +
-			Mul(a.bytes[3], b.bytes[3]);
-	}
 }
 
 #endif
