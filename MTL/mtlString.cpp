@@ -90,22 +90,16 @@ void mtlChars::ToUpper(char *str, int num)
 	}
 }
 
-mtlChars mtlChars::GetSubstring(int p_start, int p_end) const
-{
-	return mtlChars(*this, p_start, p_end);
-}
-
 mtlChars mtlChars::GetTrimmed( void ) const
 {
 	mtlChars s(*this);
-	s.Trim();
-	return s;
-}
-
-mtlChars mtlChars::GetTrimmedBraces( void ) const
-{
-	mtlChars s(*this);
-	s.TrimBraces();
+	while (s.m_size > 0 && IsWhitespace(s.m_str[0])) {
+		++s.m_str;
+		--s.m_size;
+	}
+	while (s.m_size > 0 && IsWhitespace(s.m_str[s.m_size - 1])) {
+		--s.m_size;
+	}
 	return s;
 }
 
@@ -229,197 +223,42 @@ bool mtlChars::IsFloat( void ) const
 	return ToFloat(dummy);
 }
 
-void mtlChars::Trim( void )
-{
-	for (int i = 0; i < m_size; ++i) {
-		if (m_str[0] == ' ' || m_str[0] == '\t' || m_str[0] == '\n' || m_str[0] == '\r') {
-			++m_str;
-			--m_size;
-		} else {
-			break;
-		}
-	}
-
-	for (int i = m_size - 1; i >= 0; --i) {
-		if (m_str[i] == ' ' || m_str[i] == '\t' || m_str[i] == '\n' || m_str[i] == '\r') {
-			--m_size;
-		} else {
-			break;
-		}
-	}
-}
-
-void mtlChars::TrimBraces( void )
-{
-	Trim();
-	if (GetSize() >= 1) {
-		int brace_counter = 0;
-		int brace_type = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
-		if (brace_type > -1) {
-			++brace_counter;
-			int i = 1;
-			for (; i < m_size; ++i) {
-				if (SameAsWhich(m_str[i], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true) == brace_type) {
-					++brace_counter;
-				} else if (SameAsWhich(m_str[i], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true) == brace_type) {
-					--brace_counter;
-					if (brace_counter == 0) { break; }
-				}
-			}
-			if (brace_counter == 0 && i == m_size-1) {
-				++m_str;
-				m_size -= 2;
-			}
-		}
-	}
-}
-
-bool mtlChars::IsBraced( void ) const
-{
-	mtlChars trimmed = GetTrimmed();
-	if (trimmed.GetSize() >= 2) {
-		int open = SameAsWhich(m_str[0], mtlOpenBracesStr, sizeof(mtlOpenBracesStr), true);
-		int close = SameAsWhich(m_str[m_size - 1], mtlClosedBracesStr, sizeof(mtlClosedBracesStr), true);
-		return open > -1 && open == close;
-	}
-	return false;
-}
-
-void mtlChars::Substring(int p_start, int p_end)
-{
-	*this = mtlChars(*this, p_start, p_end);
-}
-
-/*void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhiteSpace) const
-{
-	const int num = p_chars.m_size;
-	int start = 0;
-	for (int i = 0; i < m_size; ++i) {
-		if (mtlChars::SameAsAny(m_str[i], p_chars.m_str, num)) {
-			//if (i - start > 0) {
-			mtlChars str(*this, start, i);
-			if (p_ignoreWhiteSpace) {
-				str.Trim();
-			}
-			p_out.AddLast(str);
-			//}
-			start = i + 1;
-		}
-	}
-	//if (m_size - start > 0) {
-	mtlChars str(*this, start, m_size);
-	if (p_ignoreWhiteSpace) {
-		str.Trim();
-	}
-	p_out.AddLast(str);
-	//}
-}*/
-
-void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace, bool p_braceScoping) const
+void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace) const
 {
 	p_out.RemoveAll();
-
-	mtlList<int> brace_stack;
 	int start = 0;
-
-	for (int i = 0; i < m_size; ++i) {
-		char ch = m_str[i];
-		if (p_braceScoping) {
-			int o = mtlChars::SameAsWhich(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr));
-			if (o >= 0) {
-				brace_stack.AddLast(o);
-			} else if (brace_stack.GetSize() > 0) {
-				int c = mtlChars::SameAsWhich(ch, mtlClosedBracesStr, sizeof(mtlClosedBracesStr));
-				if (brace_stack.GetLast()->GetItem() == c) {
-					brace_stack.RemoveLast();
-				}
-			}
-		}
-		if (brace_stack.GetSize() == 0 && mtlChars::SameAsAny(ch, p_chars.m_str, p_chars.m_size)) {
-			mtlChars str(*this, start, i);
-			if (p_ignoreWhitespace) {
-				str.Trim();
-			}
-			p_out.AddLast(str);
-			start = i + 1;
+	for (int end = 0; end < m_size; ++end) {
+		char ch = m_str[end];
+		if (p_chars.SameAsAny(ch)) {
+			mtlChars str(*this, start, end);
+			p_out.AddLast(p_ignoreWhitespace ? str.GetTrimmed() : str);
+			start = end + 1;
 		}
 	}
-
-	if (brace_stack.GetSize() == 0 || !p_braceScoping) {
-		mtlChars str(*this, start, m_size);
-		if (p_ignoreWhitespace) {
-			str.Trim();
-		}
-		p_out.AddLast(str);
-	}
+	mtlChars str(*this, start, m_size);
+	p_out.AddLast(p_ignoreWhitespace ? str.GetTrimmed() : str);
 }
 
-void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace, bool p_braceScoping) const
+void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace) const
 {
 	char chars[] = mtlCharToStr(p_ch);
-	SplitByChar(p_out, chars, p_ignoreWhitespace, p_braceScoping);
+	SplitByChar(p_out, chars, p_ignoreWhitespace);
 }
 
-/*void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
-{
-	int start = 0;
-	const int num = p_str.m_size;
-	for (int i = 0; i < m_size - num; ++i) {
-		if (mtlChars::SameAsAll(m_str+i, p_str.m_str, num)) {
-			//if (i - start > 0) {
-			mtlChars str(*this, start, i);
-			if (p_ignoreWhiteSpace) {
-				str.Trim();
-			}
-			p_out.AddLast(str);
-			//}
-			start = i + num;
-		}
-	}
-	//if (m_size - start > 0) {
-	mtlChars str(*this, start, m_size);
-	if (p_ignoreWhiteSpace) {
-		str.Trim();
-	}
-	p_out.AddLast(str);
-	//}
-}*/
-
-void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhitespace, bool p_braceScoping) const
+void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhitespace) const
 {
 	p_out.RemoveAll();
-
-	mtlList<int> brace_stack;
 	int start = 0;
-	for (int i = 0; i < m_size; ++i) {
-		char ch = m_str[i];
-		if (p_braceScoping) {
-			int o = mtlChars::SameAsWhich(ch, mtlOpenBracesStr, sizeof(mtlOpenBracesStr));
-			if (o >= 0) {
-				brace_stack.AddLast(o);
-			} else if (brace_stack.GetSize() > 0) {
-				int c = mtlChars::SameAsWhich(ch, mtlClosedBracesStr, sizeof(mtlClosedBracesStr));
-				if (brace_stack.GetLast()->GetItem() == c) {
-					brace_stack.RemoveLast();
-				}
-			}
-		}
-		if (p_str.GetSize() != 0 && mtlChars::SameAsAll(m_str+i, p_str.m_str, p_str.m_size)) {
-			mtlChars str(*this, start, i);
-			if (p_ignoreWhitespace) {
-				str.Trim();
-			}
-			p_out.AddLast(str);
-			start = i + p_str.m_size;
+	for (int end = 0; end < m_size; ++end) {
+		if (p_str.GetSize() != 0 && mtlChars::SameAsAll(m_str + end, p_str.m_str, p_str.m_size)) {
+			mtlChars str(*this, start, end);
+			p_out.AddLast(p_ignoreWhitespace ? str.GetTrimmed() : str);
+			start = end + p_str.m_size;
 		}
 	}
-
-	if (brace_stack.GetSize() == 0 || !p_braceScoping) {
+	if (start < m_size) {
 		mtlChars str(*this, start, m_size);
-		if (p_ignoreWhitespace) {
-			str.Trim();
-		}
-		p_out.AddLast(str);
+		p_out.AddLast(p_ignoreWhitespace ? str.GetTrimmed() : str);
 	}
 }
 
@@ -499,6 +338,16 @@ int mtlChars::CountChars(char ch, bool p_caseSensitive) const
 	return count;
 }
 
+bool mtlChars::IsBlank( void ) const
+{
+	for (int i = 0; i < m_size; ++i) {
+		if (!mtlChars::IsWhitespace(m_str[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
 bool mtlChars::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	if (p_str.m_size != m_size) { return false; }
@@ -527,7 +376,8 @@ void mtlString::NewPoolDelete(int p_size)
 {
 	char *newPool = NewPool(p_size);
 	if (newPool != NULL) {
-		delete [] m_str;
+		delete [] m_mut_str;
+		m_mut_str = newPool;
 		m_str = newPool;
 	}
 }
@@ -537,7 +387,8 @@ void mtlString::NewPoolPreserve(int p_size)
 	char *newPool = NewPool(p_size);
 	if (newPool != NULL) {
 		mtlCopy(newPool, m_str, m_size);
-		delete [] m_str;
+		delete [] m_mut_str;
+		m_mut_str = newPool;
 		m_str = newPool;
 	}
 }
@@ -567,29 +418,24 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 		if (newPool != NULL) {
 			mtlCopy(newPool, m_str, p_at);
 			mtlCopy(newPool + p_at + p_num, m_str + p_at, m_size - p_at);
-			delete [] m_str;
+			delete [] m_mut_str;
+			m_mut_str = newPool;
 			m_str = newPool;
 		} else {
-			mtlCopyOverlap(m_str + p_at + p_num, m_str + p_at, m_size - p_at);
+			mtlCopyOverlap(m_mut_str + p_at + p_num, m_str + p_at, m_size - p_at);
 		}
-		mtlCopy(m_str+p_at, p_str.GetChars(), p_num);
-		m_str[m_size] = '\0';
+		mtlCopy(m_mut_str+p_at, p_str.GetChars(), p_num);
+		m_mut_str[m_size] = '\0';
 	}
 }
 
 mtlString &mtlString::Append(const mtlChars &p_str)
 {
 	NewPoolPreserve(m_size + p_str.GetSize());
-	mtlCopy(m_str + m_size, p_str.GetChars(), p_str.GetSize());
+	mtlCopy(m_mut_str + m_size, p_str.GetChars(), p_str.GetSize());
 	m_size += p_str.GetSize();
-	m_str[m_size] = '\0';
+	m_mut_str[m_size] = '\0';
 	return *this;
-}
-
-mtlString &mtlString::Append(char ch)
-{
-	const char c[] = mtlCharToStr(ch);
-	return Append(c);
 }
 
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
@@ -599,24 +445,25 @@ void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 	const int newSize = num + p_at;
 	const char *str = p_str.GetChars();
 	NewPoolPreserve(newSize);
-	mtlCopy(m_str+p_at, str, num);
+	mtlCopy(m_mut_str+p_at, str, num);
 	m_size = m_size > newSize ? m_size : newSize;
-	m_str[m_size] = '\0';
+	m_mut_str[m_size] = '\0';
 }
 
 void mtlString::Remove(int p_start, int p_end)
 {
 	int end = p_end < 0 ? m_size : p_end;
 	int num = end - p_start;
-	mtlCopy(m_str + p_start, m_str + p_start + num, m_size + 1);
+	mtlCopy(m_mut_str + p_start, m_str + p_start + num, m_size + 1);
 	m_size -= num;
-	m_str[m_size] = '\0';
+	m_mut_str[m_size] = '\0';
 }
 
 void mtlString::Free( void )
 {
-	delete [] m_str;
+	delete [] m_mut_str;
 	m_str = NULL;
+	m_mut_str = NULL;
 	m_size = 0;
 	m_pool = 0;
 }
@@ -625,43 +472,50 @@ void mtlString::Copy(const mtlChars &p_str)
 {
 	if (p_str.GetChars() == NULL) {
 		if (m_str != NULL && m_size > 0) {
-			m_str[0] = '\0';
+			m_mut_str[0] = '\0';
 			m_size = 0;
 		}
 	} else {
 		const int p_num = p_str.GetSize();
 		NewPoolDelete(p_num);
 		m_size = p_num;
-		mtlCopy(m_str, p_str.GetChars(), m_size);
-		m_str[m_size] = '\0';
+		mtlCopy(m_mut_str, p_str.GetChars(), m_size);
+		m_mut_str[m_size] = '\0';
 	}
 }
 
-bool mtlString::FromBool(bool b)
+void mtlString::Reverse( void )
 {
-	if (b) { Copy("true"); }
-	else { Copy("false"); }
-	return true;
+	const int half_size = m_size / 2;
+	for (int i = 0, j = m_size - 1; i < half_size; ++i, --j) {
+		char tmp = m_mut_str[i];
+		m_mut_str[i] = m_mut_str[j];
+		m_mut_str[j] = tmp;
+	}
 }
 
-bool mtlString::FromInt(int i)
+void mtlString::FromBool(bool b)
+{
+	if (b) { Copy("true"); }
+	else   { Copy("false"); }
+}
+
+void mtlString::FromInt(int i)
 {
 	char ch_out[32];
 	int size = sprintf(ch_out, "%d", i);
 	if (size >= 0) {
-		Copy(mtlChars::FromDynamic(ch_out, size));
+		Copy(mtlChars(ch_out, size));
 	}
-	return size >= 0;
 }
 
-bool mtlString::FromFloat(float f)
+void mtlString::FromFloat(float f)
 {
 	char ch_out[32];
 	int size = sprintf(ch_out, "%f", f);
 	if (size >= 0) {
-		Copy(mtlChars::FromDynamic(ch_out, size));
+		Copy(mtlChars(ch_out, size));
 	}
-	return size >= 0;
 }
 
 mtlHash::mtlHash(const mtlChars &p_str) // probably prevents template constructor from getting called

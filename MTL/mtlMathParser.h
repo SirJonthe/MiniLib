@@ -66,6 +66,7 @@ private:
 private:
 	bool          IsBraceBalanced(const mtlChars &expression) const;
 	bool          IsLegalChars(const mtlChars &expression) const;
+	mtlChars      TrimBraces(const mtlChars &str) const;
 	void          DestroyTermTree(TermNode *node);
 	bool          GenerateTermTree(TermNode *&node, mtlChars expression);
 	int           FindOperation(const mtlChars &operation, const mtlChars &expression) const;

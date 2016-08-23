@@ -3,7 +3,7 @@
 
 #include "mtlBinaryTree.h"
 #include "mtlList.h"
-#include "mtlDirectory.h"
+#include "mtlPath.h"
 #include "mtlPointer.h"
 
 class mtlAssetInterface
@@ -16,8 +16,8 @@ protected:
 
 public:
 	virtual         ~mtlAssetInterface( void ) {}
-	virtual bool     Load(const mtlDirectory &p_filename) = 0;
-	//virtual bool   Save(const mtlDirectory &p_filename) = 0;
+	virtual bool     Load(const mtlPath &p_filename) = 0;
+	//virtual bool   Save(const mtlPath &p_filename) = 0;
 	//virtual void   Free( void ) = 0;
 	const mtlString &GetError( void ) const { return m_error; }
 };
@@ -28,8 +28,8 @@ class mtlAsset
 private:
 	struct Instance
 	{
-		type_t			*asset;
-		mtlDirectory	file;
+		type_t  *asset;
+		mtlPath  file;
 		Instance( void ) : asset(NULL), file("") {}
 		~Instance( void ) { delete asset; }
 	};
@@ -143,7 +143,7 @@ mtlAsset<type_t> mtlAsset<type_t>::Load(const mtlChars &file)
 	if (branch != NULL) {
 		node = branch->GetItem().assets.GetShared()->GetFirst();
 		while (node != NULL) {
-			if (node->GetItem().GetShared()->file.GetDirectory().Compare(file)) {
+			if (node->GetItem().GetShared()->file.GetPath().Compare(file)) {
 				break;
 			}
 			node = node->GetNext();

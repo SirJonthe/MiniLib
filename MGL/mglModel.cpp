@@ -1,5 +1,5 @@
 #include "../MTL/mtlParser.h"
-#include "../MTL/mtlDirectory.h"
+#include "../MTL/mtlPath.h"
 #include "mglModel.h"
 #include "mglPlane.h"
 
@@ -502,17 +502,17 @@ void mglModel::Free( void )
 	SetError("");
 }
 
-bool mglModel::Load(const mtlDirectory &p_filename)
+bool mglModel::Load(const mtlPath &p_filename)
 {
 	Free();
 	
-	if (!p_filename.GetExtension().Compare("obj")) {
+	if (!p_filename.GetFileExtension().Compare("obj")) {
 		SetError("Not an .obj file");
 		return false;
 	}
 	
 	mtlString fileContents;
-	if (!mtlParser::BufferFile(p_filename.GetDirectory(), fileContents)) {
+	if (!mtlParser::BufferFile(p_filename.GetPath(), fileContents)) {
 		SetError("File unreadable");
 		return false;
 	}
@@ -679,7 +679,7 @@ void mglStaticModel::Free( void )
 	m_depth = 0;
 }
 
-bool mglStaticModel::Load(const mtlDirectory &p_filename)
+bool mglStaticModel::Load(const mtlPath &p_filename)
 {
 	if (!mglModel::Load(p_filename)) {
 		return false;

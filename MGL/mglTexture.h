@@ -38,8 +38,8 @@ private:
 
 	bool       VerifyDimension(int dimension) const;
 	void       UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, int bpp, int type) const;
-	bool       LoadTGA(const mtlDirectory &p_filename);
-	bool       LoadPQZ(const mtlDirectory &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
+	bool       LoadTGA(const mtlPath &p_filename);
+	bool       LoadPQZ(const mtlPath &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
 	void       Swizzle_Z( void );
 	void       Pack_SOA( void ) {} // stores in SoA
 	void       Compress_VQ(const mtlByte *pixels, int total_size); // uses Vector Quantization to compress (super duper slow???)
@@ -61,7 +61,7 @@ public:
 
 	//bool CreateFrom(const mglImage &image); // create texture from image (note that we would have to handle dimensions that are not supported)
 
-	bool Load(const mtlDirectory &p_filename);
+	bool Load(const mtlPath &p_filename);
 
 	void Free( void );
 

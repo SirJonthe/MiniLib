@@ -4,6 +4,7 @@
 #include "mtlString.h"
 #include "mtlBinaryTree.h"
 #include "mtlPointer.h"
+#include "mtlList.h"
 
 template < typename type_t >
 class mtlStringMap
@@ -11,8 +12,8 @@ class mtlStringMap
 private:
 	struct Entry
 	{
-		mtlString			name;
-		mtlShared<type_t>	entry;
+		mtlString         name;
+		mtlShared<type_t> entry;
 		Entry( void ) : name(), entry() {}
 		Entry(const Entry &e) : entry(e.entry) { name.Copy(e.name); }
 	};
@@ -21,13 +22,20 @@ private:
 	{
 		typedef mtlList<Entry> List;
 		typedef mtlItem<Entry> ListNode;
-		mtlHash					hash;
-		mutable mtlShared<List>	entries;
 
-		bool operator>(mtlHash r) const { return hash > r; }
-		bool operator==(mtlHash r) const { return hash == r; }
-		bool operator>(const HashNode &r) const { return hash > r.hash; }
-		bool operator==(const HashNode &r) const { return hash == r.hash; }
+		mtlHash                 hash;
+		mutable mtlShared<List> entries;
+
+		bool operator >  (mtlHash r)         const { return hash > r; }
+		bool operator == (mtlHash r)         const { return hash == r; }
+		bool operator >  (const HashNode &r) const { return hash > r.hash; }
+		bool operator == (const HashNode &r) const { return hash == r.hash; }
+	};
+
+	struct NodeStorer
+	{
+		mtlList<const HashNode*> m_list;
+		void operator()(const HashNode &node) { m_list.AddLast(&node); }
 	};
 
 private:
@@ -35,17 +43,18 @@ private:
 
 public:
 	const mtlNode<HashNode> *GetNode(const mtlChars &name) const;
-	mtlNode<HashNode> *GetNode(const mtlChars &name);
+	mtlNode<HashNode>       *GetNode(const mtlChars &name);
 
 public:
 	template < typename derived_t >
-	type_t			*CreateEntry(const mtlChars &name);
-	type_t			*CreateEntry(const mtlChars &name);
-	void			RemoveEntry(const mtlChars &name);
-	void			RemoveAll( void );
-	const type_t	*GetEntry(const mtlChars &name) const;
-	type_t			*GetEntry(const mtlChars &name);
-	void			Copy(const mtlStringMap<type_t> &map);
+	type_t       *CreateEntry(const mtlChars &name);
+	type_t       *CreateEntry(const mtlChars &name);
+	void          RemoveEntry(const mtlChars &name);
+	void          RemoveAll( void );
+	const type_t *GetEntry(const mtlChars &name) const;
+	type_t       *GetEntry(const mtlChars &name);
+	void          Copy(const mtlStringMap<type_t> &map);
+	void          ToList(mtlList<const type_t*> &out_list) const;
 };
 
 template < typename type_t >
@@ -153,6 +162,27 @@ template < typename type_t >
 void mtlStringMap<type_t>::Copy(const mtlStringMap<type_t> &map)
 {
 	m_table.Copy(map.m_table);
+}
+
+template < typename type_t >
+void mtlStringMap<type_t>::ToList(mtlList<const type_t*> &out_list) const
+{
+	out_list.RemoveAll();
+	NodeStorer tmp_list;
+	if (m_table.GetRoot() != NULL) {
+		m_table.GetRoot()->InOrder(tmp_list);
+	}
+	mtlItem<const HashNode*> *tmp_iter = tmp_list.m_list.GetFirst();
+	while (tmp_iter != NULL) {
+		mtlItem<Entry> *entry_iter = tmp_iter->GetItem()->entries.GetShared() != NULL ? tmp_iter->GetItem()->entries.GetShared()->GetFirst() : NULL;
+		while (entry_iter != NULL) {
+			if (entry_iter->GetItem().entry.GetShared() != NULL) {
+				out_list.AddLast(entry_iter->GetItem().entry.GetShared());
+			}
+			entry_iter = entry_iter->GetNext();
+		}
+		tmp_iter = tmp_iter->GetNext();
+	}
 }
 
 #endif // MTL_STRINGMAP_INCLUDED__

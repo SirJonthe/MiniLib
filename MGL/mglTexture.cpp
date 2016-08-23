@@ -87,11 +87,11 @@ void mglTexture::UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, i
 	}
 }
 
-bool mglTexture::LoadTGA(const mtlDirectory &p_filename)
+bool mglTexture::LoadTGA(const mtlPath &p_filename)
 {
 	// Take into account origin of the image axis
 
-	std::ifstream fin(p_filename.GetDirectory().GetChars(), std::ios::binary);
+	std::ifstream fin(p_filename.GetPath().GetChars(), std::ios::binary);
 	if (!fin.is_open()) {
 		SetError("[TGA] Failed to open file");
 		return false;
@@ -394,19 +394,19 @@ bool mglTexture::Create(int width, int height, mglPixelFormat format)
 	return false;
 }
 
-bool mglTexture::Load(const mtlDirectory &p_filename)
+bool mglTexture::Load(const mtlPath &p_filename)
 {
 	bool ret_val = false;
 	bool native_load = false;
-	if (p_filename.GetExtension().Compare("tga")) { // targa
+	if (p_filename.GetFileExtension().Compare("tga")) { // targa
 		ret_val = LoadTGA(p_filename);
-	} else if (p_filename.GetExtension().Compare(".pqz")) { // packed quantized z-order
+	} else if (p_filename.GetFileExtension().Compare(".pqz")) { // packed quantized z-order
 		ret_val = LoadPQZ(p_filename);
 		native_load = true;
 	} else {
 		mtlString error;
 		error.Copy("Cannot load format: ");
-		error.Append(p_filename.GetExtension());
+		error.Append(p_filename.GetFileExtension());
 		SetError(error);
 	}
 

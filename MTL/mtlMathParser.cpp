@@ -156,6 +156,17 @@ bool mtlMathParser::IsLegalChars(const mtlChars &expression) const
 	return true;
 }
 
+mtlChars mtlMathParser::TrimBraces(const mtlChars &str) const
+{
+	mtlSyntaxParser parser;
+	parser.SetBuffer(str);
+	mtlArray<mtlChars> params;
+	if (parser.Match("(%s)%0", params) != mtlSyntaxParser::ExpressionNotFound) {
+		return params[0];
+	}
+	return str;
+}
+
 void mtlMathParser::DestroyTermTree(mtlMathParser::TermNode *node)
 {
 	if (node == NULL) { return; }
@@ -168,7 +179,7 @@ bool mtlMathParser::GenerateTermTree(mtlMathParser::TermNode *& node, mtlChars e
 {
 	static const char zero_str[] = "0";
 
-	expression.TrimBraces();
+	expression = TrimBraces(expression);
 
 	if (expression.GetSize() == 0) {
 		node = NULL;

@@ -11,51 +11,51 @@ class mtlNode
 {
 	friend class mtlBinaryTree<type_t>;
 private:
-	type_t					m_item;
-	mtlBinaryTree<type_t>	*m_tree;
-	mtlNode<type_t>		*m_parent;
-	mtlNode<type_t>		*m_right;
-	mtlNode<type_t>		*m_left;
+	type_t                 m_item;
+	mtlBinaryTree<type_t> *m_tree;
+	mtlNode<type_t>       *m_parent;
+	mtlNode<type_t>       *m_right;
+	mtlNode<type_t>       *m_left;
 
 private:
 	mtlNode(const type_t &item, mtlNode<type_t> *parent, mtlBinaryTree<type_t> *tree);
 	mtlNode( void ) {}
-	mtlNode<type_t>		&operator=(const mtlNode<type_t>&) { return *this; }
+	mtlNode<type_t> &operator=(const mtlNode<type_t>&) { return *this; }
 
-	static int						GetDepth(const mtlNode<type_t> *node, int currentDepth);
-	static int						GetHeight(const mtlNode<type_t> *node, int currentHeight);
+	static int                    GetDepth(const mtlNode<type_t> *node, int currentDepth);
+	static int                    GetHeight(const mtlNode<type_t> *node, int currentHeight);
 	template < typename compare_t >
-	static const mtlNode<type_t>	*Find(const mtlNode<type_t> *node, const compare_t &item, bool closest);
+	static const mtlNode<type_t> *Find(const mtlNode<type_t> *node, const compare_t &item, bool closest);
 	template < typename compare_t >
-	static mtlNode<type_t>			*Find(mtlNode<type_t> *node, const compare_t &item, bool closest);
-	static bool						IsBalanced(const mtlNode<type_t> *node, int permittedDifference);
+	static mtlNode<type_t>       *Find(mtlNode<type_t> *node, const compare_t &item, bool closest);
+	static bool                   IsBalanced(const mtlNode<type_t> *node, int permittedDifference);
 
 public:
-	const type_t			&GetItem( void ) const { return m_item; }
-	const mtlNode<type_t>	*GetParent( void ) const { return m_parent; }
-	mtlNode<type_t>			*GetParent( void ) { return m_parent; }
-	const mtlNode<type_t>	*GetRight( void ) const { return m_right; }
-	mtlNode<type_t>			*GetRight( void ) { return m_right; }
-	const mtlNode<type_t>	*GetLeft( void ) const { return m_left; }
-	mtlNode<type_t>			*GetLeft( void ) { return m_left; }
-	int						GetDepth( void ) const { return GetDepth(this, 0); }
-	int						GetHeight( void ) const { return GetHeight(this, 0); }
+	const type_t          &GetItem( void )   const { return m_item; }
+	const mtlNode<type_t> *GetParent( void ) const { return m_parent; }
+	mtlNode<type_t>       *GetParent( void )       { return m_parent; }
+	const mtlNode<type_t> *GetRight( void )  const { return m_right; }
+	mtlNode<type_t>       *GetRight( void )        { return m_right; }
+	const mtlNode<type_t> *GetLeft( void )   const { return m_left; }
+	mtlNode<type_t>       *GetLeft( void )         { return m_left; }
+	int                    GetDepth( void )  const { return GetDepth(this, 0); }
+	int                    GetHeight( void ) const { return GetHeight(this, 0); }
 	template < typename compare_t >
-	const mtlNode<type_t>	*Find(const compare_t &item) const { return Find(this, item, false); }
+	const mtlNode<type_t> *Find(const compare_t &item) const { return Find(this, item, false); }
 	template < typename compare_t >
-	mtlNode<type_t>			*Find(const compare_t &item) { return Find(this, item, false); }
+	mtlNode<type_t>       *Find(const compare_t &item)       { return Find(this, item, false); }
 	template < typename compare_t >
-	const mtlNode<type_t>	*FindClosest(const compare_t &item) const { return Find(this, item, true); }
+	const mtlNode<type_t> *FindClosest(const compare_t &item) const { return Find(this, item, true); }
 	template < typename compare_t >
-	mtlNode<type_t>			*FindClosest(const compare_t &item) { return Find(this, item, true); }
-	const mtlNode<type_t>	*FindMin( void ) const;
-	mtlNode<type_t>			*FindMin( void );
-	const mtlNode<type_t>	*FindMax( void ) const;
-	mtlNode<type_t>			*FindMax( void );
-	bool					IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
-	mtlNode<type_t>			*Remove( void );
+	mtlNode<type_t>       *FindClosest(const compare_t &item)       { return Find(this, item, true); }
+	const mtlNode<type_t> *FindMin( void ) const;
+	mtlNode<type_t>       *FindMin( void );
+	const mtlNode<type_t> *FindMax( void ) const;
+	mtlNode<type_t>       *FindMax( void );
+	bool                   IsBalanced(int permittedDifference = 1) const { return IsBalanced(this, permittedDifference); }
+	mtlNode<type_t>       *Remove( void );
 	template < typename func_t >
-	void InOrder(const func_t &fn) const
+	void InOrder(func_t &fn) const
 	{
 		if (m_left != NULL) { m_left->InOrder(fn); }
 		fn(m_item);
@@ -63,14 +63,14 @@ public:
 
 	}
 	template < typename func_t >
-	void InReverseOrder(const func_t &fn) const
+	void InReverseOrder(func_t &fn) const
 	{
 		if (m_right != NULL) { m_right->InReverseOrder(fn); }
 		fn(m_item);
 		if (m_left != NULL) { m_left->InReverseOrder(fn); }
 	}
 	template < typename func_t >
-	void InBreadth(const func_t &fn) const
+	void InBreadth(func_t &fn) const
 	{
 		mtlList<const mtlNode<type_t>*> queue;
 		queue.AddLast(this);
@@ -83,7 +83,7 @@ public:
 		}
 	}
 	template < typename func_t >
-	void InBreadthReverse(const func_t &fn) const
+	void InBreadthReverse(func_t &fn) const
 	{
 		mtlList<const mtlNode<type_t>*> queue;
 		queue.AddLast(this);
@@ -201,8 +201,8 @@ template < typename type_t >
 class mtlBinaryTree
 {
 private:
-	mtlNode<type_t>	*m_root;
-	int					m_size;
+	mtlNode<type_t> *m_root;
+	int              m_size;
 
 private:
 	mtlBinaryTree &operator=(const mtlBinaryTree&) { return *this; }
@@ -214,14 +214,15 @@ private:
 public:
 	mtlBinaryTree( void );
 	~mtlBinaryTree( void );
-	const mtlNode<type_t>	*GetRoot( void ) const { return m_root; }
-	mtlNode<type_t>			*GetRoot( void ) { return m_root; }
-	mtlNode<type_t>			*Insert(const type_t &item);
-	void					RemoveAll( void );
-	int						GetSize( void ) const { return m_size; }
-	mtlNode<type_t>			*Remove(mtlNode<type_t> *node);
-	bool					IsEmpty( void ) const;
-	void					Copy(const mtlBinaryTree<type_t> &tree);
+
+	const mtlNode<type_t> *GetRoot( void ) const { return m_root; }
+	mtlNode<type_t>       *GetRoot( void ) { return m_root; }
+	mtlNode<type_t>       *Insert(const type_t &item);
+	void                   RemoveAll( void );
+	int                    GetSize( void ) const { return m_size; }
+	mtlNode<type_t>       *Remove(mtlNode<type_t> *node);
+	bool                   IsEmpty( void ) const;
+	void                   Copy(const mtlBinaryTree<type_t> &tree);
 	// rebalance
 };
 

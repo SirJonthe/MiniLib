@@ -100,7 +100,7 @@ public:
 							mglModel( void ) {}
 	virtual                ~mglModel( void ) {}
 	virtual void            Free( void );
-	virtual bool            Load(const mtlDirectory &p_filename);
+	virtual bool            Load(const mtlPath &p_filename);
 
 	float                   GetArea( void )          const { return m_area; }
 	float                   GetVolume( void )        const { return m_volume; }
@@ -173,7 +173,7 @@ public:
 								mglStaticModel( void ) : mglModel(), m_root(NULL) {}
 							   ~mglStaticModel( void ) { delete m_root; }
 	void                        Free( void );
-	bool                        Load(const mtlDirectory &p_filename);
+	bool                        Load(const mtlPath &p_filename);
 	const mglStaticModel::Node *GetBinarySpaceTree( void ) const;
 	int                         GetTreeDepth( void ) const { return m_depth; }
 };

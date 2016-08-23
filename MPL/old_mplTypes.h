@@ -2,7 +2,7 @@
 #define MPL_TYPES_H_INCLUDED__
 
 #include "mplCommon.h"
-#include "mplMask4.h"
+#include "old_mplMask4.h"
 
 namespace mpl
 {
