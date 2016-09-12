@@ -1,6 +1,7 @@
 #ifndef MPL_WIDE_H_INCLUDED__
 #define MPL_WIDE_H_INCLUDED__
 
+#include <math.h>
 #include "mplCommon.h"
 
 // https://gcc.gnu.org/onlinedocs/gcc-4.9.2/gcc/ARM-NEON-Intrinsics.html#ARM-NEON-Intrinsics
