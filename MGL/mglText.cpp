@@ -233,10 +233,10 @@ mtlByte mglExtractStencilBit(const mtlByte *stencil_bits, int num_bits_width, in
 	return bit != 0 ? 0x0 : 0xff;
 }
 
-typedef mml_fixed_real<unsigned int,16> fixed;
-
 void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
+	typedef mml::fixed<unsigned int,16> fixed;
+
 	unsigned char *dst0 = dst;
 
 	int char_width0  = char_width;
@@ -276,9 +276,9 @@ void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_
 
 	for (int j = 0; j < size_j; ++j) {
 		dst = dst0 + (clip_x + (clip_y + j) * dst_w) * dst_bpp;
-		unsigned int bit_row = ch_y + iy.to_int();
+		unsigned int bit_row = ch_y + (unsigned int)iy;
 		for (int i = 0; i < size_i; ++i) {
-			unsigned int bit_col = ch_x + ix.to_int();
+			unsigned int bit_col = ch_x + (unsigned int)ix;
 			if (mglExtractStencilBit(stencil_bits, font_width, bit_col, bit_row) != 0) {
 				dst[dst_order.index.r] = r;
 				dst[dst_order.index.g] = g;
