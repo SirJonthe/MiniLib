@@ -111,4 +111,12 @@
 	#include <arm_neon.h>
 #endif
 
+#if ((-2 >> 1) == (-2 / 2)) && ((-2 << 1) == (-2 * 2))
+	#define MML_SIGNED_SHIFT 1
+#endif
+
+#define MPL_UNS_MAX (~0U)
+#define MPL_TRUE MPL_UNS_MAX
+#define MPL_FALSE 0
+
 #endif // MPL_COMMON_H

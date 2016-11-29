@@ -6,12 +6,6 @@
 
 // https://gcc.gnu.org/onlinedocs/gcc-4.9.2/gcc/ARM-NEON-Intrinsics.html#ARM-NEON-Intrinsics
 
-#if -2 >> 1 != -1
-	#error Compiler does not generate arithmetic right shift.
-#endif
-
-#define MPL_UNS_MAX (~0ULL)
-
 namespace mpl {
 
 	class wide_float;
@@ -36,8 +30,8 @@ namespace mpl {
 	public:
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
-		wide_bool(bool b) : u(_mm_set1_epi32(b ? -1 : 0)) {}
-		wide_bool(const bool *b) : u(_mm_setr_epi32(b[0] ? -1 : 0, b[1] ? -1 : 0, b[2] ? -1 : 0, b[3] ? -1 : 0)) {}
+		wide_bool(bool b) : u(_mm_set1_epi32(b ? MPL_TRUE : MPL_FALSE)) {}
+		wide_bool(const bool *b) : u(_mm_setr_epi32(b[0] ? MPL_TRUE : MPL_FALSE, b[1] ? MPL_TRUE : MPL_FALSE, b[2] ? MPL_TRUE : MPL_FALSE, b[3] ? MPL_TRUE : MPL_FALSE)) {}
 
 		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = _mm_or_si128(u, r.u); return o; }
 		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = _mm_and_si128(u, r.u); return o; }
@@ -279,15 +273,15 @@ namespace mpl {
 	public:
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
-		wide_bool(bool b) : u(vdupq_n_u32(b ? MPL_UNS_MAX : 0)) {}
+		wide_bool(bool b) : u(vdupq_n_u32(b ? MPL_TRUE : MPL_FALSE)) {}
 		wide_bool(const bool *b) {
-			u = vsetq_lane_u32(b[0] ? MPL_UNS_MAX : 0, u, 0);
-			u = vsetq_lane_u32(b[1] ? MPL_UNS_MAX : 0, u, 1);
-			u = vsetq_lane_u32(b[2] ? MPL_UNS_MAX : 0, u, 2);
-			u = vsetq_lane_u32(b[3] ? MPL_UNS_MAX : 0, u, 3);
+			u = vsetq_lane_u32(b[0] ? MPL_TRUE : MPL_FALSE, u, 0);
+			u = vsetq_lane_u32(b[1] ? MPL_TRUE : MPL_FALSE, u, 1);
+			u = vsetq_lane_u32(b[2] ? MPL_TRUE : MPL_FALSE, u, 2);
+			u = vsetq_lane_u32(b[3] ? MPL_TRUE : MPL_FALSE, u, 3);
 		}
 
-		wide_bool( void ) : u(vdupq_n_u32(0)) {}
+		//wide_bool( void ) : u(vdupq_n_u32(0)) {}
 
 		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = vorrq_u32(u, r.u); return o; }
 		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = vandq_u32(u, r.u); return o; }
@@ -522,19 +516,19 @@ namespace mpl {
 	public:
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : u(b.u) {}
-		wide_bool(bool b) : u(b ? MPL_UNS_MAX : 0) {}
-		wide_bool(const bool *b) : u(b[0] ? MPL_UNS_MAX : 0) {}
+		wide_bool(bool b) : u(b ? MPL_TRUE : MPL_FALSE) {}
+		wide_bool(const bool *b) : u(b[0] ? MPL_TRUE : MPL_FALSE) {}
 
-		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = (u && r.u) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = (u || r.u) ? MPL_UNS_MAX : 0; return o; }
+		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = (u && r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = (u || r.u) ? MPL_TRUE : MPL_FALSE; return o; }
 
-		wide_bool operator|(const wide_bool &r) const { wide_bool o; o.u = (u & r.u) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator&(const wide_bool &r) const { wide_bool o; o.u = (u | r.u) ? MPL_UNS_MAX : 0; return o; }
+		wide_bool operator|(const wide_bool &r) const { wide_bool o; o.u = (u & r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator&(const wide_bool &r) const { wide_bool o; o.u = (u | r.u) ? MPL_TRUE : MPL_FALSE; return o; }
 
 		wide_bool operator!( void ) const { wide_bool o; o.u = ~u; return o; }
 
-		bool all_fail( void ) const { return u == 0; }
-		bool all_pass( void ) const { return u == MPL_UNS_MAX; }
+		bool all_fail( void ) const { return u == MPL_FALSE; }
+		bool all_pass( void ) const { return u == MPL_TRUE; }
 	};
 
 	class wide_float
@@ -571,12 +565,12 @@ namespace mpl {
 		static wide_float min(const wide_float &a, const wide_float &b) { return a.f < b.f ? a.f : b.f; }
 		static wide_float sqrt(const wide_float &x) { return ::sqrt(x.f); }
 
-		wide_bool operator==(const wide_float &r) const { wide_bool o; o.u = (f == r.f) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator!=(const wide_float &r) const { wide_bool o; o.u = (f != r.f) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator< (const wide_float &r) const { wide_bool o; o.u = (f <  r.f) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator<=(const wide_float &r) const { wide_bool o; o.u = (f <= r.f) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator> (const wide_float &r) const { wide_bool o; o.u = (f >  r.f) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator>=(const wide_float &r) const { wide_bool o; o.u = (f >= r.f) ? MPL_UNS_MAX : 0; return o; }
+		wide_bool operator==(const wide_float &r) const { wide_bool o; o.u = (f == r.f) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator!=(const wide_float &r) const { wide_bool o; o.u = (f != r.f) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator< (const wide_float &r) const { wide_bool o; o.u = (f <  r.f) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator<=(const wide_float &r) const { wide_bool o; o.u = (f <= r.f) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator> (const wide_float &r) const { wide_bool o; o.u = (f >  r.f) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator>=(const wide_float &r) const { wide_bool o; o.u = (f >= r.f) ? MPL_TRUE : MPL_FALSE; return o; }
 
 		void to_scalar(float *out) const { *out = f; }
 
@@ -628,12 +622,12 @@ namespace mpl {
 		wide_fixed operator|(const wide_fixed &r) const { return i | r.i; }
 		wide_fixed operator&(const wide_fixed &r) const { return i & r.i; }
 
-		wide_bool operator==(const wide_fixed &r) const { wide_bool o; o.u = (i == r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator!=(const wide_fixed &r) const { wide_bool o; o.u = (i != r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator< (const wide_fixed &r) const { wide_bool o; o.u = (i <  r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator<=(const wide_fixed &r) const { wide_bool o; o.u = (i <= r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator> (const wide_fixed &r) const { wide_bool o; o.u = (i >  r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator>=(const wide_fixed &r) const { wide_bool o; o.u = (i >= r.i) ? MPL_UNS_MAX : 0; return o; }
+		wide_bool operator==(const wide_fixed &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator!=(const wide_fixed &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator< (const wide_fixed &r) const { wide_bool o; o.u = (i <  r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator<=(const wide_fixed &r) const { wide_bool o; o.u = (i <= r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator> (const wide_fixed &r) const { wide_bool o; o.u = (i >  r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator>=(const wide_fixed &r) const { wide_bool o; o.u = (i >= r.i) ? MPL_TRUE : MPL_FALSE; return o; }
 
 		void to_scalar(int *out) const { *out = i >> n; }
 
@@ -676,12 +670,12 @@ namespace mpl {
 		wide_int operator|(const wide_int &r) const { return i | r.i; }
 		wide_int operator&(const wide_int &r) const { return i & r.i; }
 
-		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = (i == r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = (i != r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator< (const wide_int &r) const { wide_bool o; o.u = (i <  r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator<=(const wide_int &r) const { wide_bool o; o.u = (i <= r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator> (const wide_int &r) const { wide_bool o; o.u = (i >  r.i) ? MPL_UNS_MAX : 0; return o; }
-		wide_bool operator>=(const wide_int &r) const { wide_bool o; o.u = (i >= r.i) ? MPL_UNS_MAX : 0; return o; }
+		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator< (const wide_int &r) const { wide_bool o; o.u = (i <  r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator<=(const wide_int &r) const { wide_bool o; o.u = (i <= r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator> (const wide_int &r) const { wide_bool o; o.u = (i >  r.i) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator>=(const wide_int &r) const { wide_bool o; o.u = (i >= r.i) ? MPL_TRUE : MPL_FALSE; return o; }
 
 		void to_scalar(int *out) const { *out = i; }
 
