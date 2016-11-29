@@ -23,7 +23,7 @@
 	#elif defined(__SSE__)
 		#define MPL_SIMD  MPL_SIMD_SSE
 	#elif defined(__ARM_NEON__)
-		// Enable on Raspberry Pi 2 using these compiler flags:
+		// Enable on Raspberry Pi 2/3 using these compiler flags:
 			// -mcpu=cortex-a7
 			// -mfloat-abi=hard
 			// -mfpu=neon-vfpv4
