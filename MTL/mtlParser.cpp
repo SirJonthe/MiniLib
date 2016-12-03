@@ -1110,6 +1110,11 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		m_brace_stack.RemoveLast();
 	}
 
+	// NOTE: Unsure if this will mess up parsing separate expressions that should be separated by white spaces
+	if (result > 0) {
+		SkipWhitespaces();
+	}
+
 	return result;
 }
 
