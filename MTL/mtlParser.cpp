@@ -1006,16 +1006,6 @@ mtlChars mtlSyntaxParser::ReadTo(short token)
 	return str;
 }
 
-#include <iostream>
-void x_print(const mtlChars &c)
-{
-	std::cout << "\"";
-	for (int i = 0; i < c.GetSize(); ++i) {
-		std::cout << c[i];
-	}
-	std::cout << "\"" << std::endl;
-}
-
 int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	//m_brace_stack.RemoveAll();
