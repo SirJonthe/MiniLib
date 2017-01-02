@@ -1006,6 +1006,16 @@ mtlChars mtlSyntaxParser::ReadTo(short token)
 	return str;
 }
 
+#include <iostream>
+void x_print(const mtlChars &c)
+{
+	std::cout << "\"";
+	for (int i = 0; i < c.GetSize(); ++i) {
+		std::cout << c[i];
+	}
+	std::cout << "\"" << std::endl;
+}
+
 int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	//m_brace_stack.RemoveAll();
@@ -1110,13 +1120,8 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		m_brace_stack.RemoveLast();
 	}
 
-	// NOTE: Unsure if this will mess up parsing separate expressions that should be separated by white spaces
 	if (result > 0) {
-		int index = m_reader;
 		SkipWhitespaces();
-		if (!IsEnd()) {
-			m_reader = index;
-		}
 	}
 
 	return result;
