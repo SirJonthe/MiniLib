@@ -1056,9 +1056,16 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			break;
 
 		case Token_Real:
-			out.Add(ReadAny("%i.").GetTrimmed());
-			test_len = true;
-			break;
+			{
+				mtlChars real = ReadAny("%i.").GetTrimmed();
+				if (real.IsFloat()) {
+					out.Add(real);
+					test_len = true;
+				} else {
+					result = (int)ExpressionNotFound;
+				}
+				break;
+			}
 
 		case Token_Word:
 			out.Add(ReadAny("%a%i_").GetTrimmed());

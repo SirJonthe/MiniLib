@@ -234,7 +234,6 @@ public:
 	const mtlChars &GetBuffer( void ) const;
 	mtlChars GetBufferRemaining( void ) const;
 
-
 	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int Match(const mtlChars &expr, mtlChars *seq = NULL);
 };
