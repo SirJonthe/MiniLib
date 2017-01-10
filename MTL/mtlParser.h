@@ -178,7 +178,7 @@ public:
 		Token_Real,    // r
 		Token_Word,    // w
 		Token_NullStr, // s
-		Token_Str      // S
+		Token_Str,     // S
 		Token_Opt
 	};
 
