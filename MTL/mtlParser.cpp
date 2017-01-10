@@ -912,6 +912,9 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 	case 'S':
 		token = (short)Token_Str;
 		break;
+	case '[':
+		token = (short)Token_Opt;
+		break;
 	case Variable:
 	default:
 		break;
@@ -921,9 +924,13 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 
 short mtlSyntaxParser::ReadToken( void )
 {
+	int read_start = m_reader;
 	short token = ReadChar();
 	if (token == Variable) {
 		token = ClassifyToken(ReadChar());
+		if (token == Token_Opt) {
+			m_reader = read_start;
+		}
 	}
 	return token;
 }
@@ -1082,6 +1089,18 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				break;
 			}
 
+		case Token_Opt:
+			{
+				mtlArray<mtlChars> m;
+				if (Match("[%s]", m) == 0) {
+					out.Add(OptMatch(m[0]));
+					// do not test length
+				} else {
+					result = (int)ExpressionInputError;
+				}
+				break;
+			}
+
 		case Token_EndOfStream:
 		default:
 			{
@@ -1122,6 +1141,13 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	}
 
 	return result;
+}
+
+mtlChars mtlSyntaxParser::OptMatch(const mtlChars &expr)
+{
+	mtlChars seq;
+	Match(expr, &seq);
+	return seq;
 }
 
 bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)

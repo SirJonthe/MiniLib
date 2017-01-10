@@ -179,6 +179,7 @@ public:
 		Token_Word,    // w
 		Token_NullStr, // s
 		Token_Str      // S
+		Token_Opt
 	};
 
 	enum ExpressionResult
@@ -210,6 +211,7 @@ private:
 	mtlChars ReadAny(const mtlChars &expr);
 	mtlChars ReadTo(short token);
 	int      MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
+	mtlChars OptMatch(const mtlChars &expr);
 
 public:
 	static bool BufferFile(const mtlPath &p_file, mtlString &p_buffer);
