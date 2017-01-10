@@ -1093,7 +1093,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			{
 				mtlArray<mtlChars> m;
 				if (Match("[%s]", m) == 0) {
-					out.Add(OptMatch(m[0]));
+					out.Add(OptMatch(m[0]).GetTrimmed());
 					// do not test length
 				} else {
 					result = (int)ExpressionInputError;
