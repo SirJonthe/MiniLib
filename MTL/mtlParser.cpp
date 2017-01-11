@@ -924,13 +924,9 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 
 short mtlSyntaxParser::ReadToken( void )
 {
-	int read_start = m_reader;
 	short token = ReadChar();
 	if (token == Variable) {
 		token = ClassifyToken(ReadChar());
-		if (token == Token_Opt) {
-			m_reader = read_start;
-		}
 	}
 	return token;
 }
