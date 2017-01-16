@@ -912,6 +912,9 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 	case 'S':
 		token = (short)Token_Str;
 		break;
+	case '|':
+		token = (short)Token_Split;
+		break;
 	case 'o':
 		token = (short)Token_Opt;
 		break;
@@ -1013,6 +1016,24 @@ mtlChars mtlSyntaxParser::ReadTo(short token)
 	return str;
 }
 
+void mtlSyntaxParser::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const
+{
+	mtlArray<mtlChars> m;
+	mtlSyntaxParser p;
+	p.SetBuffer(expr);
+	while (!p.IsEnd()) {
+		switch (p.Match("%s%%| %| %s", m)) {
+		case 0:
+		case 1:
+			out.AddLast(m[0]);
+			break;
+
+		default: // can't happen
+			break;
+		}
+	}
+}
+
 int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	//m_brace_stack.RemoveAll();
@@ -1092,7 +1113,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		case Token_Opt:
 			{
 				mtlArray<mtlChars> m;
-				if (Match("(%s)", m) == 0) {
+				if (Match("(%s) %| %w", m) > -1) {
 					out.Add(OptMatch(m[0]).GetTrimmed());
 					// do not test length
 				} else {
@@ -1246,8 +1267,12 @@ mtlChars mtlSyntaxParser::GetBufferRemaining( void ) const
 int mtlSyntaxParser::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	mtlList<mtlChars> exprs;
+
+	//SplitExpressions(expr, exprs); // most likely infinitely recursive
+
 	expr.SplitByString(exprs, "%|"); // %%| is not going to work
 	mtlItem<mtlChars> *expr_iter = exprs.GetFirst();
+
 	int i = 0;
 	while (expr_iter != NULL) {
 		int code = MatchSingle(expr_iter->GetItem(), out, seq);

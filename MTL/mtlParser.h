@@ -179,6 +179,7 @@ public:
 		Token_Word,    // w
 		Token_NullStr, // s
 		Token_Str,     // S
+		Token_Split,   // |
 		Token_Opt
 	};
 
@@ -210,6 +211,7 @@ private:
 	int      CountVariables(const mtlChars &str) const;
 	mtlChars ReadAny(const mtlChars &expr);
 	mtlChars ReadTo(short token);
+	void     SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const;
 	int      MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	mtlChars OptMatch(const mtlChars &expr);
 
