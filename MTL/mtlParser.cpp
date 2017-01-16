@@ -924,9 +924,30 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 
 short mtlSyntaxParser::ReadToken( void )
 {
+	int read_start = m_reader;
 	short token = ReadChar();
 	if (token == Variable) {
 		token = ClassifyToken(ReadChar());
+		if (token == Token_Opt) {
+			m_reader = read_start;
+		}
+	}
+	return token;
+}
+
+short mtlSyntaxParser::PeekToken( void ) const
+{
+	// A bit of a hack, but I don't want to rewrite a bunch of stuff
+	mtlSyntaxParser p;
+	p.m_buffer         = m_buffer;
+	p.m_reader         = m_reader;
+	p.m_quote_char     = m_quote_char;
+	p.m_prev_non_white = m_prev_non_white;
+	short token = p.PeekChar();
+	if (token == Variable) {
+		++p.m_reader;
+		token = ClassifyToken(p.PeekChar());
+		--p.m_reader;
 	}
 	return token;
 }
@@ -1009,17 +1030,13 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	mtlSyntaxParser expr_parser;
 	expr_parser.SetBuffer(expr);
 
-	int   result         = 1;
-	int   start          = m_reader;
-	int   brace_depth    = GetBraceDepth();
-	short expr_token     = 0;
-	bool  skip_expr_read = false;
+	int result      = 1;
+	int start       = m_reader;
+	int brace_depth = GetBraceDepth();
 
 	while (!expr_parser.IsEnd() && result == 1) {
 
-		if (!skip_expr_read) {
-			expr_token = expr_parser.ReadToken();
-		}
+		short expr_token = expr_parser.ReadToken();
 		if (IsEnd()) {
 			if (expr_token != Token_EndOfStream) {
 				result = (int)ExpressionNotFound;
@@ -1028,7 +1045,6 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		}
 
 		bool test_len = false;
-		skip_expr_read = false;
 
 		switch (expr_token) {
 		case Token_Char:
@@ -1067,8 +1083,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			test_len = true;
 		case Token_NullStr:
 			{
-				short next_expr_token = expr_parser.ReadToken();
-				skip_expr_read = true;
+				short next_expr_token = expr_parser.PeekToken();
 				if (InQuote()) { out.Add(ReadTo(next_expr_token)); }
 				else           { out.Add(ReadTo(next_expr_token).GetTrimmed()); }
 				break;
@@ -1077,7 +1092,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		case Token_Opt:
 			{
 				mtlArray<mtlChars> m;
-				if (Match("(%s) %| %w", m) > -1) {
+				if (Match("(%s)", m) == 0) {
 					out.Add(OptMatch(m[0]).GetTrimmed());
 					// do not test length
 				} else {

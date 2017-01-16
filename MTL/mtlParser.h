@@ -205,6 +205,7 @@ private:
 	short    PeekChar( void ) const;
 	short    ClassifyToken(short token) const;
 	short    ReadToken( void );
+	short    PeekToken( void ) const;
 	bool     VerifyBraces(const mtlChars &str) const;
 	int      CountVariables(const mtlChars &str) const;
 	mtlChars ReadAny(const mtlChars &expr);
