@@ -14,6 +14,15 @@
 // s	string	%!(X)		X is delimiter
 // l	line	%!(%n)
 
+#include <iostream>
+void mtlprint_ch(const mtlChars &str)
+{
+	for (int i = 0; i < str.GetSize(); ++i) {
+		std::cout << str[i];
+	}
+	std::cout << std::endl;
+}
+
 int mtlParser::SkipWhitespaces(int i) const
 {
 	while (!IsEnd(i) && mtlChars::IsWhitespace(m_buffer[i])) {
@@ -914,9 +923,16 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 		break;
 	case '|':
 		token = (short)Token_Split;
+		std::cout << "TOKEN_SPLIT found!!" << std::endl;
 		break;
 	case 'o':
+		token = (short)Token_NullOpt;
+		break;
+	case 'O':
 		token = (short)Token_Opt;
+		break;
+	case 'm':
+		token = (short)Token_Match;
 		break;
 	case Variable:
 	default:
@@ -1022,14 +1038,8 @@ void mtlSyntaxParser::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &
 	mtlSyntaxParser p;
 	p.SetBuffer(expr);
 	while (!p.IsEnd()) {
-		switch (p.Match("%s%%| %| %s", m)) {
-		case 0:
-		case 1:
+		if (p.MatchSingle("%s%%|", m) == 1 || p.MatchSingle("%s", m) == 1) {
 			out.AddLast(m[0]);
-			break;
-
-		default: // can't happen
-			break;
 		}
 	}
 }
@@ -1110,7 +1120,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				break;
 			}
 
-		case Token_Opt:
+		case Token_NullOpt:
 			{
 				mtlArray<mtlChars> m;
 				if (Match("(%s) %| %w", m) > -1) {
@@ -1122,6 +1132,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				break;
 			}
 
+		case Token_Split:
 		case Token_EndOfStream:
 		default:
 			{
@@ -1272,6 +1283,13 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlCha
 
 	expr.SplitByString(exprs, "%|"); // %%| is not going to work
 	mtlItem<mtlChars> *expr_iter = exprs.GetFirst();
+
+	/*while (expr_iter != NULL) {
+		mtlprint_ch(expr_iter->GetItem());
+		expr_iter = expr_iter->GetNext();
+	}
+
+	expr_iter = exprs.GetFirst();*/
 
 	int i = 0;
 	while (expr_iter != NULL) {
