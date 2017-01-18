@@ -1123,8 +1123,8 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		case Token_NullOpt:
 			{
 				mtlArray<mtlChars> m;
-				if (Match("(%s) %| %w", m) > -1) { out.Add(OptMatch(m[0]).GetTrimmed()); }
-				else                             { result = (int)ExpressionInputError; }
+				if (expr_parser.Match("(%s) %| %w", m) > -1) { out.Add(OptMatch(m[0]).GetTrimmed()); }
+				else                                         { result = (int)ExpressionInputError; }
 				break;
 			}
 
@@ -1277,7 +1277,9 @@ mtlChars mtlSyntaxParser::GetBufferRemaining( void ) const
 int mtlSyntaxParser::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	mtlList<mtlChars> exprs;
+
 	SplitExpressions(expr, exprs);
+
 	//expr.SplitByString(exprs, "%|"); // %%| is not going to work
 	mtlItem<mtlChars> *expr_iter = exprs.GetFirst();
 
