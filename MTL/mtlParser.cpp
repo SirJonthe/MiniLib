@@ -14,15 +14,6 @@
 // s	string	%!(X)		X is delimiter
 // l	line	%!(%n)
 
-#include <iostream>
-void mtlprint_ch(const mtlChars &str)
-{
-	for (int i = 0; i < str.GetSize(); ++i) {
-		std::cout << str[i];
-	}
-	std::cout << std::endl;
-}
-
 int mtlParser::SkipWhitespaces(int i) const
 {
 	while (!IsEnd(i) && mtlChars::IsWhitespace(m_buffer[i])) {
@@ -923,7 +914,6 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 		break;
 	case '|':
 		token = (short)Token_Split;
-		std::cout << "TOKEN_SPLIT found!!" << std::endl;
 		break;
 	case 'o':
 		token = (short)Token_NullOpt;
@@ -931,9 +921,9 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 	case 'O':
 		token = (short)Token_Opt;
 		break;
-	case 'm':
-		token = (short)Token_Match;
-		break;
+	//case 'm':
+	//	token = (short)Token_Match;
+	//	break;
 	case Variable:
 	default:
 		break;
@@ -1034,12 +1024,20 @@ mtlChars mtlSyntaxParser::ReadTo(short token)
 
 void mtlSyntaxParser::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const
 {
-	mtlArray<mtlChars> m;
 	mtlSyntaxParser p;
 	p.SetBuffer(expr);
+
+	int start = p.m_reader;
+
 	while (!p.IsEnd()) {
-		if (p.MatchSingle("%s%%|", m) == 1 || p.MatchSingle("%s", m) == 1) {
-			out.AddLast(m[0]);
+		int end = p.m_reader;
+		short token = p.ReadToken();
+		if (p.m_brace_stack.GetSize() == 0 && token == Token_Split) {
+			out.AddLast(mtlChars(p.m_buffer, start, end).GetTrimmed());
+			start = p.m_reader;
+		} else if (p.IsEnd()) {
+			out.AddLast(mtlChars(p.m_buffer, start, p.m_reader).GetTrimmed());
+			start = p.m_reader;
 		}
 	}
 }
@@ -1120,19 +1118,20 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				break;
 			}
 
+		case Token_Opt:
+			test_len = true;
 		case Token_NullOpt:
 			{
 				mtlArray<mtlChars> m;
-				if (Match("(%s) %| %w", m) > -1) {
-					out.Add(OptMatch(m[0]).GetTrimmed());
-					// do not test length
-				} else {
-					result = (int)ExpressionInputError;
-				}
+				if (Match("(%s) %| %w", m) > -1) { out.Add(OptMatch(m[0]).GetTrimmed()); }
+				else                             { result = (int)ExpressionInputError; }
 				break;
 			}
 
 		case Token_Split:
+			result = (int)ExpressionInputError;
+			break;
+
 		case Token_EndOfStream:
 		default:
 			{
@@ -1278,18 +1277,9 @@ mtlChars mtlSyntaxParser::GetBufferRemaining( void ) const
 int mtlSyntaxParser::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	mtlList<mtlChars> exprs;
-
-	//SplitExpressions(expr, exprs); // most likely infinitely recursive
-
-	expr.SplitByString(exprs, "%|"); // %%| is not going to work
+	SplitExpressions(expr, exprs);
+	//expr.SplitByString(exprs, "%|"); // %%| is not going to work
 	mtlItem<mtlChars> *expr_iter = exprs.GetFirst();
-
-	/*while (expr_iter != NULL) {
-		mtlprint_ch(expr_iter->GetItem());
-		expr_iter = expr_iter->GetNext();
-	}
-
-	expr_iter = exprs.GetFirst();*/
 
 	int i = 0;
 	while (expr_iter != NULL) {

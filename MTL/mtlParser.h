@@ -181,8 +181,8 @@ public:
 		Token_Str,     // S
 		Token_Split,   // |
 		Token_NullOpt, // o
-		Token_Opt,     // O
-		Token_Match    // m
+		Token_Opt     // O
+		//Token_Match    // m
 	};
 
 	enum ExpressionResult
