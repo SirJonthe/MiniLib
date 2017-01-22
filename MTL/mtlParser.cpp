@@ -915,15 +915,15 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 	case '|':
 		token = (short)Token_Split;
 		break;
-	case 'o':
+	case '?':
 		token = (short)Token_NullOpt;
 		break;
-	case 'O':
+	case '!':
 		token = (short)Token_Opt;
 		break;
-	//case 'm':
-	//	token = (short)Token_Match;
-	//	break;
+	case '&':
+		token = (short)Token_Any;
+		break;
 	case Variable:
 	default:
 		break;
@@ -1127,6 +1127,14 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				else                                         { result = (int)ExpressionInputError; }
 				break;
 			}
+
+		case Token_Any:
+		{
+			mtlArray<mtlChars> m;
+			if (expr_parser.Match("(%s)", m) > -1) { out.Add(ReadAny(m[0]).GetTrimmed()); }
+			else                                   { result = (int)ExpressionInputError; }
+			break;
+		}
 
 		case Token_Split:
 			result = (int)ExpressionInputError;

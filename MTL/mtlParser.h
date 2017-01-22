@@ -180,9 +180,9 @@ public:
 		Token_NullStr, // s
 		Token_Str,     // S
 		Token_Split,   // |
-		Token_NullOpt, // o
-		Token_Opt     // O
-		//Token_Match    // m
+		Token_NullOpt, // ?
+		Token_Opt,     // !
+		Token_Any      // &
 	};
 
 	enum ExpressionResult
