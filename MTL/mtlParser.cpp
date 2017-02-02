@@ -1094,7 +1094,11 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 		case Token_Real:
 			{
 				mtlChars real = ReadAny("%i.").GetTrimmed();
-				if (real.IsFloat()) {
+				int dec_delim = 0;
+				for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
+					if (real[i] == '.') { ++dec_delim; }
+				}
+				if (dec_delim == 1 && real.IsFloat()) {
 					out.Add(real);
 					test_len = true;
 				} else {
