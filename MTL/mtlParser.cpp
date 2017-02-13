@@ -924,6 +924,15 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 	case '&':
 		token = (short)Token_Any;
 		break;
+	//case '~':
+	//	token = (short)Token_AnyNot;
+	//	break;
+	//case '.':
+	//	token = (short)Token_ComplexDelimiter;
+	//	break;
+	//case '*':
+	//	token = (short)Token_Wild;
+	//	break;
 	case Variable:
 	default:
 		break;
@@ -1149,7 +1158,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			{
 				char c1 = (char)ReadChar();
 				char c2 = (char)expr_token;
-				if (InQuote()) {
+				if (!InQuote() && !IsCaseSensitive()) {
 					c1 = mtlChars::ToLower(c1);
 					c2 = mtlChars::ToLower(c2);
 				}
@@ -1203,8 +1212,23 @@ bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
 	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
 }
 
-mtlSyntaxParser::mtlSyntaxParser( void ) : m_copy(), m_buffer(), m_reader(0), m_brace_stack(), m_line(0), m_quote_char(0), m_prev_non_white(0)
+mtlSyntaxParser::mtlSyntaxParser( void ) : m_copy(), m_buffer(), m_reader(0), m_brace_stack(), m_line(0), m_quote_char(0), m_prev_non_white(0), m_case_sensitive(false)
 {}
+
+void mtlSyntaxParser::EnableCaseSensitivity( void )
+{
+	m_case_sensitive = true;
+}
+
+void mtlSyntaxParser::DisableCaseSensitivity( void )
+{
+	m_case_sensitive = false;
+}
+
+bool mtlSyntaxParser::IsCaseSensitive( void ) const
+{
+	return m_case_sensitive;
+}
 
 void mtlSyntaxParser::SetBuffer(const mtlChars &buffer)
 {

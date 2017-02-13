@@ -167,22 +167,26 @@ private:
 	int           m_line;
 	char          m_quote_char;
 	char          m_prev_non_white;
+	bool          m_case_sensitive;
 
 public:
 	enum TokenType
 	{
 		Token_EndOfStream = 256,
-		Token_Char,    // c
-		Token_Alpha,   // a
-		Token_Int,     // i
-		Token_Real,    // r
-		Token_Word,    // w
-		Token_NullStr, // s
-		Token_Str,     // S
-		Token_Split,   // |
-		Token_NullOpt, // ?
-		Token_Opt,     // !
-		Token_Any      // &
+		Token_Char,             // c
+		Token_Alpha,            // a
+		Token_Int,              // i
+		Token_Real,             // r
+		Token_Word,             // w
+		Token_NullStr,          // s
+		Token_Str,              // S
+		Token_Split,            // |
+		Token_NullOpt,          // ?
+		Token_Opt,              // !
+		Token_Any,              // &
+		Token_AnyNot,           // ~
+		Token_ComplexDelimiter, // .
+		Token_Wild              // *
 	};
 
 	enum ExpressionResult
@@ -221,6 +225,10 @@ public:
 	static bool BufferFile(const mtlPath &p_file, mtlString &p_buffer);
 
 	mtlSyntaxParser( void );
+
+	void EnableCaseSensitivity( void );
+	void DisableCaseSensitivity( void );
+	bool IsCaseSensitive( void ) const;
 
 	void SetBuffer(const mtlChars &buffer);
 	void CopyBuffer(const mtlChars &buffer);
