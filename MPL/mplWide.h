@@ -72,26 +72,30 @@ namespace mpl {
 		wide_float &operator-=(const wide_float &r) { f = _mm_sub_ps(f, r.f); return *this; }
 		wide_float &operator*=(const wide_float &r) { f = _mm_mul_ps(f, r.f); return *this; }
 		wide_float &operator/=(const wide_float &r) { f = _mm_div_ps(f, r.f); return *this; }
-		wide_float &operator|=(const wide_float &r) { f = _mm_or_ps(f, r.f); return *this; }
+		wide_float &operator|=(const wide_float &r) { f = _mm_or_ps(f, r.f);  return *this; }
+		wide_float &operator|=(const wide_bool &r)  { f = _mm_or_ps(f, r.f);  return *this; }
 		wide_float &operator&=(const wide_float &r) { f = _mm_and_ps(f, r.f); return *this; }
+		wide_float &operator&=(const wide_bool &r)  { f = _mm_and_ps(f, r.f); return *this; }
 
 		wide_float operator+(const wide_float &r) const { wide_float o; o.f = _mm_add_ps(f, r.f); return o; }
 		wide_float operator-(const wide_float &r) const { wide_float o; o.f = _mm_sub_ps(f, r.f); return o; }
 		wide_float operator*(const wide_float &r) const { wide_float o; o.f = _mm_mul_ps(f, r.f); return o; }
 		wide_float operator/(const wide_float &r) const { wide_float o; o.f = _mm_div_ps(f, r.f); return o; }
-		wide_float operator|(const wide_float &r) const { wide_float o; o.f = _mm_or_ps(f, r.f); return o; }
+		wide_float operator|(const wide_float &r) const { wide_float o; o.f = _mm_or_ps(f, r.f);  return o; }
+		wide_float operator|(const wide_bool &r)  const { wide_float o; o.f = _mm_or_ps(f, r.f);  return o; }
 		wide_float operator&(const wide_float &r) const { wide_float o; o.f = _mm_and_ps(f, r.f); return o; }
+		wide_float operator&(const wide_bool &r)  const { wide_float o; o.f = _mm_and_ps(f, r.f); return o; }
 
 		static wide_float max(const wide_float &a, const wide_float &b) { wide_float o; o.f = _mm_max_ps(a.f, b.f); return o; }
 		static wide_float min(const wide_float &a, const wide_float &b) { wide_float o; o.f = _mm_min_ps(a.f, b.f); return o; }
 		static wide_float sqrt(const wide_float &x) { wide_float o; o.f = _mm_sqrt_ps(x.f); return o; }
 
-		wide_bool operator==(const wide_float &r) const { wide_bool o; o.f = _mm_cmpeq_ps(f, r.f); return o; }
+		wide_bool operator==(const wide_float &r) const { wide_bool o; o.f = _mm_cmpeq_ps(f, r.f);  return o; }
 		wide_bool operator!=(const wide_float &r) const { wide_bool o; o.f = _mm_cmpneq_ps(f, r.f); return o; }
-		wide_bool operator< (const wide_float &r) const { wide_bool o; o.f = _mm_cmplt_ps(f, r.f); return o; }
-		wide_bool operator<=(const wide_float &r) const { wide_bool o; o.f = _mm_cmple_ps(f, r.f); return o; }
-		wide_bool operator> (const wide_float &r) const { wide_bool o; o.f = _mm_cmpgt_ps(f, r.f); return o; }
-		wide_bool operator>=(const wide_float &r) const { wide_bool o; o.f = _mm_cmpge_ps(f, r.f); return o; }
+		wide_bool operator< (const wide_float &r) const { wide_bool o; o.f = _mm_cmplt_ps(f, r.f);  return o; }
+		wide_bool operator<=(const wide_float &r) const { wide_bool o; o.f = _mm_cmple_ps(f, r.f);  return o; }
+		wide_bool operator> (const wide_float &r) const { wide_bool o; o.f = _mm_cmpgt_ps(f, r.f);  return o; }
+		wide_bool operator>=(const wide_float &r) const { wide_bool o; o.f = _mm_cmpge_ps(f, r.f);  return o; }
 
 		void to_scalar(float *out) const { _mm_storeu_ps(out, f); }
 
@@ -142,13 +146,17 @@ namespace mpl {
 			return *this;
 		}
 		wide_fixed &operator|=(const wide_fixed &r) { i = _mm_or_si128(i, r.i); return *this; }
+		wide_fixed &operator|=(const wide_bool &r)  { i = _mm_or_si128(i, r.u); return *this; }
 		wide_fixed &operator&=(const wide_fixed &r) { i = _mm_and_si128(i, r.i); return *this; }
+		wide_fixed &operator&=(const wide_bool &r)  { i = _mm_and_si128(i, r.u); return *this; }
 
 		wide_fixed operator+(const wide_fixed &r) const { wide_fixed o; o.i = _mm_add_epi32(i, r.i); return o; }
 		wide_fixed operator-(const wide_fixed &r) const { wide_fixed o; o.i = _mm_sub_epi32(i, r.i); return o; }
 		wide_fixed operator*(const wide_fixed &r) const { wide_fixed o; o.i = i; o *= r; return o; }
 		wide_fixed operator|(const wide_fixed &r) const { wide_fixed o; o.i = _mm_or_si128(i, r.i); return o; }
+		wide_fixed operator|(const wide_bool &r)  const { wide_fixed o; o.i = _mm_or_si128(i, r.u); return o; }
 		wide_fixed operator&(const wide_fixed &r) const { wide_fixed o; o.i = _mm_and_si128(i, r.i); return o; }
+		wide_fixed operator&(const wide_bool &r)  const { wide_fixed o; o.i = _mm_and_si128(i, r.u); return o; }
 
 		wide_bool operator==(const wide_fixed &r) const { wide_bool out; out.u =_mm_cmpeq_epi32(i, r.i); return out; }
 		wide_bool operator!=(const wide_fixed &r) const { wide_bool out; out.u = _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE)); return out; }
@@ -204,14 +212,18 @@ namespace mpl {
 			i = _mm_unpacklo_epi32(_mm_shuffle_epi32(tmp1, _MM_SHUFFLE (0,0,2,0)), _mm_shuffle_epi32(tmp2, _MM_SHUFFLE (0,0,2,0)));
 			return *this;
 		}
-		wide_int &operator|=(const wide_int &r) { i = _mm_or_si128(i, r.i); return *this; }
-		wide_int &operator&=(const wide_int &r) { i = _mm_and_si128(i, r.i); return *this; }
+		wide_int &operator|=(const wide_int &r)  { i = _mm_or_si128(i, r.i); return *this; }
+		wide_int &operator|=(const wide_bool &r) { i = _mm_or_si128(i, r.u); return *this; }
+		wide_int &operator&=(const wide_int &r)  { i = _mm_and_si128(i, r.i); return *this; }
+		wide_int &operator&=(const wide_bool &r) { i = _mm_and_si128(i, r.u); return *this; }
 
-		wide_int operator+(const wide_int &r) const { wide_int o; o.i = _mm_add_epi32(i, r.i); return o; }
-		wide_int operator-(const wide_int &r) const { wide_int o; o.i = _mm_sub_epi32(i, r.i); return o; }
-		wide_int operator*(const wide_int &r) const { wide_int o; o.i = i; o *= r; return o; }
-		wide_int operator|(const wide_int &r) const { wide_int o; o.i = _mm_or_si128(i, r.i); return o; }
-		wide_int operator&(const wide_int &r) const { wide_int o; o.i = _mm_and_si128(i, r.i); return o; }
+		wide_int operator+(const wide_int &r)  const { wide_int o; o.i = _mm_add_epi32(i, r.i); return o; }
+		wide_int operator-(const wide_int &r)  const { wide_int o; o.i = _mm_sub_epi32(i, r.i); return o; }
+		wide_int operator*(const wide_int &r)  const { wide_int o; o.i = i; o *= r; return o; }
+		wide_int operator|(const wide_int &r)  const { wide_int o; o.i = _mm_or_si128(i, r.i); return o; }
+		wide_int operator|(const wide_bool &r) const { wide_int o; o.i = _mm_or_si128(i, r.u); return o; }
+		wide_int operator&(const wide_int &r)  const { wide_int o; o.i = _mm_and_si128(i, r.i); return o; }
+		wide_int operator&(const wide_bool &r) const { wide_int o; o.i = _mm_and_si128(i, r.u); return o; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool out; out.u =_mm_cmpeq_epi32(i, r.i); return out; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool out; out.u = _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE)); return out; }
@@ -340,14 +352,18 @@ namespace mpl {
 			return *this;
 		}
 		wide_float &operator|=(const wide_float &r) { *(uint32x4_t*)(&f) = vorrq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return *this; }
+		wide_float &operator|=(const wide_bool &r) { *(uint32x4_t*)(&f) = vorrq_u32(*(uint32x4_t*)(&f), r.u); return *this; }
 		wide_float &operator&=(const wide_float &r) { *(uint32x4_t*)(&f) = vandq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return *this; }
+		wide_float &operator&=(const wide_bool &r) { *(uint32x4_t*)(&f) = vandq_u32(*(uint32x4_t*)(&f), r.u); return *this; }
 
 		wide_float operator+(const wide_float &r) const { wide_float o; o.f = vaddq_f32(f, r.f); return o; }
 		wide_float operator-(const wide_float &r) const { wide_float o; o.f = vsubq_f32(f, r.f); return o; }
 		wide_float operator*(const wide_float &r) const { wide_float o; o.f = vmulq_f32(f, r.f); return o; }
 		wide_float operator/(const wide_float &r) const { wide_float o; o.f = f; o /= r; return o; }
 		wide_float operator|(const wide_float &r) const { wide_float o; *(uint32x4_t*)(&o.f) = vorrq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return o; }
+		wide_float operator|(const wide_bool &r) const { wide_float o; *(uint32x4_t*)(&o.f) = vorrq_u32(*(uint32x4_t*)(&f), r.u); return o; }
 		wide_float operator&(const wide_float &r) const { wide_float o; *(uint32x4_t*)(&o.f) = vandq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return o; }
+		wide_float operator&(const wide_bool &r) const { wide_float o; *(uint32x4_t*)(&o.f) = vandq_u32(*(uint32x4_t*)(&f), r.u); return o; }
 
 		static wide_float max(const wide_float &a, const wide_float &b) { wide_float o; o.f = vmaxq_f32(a.f, b.f); return o; }
 		static wide_float min(const wide_float &a, const wide_float &b) { wide_float o; o.f = vminq_f32(a.f, b.f); return o; }
@@ -405,13 +421,17 @@ namespace mpl {
 		wide_fixed &operator-=(const wide_fixed &r) { i = vsubq_s32(i, r.i); return *this; }
 		wide_fixed &operator*=(const wide_fixed &r) { i = vshrq_n_s32(vmulq_s32(i, r.i), n); return *this; }
 		wide_fixed &operator|=(const wide_fixed &r) { i = vorrq_s32(i, r.i); return *this; }
+		wide_fixed &operator|=(const wide_bool &r)  { i = vorrq_s32(i, r.u); return *this; }
 		wide_fixed &operator&=(const wide_fixed &r) { i = vandq_s32(i, r.i); return *this; }
+		wide_fixed &operator&=(const wide_bool &r)  { i = vandq_s32(i, r.u); return *this; }
 
 		wide_fixed operator+(const wide_fixed &r) { wide_fixed o; o.i = vaddq_s32(i, r.i); return o; }
 		wide_fixed operator-(const wide_fixed &r) { wide_fixed o; o.i = vsubq_s32(i, r.i); return o; }
 		wide_fixed operator*(const wide_fixed &r) { wide_fixed o; o.i = vshrq_n_s32(vmulq_s32(i, r.i), n); return o; }
 		wide_fixed operator|(const wide_fixed &r) { wide_fixed o; o.i = vorrq_s32(i, r.i); return o; }
+		wide_fixed operator|(const wide_bool &r)  { wide_fixed o; o.i = vorrq_s32(i, r.u); return o; }
 		wide_fixed operator&(const wide_fixed &r) { wide_fixed o; o.i = vandq_s32(i, r.i); return o; }
+		wide_fixed operator&(const wide_bool &r)  { wide_fixed o; o.i = vandq_s32(i, r.u); return o; }
 
 		wide_bool operator==(const wide_fixed &r) const { wide_bool o; o.u = vceqq_s32(i, r.i); return o; }
 		wide_bool operator!=(const wide_fixed &r) const { wide_bool o; o.u = vmvnq_u32(vceqq_s32(i, r.i)); return o; }
@@ -456,17 +476,21 @@ namespace mpl {
 		// For implementing integer division on systems without hardware support (eg. ARM)
 		// https://github.com/gcc-mirror/gcc/blob/master/libgcc/config/epiphany/divsi3.S
 
-		wide_int &operator+=(const wide_int &r) { i = vaddq_s32(i, r.i); return *this; }
-		wide_int &operator-=(const wide_int &r) { i = vsubq_s32(i, r.i); return *this; }
-		wide_int &operator*=(const wide_int &r) { i = vmulq_s32(i, r.i); return *this; }
-		wide_int &operator|=(const wide_int &r) { i = vorrq_s32(i, r.i); return *this; }
-		wide_int &operator&=(const wide_int &r) { i = vandq_s32(i, r.i); return *this; }
+		wide_int &operator+=(const wide_int &r)  { i = vaddq_s32(i, r.i); return *this; }
+		wide_int &operator-=(const wide_int &r)  { i = vsubq_s32(i, r.i); return *this; }
+		wide_int &operator*=(const wide_int &r)  { i = vmulq_s32(i, r.i); return *this; }
+		wide_int &operator|=(const wide_int &r)  { i = vorrq_s32(i, r.i); return *this; }
+		wide_int &operator|=(const wide_bool &r) { i = vorrq_s32(i, r.u); return *this; }
+		wide_int &operator&=(const wide_int &r)  { i = vandq_s32(i, r.i); return *this; }
+		wide_int &operator&=(const wide_bool &r) { i = vandq_s32(i, r.u); return *this; }
 
-		wide_int operator+(const wide_int &r) { wide_int o; o.i = vaddq_s32(i, r.i); return o; }
-		wide_int operator-(const wide_int &r) { wide_int o; o.i = vsubq_s32(i, r.i); return o; }
-		wide_int operator*(const wide_int &r) { wide_int o; o.i = vmulq_s32(i, r.i); return o; }
-		wide_int operator|(const wide_int &r) { wide_int o; o.i = vorrq_s32(i, r.i); return o; }
-		wide_int operator&(const wide_int &r) { wide_int o; o.i = vandq_s32(i, r.i); return o; }
+		wide_int operator+(const wide_int &r)  { wide_int o; o.i = vaddq_s32(i, r.i); return o; }
+		wide_int operator-(const wide_int &r)  { wide_int o; o.i = vsubq_s32(i, r.i); return o; }
+		wide_int operator*(const wide_int &r)  { wide_int o; o.i = vmulq_s32(i, r.i); return o; }
+		wide_int operator|(const wide_int &r)  { wide_int o; o.i = vorrq_s32(i, r.i); return o; }
+		wide_int operator|(const wide_bool &r) { wide_int o; o.i = vorrq_s32(i, r.u); return o; }
+		wide_int operator&(const wide_int &r)  { wide_int o; o.i = vandq_s32(i, r.i); return o; }
+		wide_int operator&(const wide_bool &r) { wide_int o; o.i = vandq_s32(i, r.u); return o; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = vceqq_s32(i, r.i); return o; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = vmvnq_u32(vceqq_s32(i, r.i)); return o; }
@@ -557,14 +581,18 @@ namespace mpl {
 		wide_float &operator*=(const wide_float &r) { f *= r.f; return *this; }
 		wide_float &operator/=(const wide_float &r) { f /= r.f; return *this; }
 		wide_float &operator|=(const wide_float &r) { *(unsigned int*)(&f) |= *(unsigned int*)(&r.f); return *this; }
+		wide_float &operator|=(const wide_bool &r) {  *(unsigned int*)(&f) |= r.u; return *this;  }
 		wide_float &operator&=(const wide_float &r) { *(unsigned int*)(&f) &= *(unsigned int*)(&r.f); return *this; }
+		wide_float &operator&=(const wide_bool &r) {  *(unsigned int*)(&f) &= r.u; return *this;  }
 
 		wide_float operator+(const wide_float &r) const { return f + r.f; }
 		wide_float operator-(const wide_float &r) const { return f - r.f; }
 		wide_float operator*(const wide_float &r) const { return f * r.f; }
 		wide_float operator/(const wide_float &r) const { return f / r.f; }
 		wide_float operator|(const wide_float &r) const { unsigned int o = *(unsigned int*)(&f) | *(unsigned int*)(&r.f); return *(float*)(&o); }
+		wide_float operator|(const wide_bool &r) const { unsigned int o = *(unsigned int*)(&f) | r.u; return *(float*)(&o); }
 		wide_float operator&(const wide_float &r) const { unsigned int o = *(unsigned int*)(&f) & *(unsigned int*)(&r.f); return *(float*)(&o); }
+		wide_float operator&(const wide_bool &r) const { unsigned int o = *(unsigned int*)(&f) & r.u; return *(float*)(&o); }
 
 		static wide_float max(const wide_float &a, const wide_float &b) { return a.f < b.f ? b.f : a.f; }
 		static wide_float min(const wide_float &a, const wide_float &b) { return a.f < b.f ? a.f : b.f; }
@@ -641,13 +669,17 @@ namespace mpl {
 		wide_fixed &operator-=(const wide_fixed &r) { i -= r.i; return *this; }
 		wide_fixed &operator*=(const wide_fixed &r) { i = signed_rshift(i * r.i, n); return *this; }
 		wide_fixed &operator|=(const wide_fixed &r) { i |= r.i; return *this; }
+		wide_fixed &operator|=(const wide_bool &r)  { i |= r.u; return *this; }
 		wide_fixed &operator&=(const wide_fixed &r) { i &= r.i; return *this; }
+		wide_fixed &operator&=(const wide_bool &r)  { i &= r.u; return *this; }
 
 		wide_fixed operator+(const wide_fixed &r) const { return i + r.i; }
 		wide_fixed operator-(const wide_fixed &r) const { return i - r.i; }
 		wide_fixed operator*(const wide_fixed &r) const { return signed_rshift(i * r.i, n); }
 		wide_fixed operator|(const wide_fixed &r) const { return i | r.i; }
+		wide_fixed operator|(const wide_bool &r)  const { return i | r.u; }
 		wide_fixed operator&(const wide_fixed &r) const { return i & r.i; }
+		wide_fixed operator&(const wide_bool &r)  const { return i & r.u; }
 
 		wide_bool operator==(const wide_fixed &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE : MPL_FALSE; return o; }
 		wide_bool operator!=(const wide_fixed &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE : MPL_FALSE; return o; }
@@ -685,17 +717,21 @@ namespace mpl {
 		template < int n >
 		inline explicit wide_int(const wide_fixed<n> &f);
 
-		wide_int &operator+=(const wide_int &r) { i += r.i; return *this; }
-		wide_int &operator-=(const wide_int &r) { i -= r.i; return *this; }
-		wide_int &operator*=(const wide_int &r) { i *= r.i; return *this; }
-		wide_int &operator|=(const wide_int &r) { i |= r.i; return *this; }
-		wide_int &operator&=(const wide_int &r) { i &= r.i; return *this; }
+		wide_int &operator+=(const wide_int &r)  { i += r.i; return *this; }
+		wide_int &operator-=(const wide_int &r)  { i -= r.i; return *this; }
+		wide_int &operator*=(const wide_int &r)  { i *= r.i; return *this; }
+		wide_int &operator|=(const wide_int &r)  { i |= r.i; return *this; }
+		wide_int &operator|=(const wide_bool &r) { i |= r.u; return *this; }
+		wide_int &operator&=(const wide_int &r)  { i &= r.i; return *this; }
+		wide_int &operator&=(const wide_bool &r) { i &= r.u; return *this; }
 
-		wide_int operator+(const wide_int &r) const { return i + r.i; }
-		wide_int operator-(const wide_int &r) const { return i - r.i; }
-		wide_int operator*(const wide_int &r) const { return i * r.i; }
-		wide_int operator|(const wide_int &r) const { return i | r.i; }
-		wide_int operator&(const wide_int &r) const { return i & r.i; }
+		wide_int operator+(const wide_int &r)  const { return i + r.i; }
+		wide_int operator-(const wide_int &r)  const { return i - r.i; }
+		wide_int operator*(const wide_int &r)  const { return i * r.i; }
+		wide_int operator|(const wide_int &r)  const { return i | r.i; }
+		wide_int operator|(const wide_bool &r) const { return i | r.u; }
+		wide_int operator&(const wide_int &r)  const { return i & r.i; }
+		wide_int operator&(const wide_bool &r) const { return i & r.u; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE : MPL_FALSE; return o; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE : MPL_FALSE; return o; }
