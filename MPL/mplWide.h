@@ -99,13 +99,13 @@ namespace mpl {
 
 		void to_scalar(float *out) const { _mm_storeu_ps(out, f); }
 
-		static wide_float merge(const wide_float &l, const wide_float &r, const wide_bool &l_mask)
+		static wide_float cmov(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
 		{
-			wide_bool r_mask;
-			r_mask.u = _mm_andnot_si128(l_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
+			wide_bool l_mask;
+			l_mask.u = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			wide_float rc, lc;
 			lc.f = _mm_and_ps(l.f, l_mask.f);
-			rc.f = _mm_and_ps(r.f, r_mask.f);
+			rc.f = _mm_and_ps(r.f, cond_mask.f);
 			rc.f = _mm_or_ps(rc.f, lc.f);
 			return rc;
 		}
@@ -167,13 +167,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { _mm_storeu_si128((__m128i*)out, _mm_srai_epi32(i, n)); }
 
-		static wide_fixed<n> merge(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &l_mask)
+		static wide_fixed<n> cmov(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
-			wide_bool r_mask;
-			r_mask.u = _mm_andnot_si128(l_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
+			wide_bool l_mask;
+			l_mask.u = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			wide_fixed<n> rc, lc;
 			lc.i = _mm_and_si128(l.i, l_mask.u);
-			rc.i = _mm_and_si128(r.i, r_mask.u);
+			rc.i = _mm_and_si128(r.i, cond_mask.u);
 			rc.i = _mm_or_si128(rc.i, lc.i);
 			return rc;
 		}
@@ -234,13 +234,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { _mm_storeu_si128((__m128i*)out, i); }
 
-		static wide_int merge(const wide_int &l, const wide_int &r, const wide_bool &l_mask)
+		static wide_int cmov(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
-			wide_bool r_mask;
-			r_mask.u = _mm_andnot_si128(l_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
+			wide_bool l_mask;
+			l_mask.u = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			wide_int rc, lc;
 			lc.i = _mm_and_si128(l.i, l_mask.u);
-			rc.i = _mm_and_si128(r.i, r_mask.u);
+			rc.i = _mm_and_si128(r.i, cond_mask.u);
 			rc.i = _mm_or_si128(rc.i, lc.i);
 			return rc;
 		}
@@ -385,14 +385,14 @@ namespace mpl {
 
 		void to_scalar(float *out) const { vst1q_f32(out, f); }
 
-		static wide_float merge(const wide_float &l, const wide_float &r, const wide_bool &l_mask)
+		static wide_float cmov(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
 		{
 			// NOTE: Watch out for compiler optimizations!!!
-			wide_bool r_mask;
-			r_mask.u = vmvnq_u32(l_mask.u);
+			wide_bool l_mask;
+			l_mask.u = vmvnq_u32(cond_mask.u);
 			wide_float rc, lc;
 			*(uint32x4_t*)(&lc.f) = vandq_u32(*(uint32x4_t*)(&l.f), l_mask.u);
-			*(uint32x4_t*)(&rc.f) = vandq_u32(*(uint32x4_t*)(&r.f), r_mask.u);
+			*(uint32x4_t*)(&rc.f) = vandq_u32(*(uint32x4_t*)(&r.f), cond_mask.u);
 			*(uint32x4_t*)(&rc.f) = vorrq_u32(*(uint32x4_t*)(&rc.f), *(uint32x4_t*)(&lc.f));
 			return rc;
 		}
@@ -421,17 +421,17 @@ namespace mpl {
 		wide_fixed<n> &operator-=(const wide_fixed<n> &r) { i = vsubq_s32(i, r.i); return *this; }
 		wide_fixed<n> &operator*=(const wide_fixed<n> &r) { i = vshrq_n_s32(vmulq_s32(i, r.i), n); return *this; }
 		wide_fixed<n> &operator|=(const wide_fixed<n> &r) { i = vorrq_s32(i, r.i); return *this; }
-		wide_fixed<n> &operator|=(const wide_bool &r)  { i = vorrq_s32(i, r.u); return *this; }
+		wide_fixed<n> &operator|=(const wide_bool &r)     { i = vorrq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 		wide_fixed<n> &operator&=(const wide_fixed<n> &r) { i = vandq_s32(i, r.i); return *this; }
-		wide_fixed<n> &operator&=(const wide_bool &r)  { i = vandq_s32(i, r.u); return *this; }
+		wide_fixed<n> &operator&=(const wide_bool &r)     { i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 
 		wide_fixed<n> operator+(const wide_fixed<n> &r) { wide_fixed<n> o; o.i = vaddq_s32(i, r.i); return o; }
 		wide_fixed<n> operator-(const wide_fixed<n> &r) { wide_fixed<n> o; o.i = vsubq_s32(i, r.i); return o; }
 		wide_fixed<n> operator*(const wide_fixed<n> &r) { wide_fixed<n> o; o.i = vshrq_n_s32(vmulq_s32(i, r.i), n); return o; }
 		wide_fixed<n> operator|(const wide_fixed<n> &r) { wide_fixed<n> o; o.i = vorrq_s32(i, r.i); return o; }
-		wide_fixed<n> operator|(const wide_bool &r)  { wide_fixed<n> o; o.i = vorrq_s32(i, r.u); return o; }
+		wide_fixed<n> operator|(const wide_bool &r)     { wide_fixed<n> o; o.i = vorrq_s32(i, *(const int32x4_t*)(&r.u)); return o; }
 		wide_fixed<n> operator&(const wide_fixed<n> &r) { wide_fixed<n> o; o.i = vandq_s32(i, r.i); return o; }
-		wide_fixed<n> operator&(const wide_bool &r)  { wide_fixed<n> o; o.i = vandq_s32(i, r.u); return o; }
+		wide_fixed<n> operator&(const wide_bool &r)     { wide_fixed<n> o; o.i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return o; }
 
 		wide_bool operator==(const wide_fixed<n> &r) const { wide_bool o; o.u = vceqq_s32(i, r.i); return o; }
 		wide_bool operator!=(const wide_fixed<n> &r) const { wide_bool o; o.u = vmvnq_u32(vceqq_s32(i, r.i)); return o; }
@@ -442,13 +442,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { vst1q_s32(out, i); }
 
-		static wide_fixed<n> merge(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &l_mask)
+		static wide_fixed<n> cmov(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
-			wide_bool r_mask;
-			r_mask.u = vmvnq_u32(l_mask.u);
+			wide_bool l_mask;
+			l_mask.u = vmvnq_u32(cond_mask.u);
 			wide_fixed<n> rc, lc;
-			lc.i = vandq_s32(l.i, l_mask.u);
-			rc.i = vandq_s32(r.i, r_mask.u);
+			lc.i = vandq_s32(l.i, *(const int32x4_t*)(&l_mask.u));
+			rc.i = vandq_s32(r.i, *(const int32x4_t*)(&cond_mask.u));
 			rc.i = vorrq_s32(rc.i, lc.i);
 			return rc;
 		}
@@ -480,17 +480,17 @@ namespace mpl {
 		wide_int &operator-=(const wide_int &r)  { i = vsubq_s32(i, r.i); return *this; }
 		wide_int &operator*=(const wide_int &r)  { i = vmulq_s32(i, r.i); return *this; }
 		wide_int &operator|=(const wide_int &r)  { i = vorrq_s32(i, r.i); return *this; }
-		wide_int &operator|=(const wide_bool &r) { i = vorrq_s32(i, r.u); return *this; }
+		wide_int &operator|=(const wide_bool &r) { i = vorrq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 		wide_int &operator&=(const wide_int &r)  { i = vandq_s32(i, r.i); return *this; }
-		wide_int &operator&=(const wide_bool &r) { i = vandq_s32(i, r.u); return *this; }
+		wide_int &operator&=(const wide_bool &r) { i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 
 		wide_int operator+(const wide_int &r)  { wide_int o; o.i = vaddq_s32(i, r.i); return o; }
 		wide_int operator-(const wide_int &r)  { wide_int o; o.i = vsubq_s32(i, r.i); return o; }
 		wide_int operator*(const wide_int &r)  { wide_int o; o.i = vmulq_s32(i, r.i); return o; }
 		wide_int operator|(const wide_int &r)  { wide_int o; o.i = vorrq_s32(i, r.i); return o; }
-		wide_int operator|(const wide_bool &r) { wide_int o; o.i = vorrq_s32(i, r.u); return o; }
+		wide_int operator|(const wide_bool &r) { wide_int o; o.i = vorrq_s32(i, *(const int32x4_t*)(&r.u)); return o; }
 		wide_int operator&(const wide_int &r)  { wide_int o; o.i = vandq_s32(i, r.i); return o; }
-		wide_int operator&(const wide_bool &r) { wide_int o; o.i = vandq_s32(i, r.u); return o; }
+		wide_int operator&(const wide_bool &r) { wide_int o; o.i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return o; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = vceqq_s32(i, r.i); return o; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = vmvnq_u32(vceqq_s32(i, r.i)); return o; }
@@ -501,13 +501,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { vst1q_s32(out, i); }
 
-		static wide_int merge(const wide_int &l, const wide_int &r, const wide_bool &l_mask)
+		static wide_int cmov(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
-			wide_bool r_mask;
-			r_mask.u = vmvnq_u32(l_mask.u);
+			wide_bool l_mask;
+			l_mask.u = vmvnq_u32(cond_mask.u);
 			wide_int rc, lc;
 			lc.i = vandq_s32(l.i, *(int32x4_t*)(&l_mask.u));
-			rc.i = vandq_s32(r.i, *(int32x4_t*)(&r_mask.u));
+			rc.i = vandq_s32(r.i, *(int32x4_t*)(&cond_mask.u));
 			rc.i = vorrq_s32(rc.i, lc.i);
 			return rc;
 		}
@@ -607,7 +607,7 @@ namespace mpl {
 
 		void to_scalar(float *out) const { *out = f; }
 
-		static wide_float merge(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
+		static wide_float cmov(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
 		{
 			// This function needs to be way more complicated than it should be.
 			// The compiler optimizes casting between float* and int* to shit.
@@ -690,7 +690,7 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = signed_rshift(i, n); }
 
-		static wide_fixed<n> merge(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
+		static wide_fixed<n> cmov(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
 			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
 			wide_fixed<n> out;
@@ -742,7 +742,7 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = i; }
 
-		static wide_int merge(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
+		static wide_int cmov(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
 			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
 			return wide_int(*(int*)(&o));
