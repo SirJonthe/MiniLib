@@ -1,5 +1,5 @@
-#ifndef MPL_COMMON_H
-#define MPL_COMMON_H
+#ifndef MPL_COMMON_H_INCLUDED__
+#define MPL_COMMON_H_INCLUDED__
 
 #define MPL_COMPILER_UNKNOWN 0
 #define MPL_COMPILER_MSVC    1
@@ -18,10 +18,23 @@
 	#define MPL_COMPILER MPL_COMPILER_GCC
 	#ifdef MPL_FALLBACK_SCALAR
 		#define MPL_SIMD MPL_SIMD_NONE
+		#define MPL_SIMD_VER 1
 	#elif defined(__AVX__)
 		#define MPL_SIMD MPL_SIMD_AVX256
+		#ifdef __AVX2__
+			#define MPL_SIMD_VER 2
+		#endif
+	#elif defined(__AVX512__)
+		#define MPL_SIMD MPL_SIMD_AVX512
 	#elif defined(__SSE__)
 		#define MPL_SIMD  MPL_SIMD_SSE
+		#ifdef __SSE4__
+			#define MPL_SIMD_VER 4
+		#elif defined(__SSE3__)
+			#define MPL_SIMD_VER 3
+		#elif defined(__SSE2__)
+			#define MPL_SIMD_VER 2
+		#endif
 	#elif defined(__ARM_NEON__)
 		// Enable on Raspberry Pi 2/3 using these compiler flags:
 			// -mcpu=cortex-a7
@@ -46,6 +59,10 @@
 	#define MPL_COMPILER MPL_COMPILER_UNKNOWN
 	#define MPL_SIMD     MPL_SIMD_NONE
 	#warning No SIMD support, falling back to scalar
+#endif
+
+#ifndef MPL_SIMD_VER
+	#define MPL_SIMD_VER 1
 #endif
 
 // SIMD instruction definitions
@@ -119,4 +136,4 @@
 #define MPL_TRUE MPL_UNS_MAX
 #define MPL_FALSE 0
 
-#endif // MPL_COMMON_H
+#endif // MPL_COMMON_H_INCLUDED__
