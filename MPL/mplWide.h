@@ -548,11 +548,11 @@ namespace mpl {
 		wide_bool(bool b) : u(b ? MPL_TRUE : MPL_FALSE) {}
 		wide_bool(const bool *b) : u(b[0] ? MPL_TRUE : MPL_FALSE) {}
 
-		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = (u && r.u) ? MPL_TRUE : MPL_FALSE; return o; }
-		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = (u || r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator||(const wide_bool &r) const { wide_bool o; o.u = (u || r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator&&(const wide_bool &r) const { wide_bool o; o.u = (u && r.u) ? MPL_TRUE : MPL_FALSE; return o; }
 
-		wide_bool operator|(const wide_bool &r) const { wide_bool o; o.u = (u & r.u) ? MPL_TRUE : MPL_FALSE; return o; }
-		wide_bool operator&(const wide_bool &r) const { wide_bool o; o.u = (u | r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator|(const wide_bool &r) const { wide_bool o; o.u = (u | r.u) ? MPL_TRUE : MPL_FALSE; return o; }
+		wide_bool operator&(const wide_bool &r) const { wide_bool o; o.u = (u & r.u) ? MPL_TRUE : MPL_FALSE; return o; }
 
 		wide_bool operator!( void ) const { wide_bool o; o.u = ~u; return o; }
 
@@ -581,22 +581,22 @@ namespace mpl {
 		wide_float &operator*=(const wide_float &r) { f *= r.f; return *this; }
 		wide_float &operator/=(const wide_float &r) { f /= r.f; return *this; }
 		wide_float &operator|=(const wide_float &r) { *(unsigned int*)(&f) |= *(unsigned int*)(&r.f); return *this; }
-		wide_float &operator|=(const wide_bool &r) {  *(unsigned int*)(&f) |= r.u; return *this;  }
+		wide_float &operator|=(const wide_bool &r)  { *(unsigned int*)(&f) |= r.u; return *this;  }
 		wide_float &operator&=(const wide_float &r) { *(unsigned int*)(&f) &= *(unsigned int*)(&r.f); return *this; }
-		wide_float &operator&=(const wide_bool &r) {  *(unsigned int*)(&f) &= r.u; return *this;  }
+		wide_float &operator&=(const wide_bool &r)  { *(unsigned int*)(&f) &= r.u; return *this;  }
 
 		wide_float operator+(const wide_float &r) const { return f + r.f; }
 		wide_float operator-(const wide_float &r) const { return f - r.f; }
 		wide_float operator*(const wide_float &r) const { return f * r.f; }
 		wide_float operator/(const wide_float &r) const { return f / r.f; }
 		wide_float operator|(const wide_float &r) const { unsigned int o = *(unsigned int*)(&f) | *(unsigned int*)(&r.f); return *(float*)(&o); }
-		wide_float operator|(const wide_bool &r) const { unsigned int o = *(unsigned int*)(&f) | r.u; return *(float*)(&o); }
+		wide_float operator|(const wide_bool &r)  const { unsigned int o = *(unsigned int*)(&f) | r.u; return *(float*)(&o); }
 		wide_float operator&(const wide_float &r) const { unsigned int o = *(unsigned int*)(&f) & *(unsigned int*)(&r.f); return *(float*)(&o); }
-		wide_float operator&(const wide_bool &r) const { unsigned int o = *(unsigned int*)(&f) & r.u; return *(float*)(&o); }
+		wide_float operator&(const wide_bool &r)  const { unsigned int o = *(unsigned int*)(&f) & r.u; return *(float*)(&o); }
 
 		static wide_float max(const wide_float &a, const wide_float &b) { return a.f < b.f ? b.f : a.f; }
 		static wide_float min(const wide_float &a, const wide_float &b) { return a.f < b.f ? a.f : b.f; }
-		static wide_float sqrt(const wide_float &x) { return ::sqrt(x.f); }
+		static wide_float sqrt(const wide_float &x)                     { return ::sqrt(x.f); }
 
 		wide_bool operator==(const wide_float &r) const { wide_bool o; o.u = (f == r.f) ? MPL_TRUE : MPL_FALSE; return o; }
 		wide_bool operator!=(const wide_float &r) const { wide_bool o; o.u = (f != r.f) ? MPL_TRUE : MPL_FALSE; return o; }
@@ -607,7 +607,7 @@ namespace mpl {
 
 		void to_scalar(float *out) const { *out = f; }
 
-		static wide_float merge(const wide_float &l, const wide_float &r, const wide_bool &l_mask)
+		static wide_float merge(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
 		{
 			// This function needs to be way more complicated than it should be.
 			// The compiler optimizes casting between float* and int* to shit.
@@ -620,7 +620,7 @@ namespace mpl {
 			bits a = { l.f };
 			bits b = { r.f };
 			bits o;
-			o.u = (a.u & l_mask.u) | (b.u & ~l_mask.u);
+			o.u = (a.u & ~cond_mask.u) | (b.u & cond_mask.u);
 			return wide_float(o.f);
 		}
 	};
@@ -690,9 +690,9 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = signed_rshift(i, n); }
 
-		static wide_fixed<n> merge(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &l_mask)
+		static wide_fixed<n> merge(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
-			unsigned int o = (*(unsigned int*)(&l.i) & l_mask.u) | (*(unsigned int*)(&r.i) & ~l_mask.u);
+			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
 			wide_fixed<n> out;
 			out.i = *(int*)&o;
 			return out;
@@ -742,9 +742,9 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = i; }
 
-		static wide_int merge(const wide_int &l, const wide_int &r, const wide_bool &l_mask)
+		static wide_int merge(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
-			unsigned int o = (*(unsigned int*)(&l.i) & l_mask.u) | (*(unsigned int*)(&r.i) & ~l_mask.u);
+			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
 			return wide_int(*(int*)(&o));
 		}
 	};
