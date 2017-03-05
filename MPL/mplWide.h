@@ -104,6 +104,7 @@ namespace mpl {
 
 		static wide_float mov_if_true(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
 		{
+#if MPL_SIMD_VER < 2
 			wide_bool l_mask;
 			l_mask.u = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128 rc, lc;
@@ -111,10 +112,15 @@ namespace mpl {
 			rc = _mm_and_ps(r.f, cond_mask.f);
 			rc = _mm_or_ps(rc, lc);
 			return rc;
+#else
+			__m128 ret = l.f;
+			_mm_maskmoveu_si128(*(__m128i*)(&r), cond_mask.u, (char*)(&ret));
+			return ret;
+#endif
 		}
-		static wide_float max(const wide_float &a, const wide_float &b) { wide_float o; o.f = _mm_max_ps(a.f, b.f); return o; }
-		static wide_float min(const wide_float &a, const wide_float &b) { wide_float o; o.f = _mm_min_ps(a.f, b.f); return o; }
-		static wide_float sqrt(const wide_float &x) { wide_float o; o.f = _mm_sqrt_ps(x.f); return o; }
+		static wide_float max(const wide_float &a, const wide_float &b) { return _mm_max_ps(a.f, b.f); }
+		static wide_float min(const wide_float &a, const wide_float &b) { return _mm_min_ps(a.f, b.f); }
+		static wide_float sqrt(const wide_float &x)                     { return _mm_sqrt_ps(x.f); }
 	}
 	#if MPL_COMPILER == MPL_COMPILER_GCC
 		__attribute__((aligned(MPL_BYTE_ALIGN)))
@@ -178,6 +184,7 @@ namespace mpl {
 
 		static wide_fixed<n> mov_if_true(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
+#if MPL_SIMD_VER < 2
 			__m128i l_mask;
 			l_mask = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128i rc, lc;
@@ -185,21 +192,26 @@ namespace mpl {
 			rc = _mm_and_si128(r.i, cond_mask.u);
 			rc = _mm_or_si128(rc, lc);
 			return rc;
+#else
+			__m128i ret = l.i;
+			_mm_maskmoveu_si128(r.i, cond_mask.u, (char*)(&ret));
+			return ret;
+#endif
 		}
 		static wide_fixed<n> max(const wide_fixed<n> &a, const wide_fixed<n> &b)
 		{
-#if MPL_SIMD_VER == 4
-			return _mm_max_epi32(a.i, b.i);
-#else
+#if MPL_SIMD_VER < 4
 			return wide_fixed<n>::mov_if_true(a, b, (a < b));
+#else
+			return _mm_max_epi32(a.i, b.i);
 #endif
 		}
 		static wide_fixed<n> min(const wide_fixed<n> &a, const wide_fixed<n> &b)
 		{
-#if MPL_SIMD_VER == 4
-			return _mm_min_epi32(a.i, b.i);
-#else
+#if MPL_SIMD_VER < 4
 			return wide_fixed<n>::mov_if_true(a, b, (a > b));
+#else
+			return _mm_min_epi32(a.i, b.i);
 #endif
 		}
 	}
@@ -264,6 +276,7 @@ namespace mpl {
 
 		static wide_int mov_if_true(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
+#if MPL_SIMD_VER < 2
 			__m128i l_mask;
 			l_mask = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128i rc, lc;
@@ -271,21 +284,27 @@ namespace mpl {
 			rc = _mm_and_si128(r.i, cond_mask.u);
 			rc = _mm_or_si128(rc, lc);
 			return rc;
+#else
+			__m128i ret = l.i;
+			_mm_maskmoveu_si128(r.i, cond_mask.u, (char*)(&ret));
+			return ret;
+#endif
 		}
 		static wide_int max(const wide_int &a, const wide_int &b)
 		{
-#if MPL_SIMD_VER == 4
-			return _mm_max_epi32(a.i, b.i);
-#else
+#if MPL_SIMD_VER < 4
+
 			return wide_int::mov_if_true(a, b, (a < b));
+#else
+			return _mm_max_epi32(a.i, b.i);
 #endif
 		}
 		static wide_int min(const wide_int &a, const wide_int &b)
 		{
-#if MPL_SIMD_VER == 4
-			return _mm_min_epi32(a.i, b.i);
-#else
+#if MPL_SIMD_VER < 4
 			return wide_int::mov_if_true(a, b, (a > b));
+#else
+			return _mm_min_epi32(a.i, b.i);
 #endif
 		}
 	}
