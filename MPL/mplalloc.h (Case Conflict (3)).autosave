@@ -1,0 +1,20 @@
+#ifndef MPLALLOC_H_INCLUDED__
+#define MPLALLOC_H_INCLUDED__
+
+#include "mplCommon.h"
+
+namespace mpl
+{
+	template < typename type_t >
+	type_t *alloc_mem(size_t elem_count)
+	{
+		return (type_t*)((size_t)((new char[elem_count*sizeof(type_t) + MPL_BYTE_ALIGN]) + MPL_BYTE_ALIGN) & MPL_BYTE_ALIGN_MASK);
+	}
+	
+	class mem_pool
+	{
+		
+	};
+}
+
+#endif // MPLALLOC_H_INCLUDED__

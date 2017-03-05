@@ -1,0 +1,44 @@
+#ifndef MPLALLOC_H_INCLUDED__
+#define MPLALLOC_H_INCLUDED__
+
+#include "mplCommon.h"
+
+namespace mpl
+{
+	template < typename type_t >
+	type_t *alloc_mem(size_t elem_count)
+	{
+		return (type_t*)((size_t)((new char[elem_count*sizeof(type_t) + MPL_BYTE_ALIGN]) + MPL_BYTE_ALIGN) & MPL_BYTE_ALIGN_MASK);
+	}
+
+	template < typename type_t >
+	void free_mem(type_t *mem)
+	{
+		// memory leak if the memory was aligned using alloc_mem?
+		// how do I solve that without going vendor specific?
+		delete [] mem;
+	}
+	
+	template < typename type_t >
+	class aligned_mem
+	{
+	private:
+		type_t *mem;
+		type_t *ali;
+		
+	public:
+		aligned_mem( void ) : mem(NULL), ali(NULL) {}
+		
+		void alloc(int elem_count)
+		{
+			free();
+			
+		}
+		void free();
+		
+		operator type_t*( void )             { return ali; }
+		operator const type_t*( void ) const { return ali; }
+	};
+}
+
+#endif // MPLALLOC_H_INCLUDED__
