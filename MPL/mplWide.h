@@ -430,10 +430,10 @@ namespace mpl {
 		wide_float operator-(const wide_float &r) const { return vsubq_f32(f, r.f); }
 		wide_float operator*(const wide_float &r) const { return vmulq_f32(f, r.f); }
 		wide_float operator/(const wide_float &r) const { wide_float o; o.f = f; o /= r; return o; }
-		wide_float operator|(const wide_float &r) const { return *(float32x4_t*)(&vorrq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f))); }
-		wide_float operator|(const wide_bool &r)  const { return *(float32x4_t)(&vorrq_u32(*(uint32x4_t*)(&f), r.u)); }
-		wide_float operator&(const wide_float &r) const { return *(float32x4_t*)(&vandq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f))); }
-		wide_float operator&(const wide_bool &r)  const { return *(float32x4_t*)(&vandq_u32(*(uint32x4_t*)(&f), r.u)); }
+		wide_float operator|(const wide_float &r) const { uint32x4_t o = vorrq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return *(float32x4_t*)(&o); }
+		wide_float operator|(const wide_bool &r)  const { uint32x4_t o = vorrq_u32(*(uint32x4_t*)(&f), r.u); return *(float32x4_t*)(&o); }
+		wide_float operator&(const wide_float &r) const { uint32x4_t o = vandq_u32(*(uint32x4_t*)(&f), *(uint32x4_t*)(&r.f)); return *(float32x4_t*)(&o); }
+		wide_float operator&(const wide_bool &r)  const { uint32x4_t o = vandq_u32(*(uint32x4_t*)(&f), r.u); return *(float32x4_t*)(&o); }
 
 		static wide_float max(const wide_float &a, const wide_float &b) { wide_float o; o.f = vmaxq_f32(a.f, b.f); return o; }
 		static wide_float min(const wide_float &a, const wide_float &b) { wide_float o; o.f = vminq_f32(a.f, b.f); return o; }
@@ -468,7 +468,7 @@ namespace mpl {
 			wide_bits rc, lc;
 			lc.u = vandq_u32(*(uint32x4_t*)(&l.f), l_mask.u);
 			rc.u = vandq_u32(*(uint32x4_t*)(&r.f), cond_mask.u);
-			rc.u = vorrq_u32(rc.f, lc.f);
+			rc.u = vorrq_u32(rc.u, lc.u);
 			return rc.f;
 		}
 
