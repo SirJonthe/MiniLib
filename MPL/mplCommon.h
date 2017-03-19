@@ -133,7 +133,7 @@
 #endif
 
 #define MPL_UNS_MAX (~0U)
-#define MPL_TRUE MPL_UNS_MAX
-#define MPL_FALSE 0
+#define MPL_TRUE_BITS MPL_UNS_MAX
+#define MPL_FALSE_BITS 0
 
 #endif // MPL_COMMON_H_INCLUDED__
