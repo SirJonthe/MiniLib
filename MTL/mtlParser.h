@@ -140,11 +140,18 @@ public:
 class mtlSyntaxParser2
 {
 private:
-	enum CharClass
+	enum CharType
 	{
-		CharClass_White,
-		CharClass_Word,
-		CharClass_Other
+		CharType_Stop,
+		CharType_Alphanum,
+		CharType_Other
+	};
+
+	struct Index
+	{
+		int      pos;
+		CharType typ;
+		short    ch;
 	};
 
 	enum TokenType
@@ -175,20 +182,21 @@ private:
 private:
 	mtlString     m_copy;
 	mtlChars      m_buffer;
-	mtlChars      m_extra_word_chars;
+	mtlChars      m_hyphenators;
 	mtlList<char> m_brace_stack;
-	CharClass     m_last_char_class; // Initialized to CharClass_Other
-	int           m_read_index;
+	Index         m_index;
 	int           m_line;
 	bool          m_is_case_sensitive;
 
 private:
-	CharClass ClassifyChar(char ch) const;
-	short     PeekChar( void ) const;
-	short     ReadChar( void );
-	short     ReadToken( void );
+	CharType ClassifyChar(char ch) const;
+	Index    PeekChar( void ) const;
+	short    ReadChar( void );
+	short    ReadToken( void );
 
 public:
+	mtlSyntaxParser2( void );
+
 	void SetBuffer(const mtlChars &buffer);
 	void CopyBuffer(const mtlChars &buffer);
 };

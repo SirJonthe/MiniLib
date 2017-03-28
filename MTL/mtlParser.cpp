@@ -637,56 +637,93 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 
 mtlSyntaxParser2::CharClass mtlSyntaxParser2::ClassifyChar(char ch) const
 {
-	if (m_extra_word_chars.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch)) {
-		return CharClass_Word;
+	if (m_hyphenators.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch)) {
+		return CharType_Alphanum;
 	} else if (mtlChars::IsWhitespace(ch)) {
-		return CharClass_White;
+		return CharType_Stop;
 	}
-	return CharClass_Other;
+	return CharType_Other;
 }
 
-short mtlSyntaxParser2::PeekChar( void ) const
+mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
 {
-	short ch = (short)m_buffer[m_read_index];
-	CharClass chcl = ClassifyChar(ch);
-	if ((m_last_char_class == CharClass_Word && chcl != CharClass_Word) || chcl == CharClass_Other) {
-		return (short)' ';
-	} else if (m_last_char_class == CharClass_White && chcl == CharClass_White) {
-		int index = m_read_index;
-		while (!IsEnd(++index) && chcl != CharClass_White) {
-			ch = (short)m_buffer[index];
-			chcl = ClassifyChar(ch);
+	Index i;
+	i.pos = m_index.pos;
+	i.ch  = (short)m_buffer[i.pos];
+	i.typ = ClassifyChar(i.ch);
+	if ((m_index.typ == CharType_Alphanum && i.typ != CharType_Alphanum) || i.typ == CharType_Other) {
+		i.ch = (short)' ';
+	} else if (m_index.typ == CharType_Stop && i.typ == CharType_Stop) {
+		while (!IsEnd(++i.pos) && i.typ != CharType_Stop) {
+			i.ch = (short)m_buffer[i.pos];
+			i.typ = ClassifyChar(i.ch);
 		}
 	}
-	if (!IsCaseSensitive()) {
-		ch = (short)mtlChars::ToLower((char)ch);
+	if (!IsEnd(i.pos)) {
+		if (!IsCaseSensitive()) {
+			i.ch = (short)mtlChars::ToLower((char)i.ch);
+		}
+	} else {
+		i.ch = (short)Token_EndOfStream;
 	}
-	return IsEnd(index) ? (short)Token_EndOfStream : ch;
+	return i;
 }
 
 short mtlSyntaxParser2::ReadChar( void )
 {
 	if (IsEnd()) { return (short)Token_EndOfStream; }
 
-	short ch = PeekChar();
-	m_last_char_class = ClassifyChar(ch);
-	++m_read_index;
+	m_index = PeekChar();
 
-	return ch;
+	do {
+		++m_index.pos;
+	} while (mtlChars::IsWhitespace(m_buffer[m_index.pos]) || !IsEnd());
+
+	int quote_index = -1;
+	if ((quote_index = mtlChars::SameAsWhich(ch, Quotes, sizeof(Quotes))) != -1) {
+		if (!InQuote()) {
+			m_quote_char = Quotes[quote_index];
+		} else if (Quotes[quote_index] == m_quote_char) {
+			m_quote_char = 0;
+		}
+	} else {
+		int open_index = -1;
+		int closed_index = -1;
+		if ((open_index = mtlChars::SameAsWhich(ch, OpenBraces, sizeof(OpenBraces))) != -1) {
+			m_brace_stack.AddLast(OpenBraces[open_index]);
+		} else if ((closed_index = mtlChars::SameAsWhich(ch, ClosedBraces, sizeof(ClosedBraces))) != -1) {
+			open_index = mtlChars::SameAsWhich(m_brace_stack.GetLast()->GetItem(), OpenBraces, sizeof(OpenBraces));
+			if (open_index == closed_index) {
+				m_brace_stack.RemoveLast();
+			}
+		}
+	}
+
+	return m_index.ch;
+}
+
+mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false)
+{
+	m_index.pos = 0;
+	m_index.typ = CharType_Other;
 }
 
 void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer)
 {
+	m_copy.Free();
 	m_buffer = buffer;
 	m_brace_stack.RemoveAll();
-	m_read_index = 0;
+	m_index.pos = 0;
+	m_index.typ = CharType_Other;
 	m_line = 0;
-	m_last_char_class = CharClass_Other;
-	m_is_case_sensitive = false;
 }
 
 void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer)
 {
 	m_copy.Copy(buffer);
-	SetBuffer(buffer);
+	m_buffer = buffer;
+	m_brace_stack.RemoveAll();
+	m_index.pos = 0;
+	m_index.typ = CharType_Other;
+	m_line = 0;
 }
