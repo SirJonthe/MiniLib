@@ -187,18 +187,29 @@ private:
 	Index         m_index;
 	int           m_line;
 	bool          m_is_case_sensitive;
+	char          m_quote_char;
 
 private:
 	CharType ClassifyChar(char ch) const;
 	Index    PeekChar( void ) const;
 	short    ReadChar( void );
 	short    ReadToken( void );
+	bool     IsEnd(int pos) const;
+	bool     InQuote( void ) const;
 
 public:
 	mtlSyntaxParser2( void );
 
 	void SetBuffer(const mtlChars &buffer);
 	void CopyBuffer(const mtlChars &buffer);
+
+	bool IsEnd( void ) const;
+
+	void EnableCaseSensitivity( void );
+	void DisableCaseSensitivity( void );
+	bool IsCaseSensitive( void ) const;
+
+	char Debug_ReadChar( void ) { return (char)ReadChar(); }
 };
 
 #endif

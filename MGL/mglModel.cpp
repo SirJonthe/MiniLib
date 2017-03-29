@@ -7,7 +7,7 @@ struct FacetIndex { int v, t, n; };
 
 bool mglModel::PreParseFile(const mtlString &p_fileContents)
 {
-	mtlParser parser;
+	/*mtlParser parser;
 	parser.SetBuffer(p_fileContents);
 	mtlChars param;
 
@@ -73,14 +73,15 @@ bool mglModel::PreParseFile(const mtlString &p_fileContents)
 	m_normals.Create(vn);
 	m_materials.Create(mtl);
 
-	return true;
+	return true;*/
+	return false;
 }
 
 bool mglModel::ParseFile(const mtlString &p_fileContents)
 {
 	// NOTE: I think comments are handled improperly
 		// Will not handle comments on same line as proper statements
-	mtlParser parser;
+	/*mtlParser parser;
 	parser.SetBuffer(p_fileContents);
 	mtlChars param;
 	mglMaterialIndex *currentMaterial = NULL;
@@ -333,7 +334,8 @@ bool mglModel::ParseFile(const mtlString &p_fileContents)
 			m_name.Copy(line.ReadLine());
 		}
 	}
-	return true;
+	return true;*/
+	return false;
 }
 
 void mglModel::CalculateBounds( void )
@@ -504,7 +506,7 @@ void mglModel::Free( void )
 
 bool mglModel::Load(const mtlPath &p_filename)
 {
-	Free();
+	/*Free();
 	
 	if (!p_filename.GetFileExtension().Compare("obj")) {
 		SetError("Not an .obj file");
@@ -522,7 +524,8 @@ bool mglModel::Load(const mtlPath &p_filename)
 	}
 	
 	CalculateMetadata();
-	return true;
+	return true;*/
+	return false;
 }
 
 mmlVector<3> mglModel::GetFacetNormal(int v1, int v2, int v3) const

@@ -635,7 +635,7 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 	return Match(expr, m, seq);
 }
 
-mtlSyntaxParser2::CharClass mtlSyntaxParser2::ClassifyChar(char ch) const
+mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
 {
 	if (m_hyphenators.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch)) {
 		return CharType_Alphanum;
@@ -649,23 +649,30 @@ mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
 {
 	Index i;
 	i.pos = m_index.pos;
-	i.ch  = (short)m_buffer[i.pos];
-	i.typ = ClassifyChar(i.ch);
-	if ((m_index.typ == CharType_Alphanum && i.typ != CharType_Alphanum) || i.typ == CharType_Other) {
-		i.ch = (short)' ';
-	} else if (m_index.typ == CharType_Stop && i.typ == CharType_Stop) {
-		while (!IsEnd(++i.pos) && i.typ != CharType_Stop) {
+
+	if (m_index.typ == CharType_Stop) {
+		do {
 			i.ch = (short)m_buffer[i.pos];
-			i.typ = ClassifyChar(i.ch);
-		}
-	}
-	if (!IsEnd(i.pos)) {
-		if (!IsCaseSensitive()) {
-			i.ch = (short)mtlChars::ToLower((char)i.ch);
-		}
+			i.typ = ClassifyChar((char)i.ch);
+			i.pos = i.pos + 1;
+		} while (i.typ == CharType_Stop);
 	} else {
-		i.ch = (short)Token_EndOfStream;
+		i.ch = (short)m_buffer[i.pos];
+		i.typ = ClassifyChar((char)i.ch);
+		if (m_index.typ != i.typ || m_index.typ == CharType_Other) {
+			i.ch = (short)' ';
+			i.typ = ClassifyChar((char)i.ch);
+		} else  {
+			i.pos = i.pos + 1;
+		}
 	}
+
+	if (IsEnd(i.pos - 1)) {
+		i.ch = (short)Token_EndOfStream;
+	} else if (!IsCaseSensitive() && !InQuote()) {
+		i.ch = (short)mtlChars::ToLower((char)i.ch);
+	}
+
 	return i;
 }
 
@@ -675,12 +682,8 @@ short mtlSyntaxParser2::ReadChar( void )
 
 	m_index = PeekChar();
 
-	do {
-		++m_index.pos;
-	} while (mtlChars::IsWhitespace(m_buffer[m_index.pos]) || !IsEnd());
-
 	int quote_index = -1;
-	if ((quote_index = mtlChars::SameAsWhich(ch, Quotes, sizeof(Quotes))) != -1) {
+	if ((quote_index = mtlChars::SameAsWhich(m_index.ch, Quotes, sizeof(Quotes))) != -1) {
 		if (!InQuote()) {
 			m_quote_char = Quotes[quote_index];
 		} else if (Quotes[quote_index] == m_quote_char) {
@@ -689,9 +692,9 @@ short mtlSyntaxParser2::ReadChar( void )
 	} else {
 		int open_index = -1;
 		int closed_index = -1;
-		if ((open_index = mtlChars::SameAsWhich(ch, OpenBraces, sizeof(OpenBraces))) != -1) {
+		if ((open_index = mtlChars::SameAsWhich(m_index.ch, OpenBraces, sizeof(OpenBraces))) != -1) {
 			m_brace_stack.AddLast(OpenBraces[open_index]);
-		} else if ((closed_index = mtlChars::SameAsWhich(ch, ClosedBraces, sizeof(ClosedBraces))) != -1) {
+		} else if ((closed_index = mtlChars::SameAsWhich(m_index.ch, ClosedBraces, sizeof(ClosedBraces))) != -1) {
 			open_index = mtlChars::SameAsWhich(m_brace_stack.GetLast()->GetItem(), OpenBraces, sizeof(OpenBraces));
 			if (open_index == closed_index) {
 				m_brace_stack.RemoveLast();
@@ -702,7 +705,17 @@ short mtlSyntaxParser2::ReadChar( void )
 	return m_index.ch;
 }
 
-mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false)
+bool mtlSyntaxParser2::IsEnd(int pos) const
+{
+	return pos >= m_buffer.GetSize();
+}
+
+bool mtlSyntaxParser2::InQuote( void ) const
+{
+	return m_quote_char != 0;
+}
+
+mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_quote_char(0)
 {
 	m_index.pos = 0;
 	m_index.typ = CharType_Other;
@@ -716,6 +729,7 @@ void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer)
 	m_index.pos = 0;
 	m_index.typ = CharType_Other;
 	m_line = 0;
+	m_quote_char = 0;
 }
 
 void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer)
@@ -726,4 +740,25 @@ void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer)
 	m_index.pos = 0;
 	m_index.typ = CharType_Other;
 	m_line = 0;
+	m_quote_char = 0;
+}
+
+bool mtlSyntaxParser2::IsEnd( void ) const
+{
+	return IsEnd(m_index.pos);
+}
+
+void mtlSyntaxParser2::EnableCaseSensitivity( void )
+{
+	m_is_case_sensitive = true;
+}
+
+void mtlSyntaxParser2::DisableCaseSensitivity( void )
+{
+	m_is_case_sensitive = false;
+}
+
+bool mtlSyntaxParser2::IsCaseSensitive( void ) const
+{
+	return m_is_case_sensitive;
 }
