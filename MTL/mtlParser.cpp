@@ -645,6 +645,61 @@ mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
 	return CharType_Other;
 }
 
+short mtlSyntaxParser2::ClassifyToken(short token) const
+{
+	switch (token) {
+	case '0':
+		token = (short)Token_EndOfStream;
+		break;
+	case 'c':
+		token = (short)Token_Char;
+		break;
+	case 'a':
+		token = (short)Token_Alpha;
+		break;
+	case 'i':
+		token = (short)Token_Int;
+		break;
+	case 'r':
+		token = (short)Token_Real;
+		break;
+	case 'w':
+		token = (short)Token_Word;
+		break;
+	case 's':
+		token = (short)Token_NullStr;
+		break;
+	case 'S':
+		token = (short)Token_Str;
+		break;
+	case '|':
+		token = (short)Token_Split;
+		break;
+	case '?':
+		token = (short)Token_NullOpt;
+		break;
+	case '!':
+		token = (short)Token_Opt;
+		break;
+	case '&':
+		token = (short)Token_Any;
+		break;
+	//case '~':
+	//	token = (short)Token_AnyNot;
+	//	break;
+	//case '.':
+	//	token = (short)Token_ComplexDelimiter;
+	//	break;
+	//case '*':
+	//	token = (short)Token_Wild;
+	//	break;
+	case Variable:
+	default:
+		break;
+	}
+	return token;
+}
+
 mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
 {
 	Index i;
@@ -705,6 +760,22 @@ short mtlSyntaxParser2::ReadChar( void )
 	return m_index.ch;
 }
 
+short mtlSyntaxParser2::ReadToken( void )
+{
+	int read_start = m_index.pos;
+	short token = ReadChar();
+	if (token == Variable) {
+		do {
+			token = ReadChar();
+		} while (m_index.typ == CharType_Stop);
+		token = ClassifyToken(token);
+		if (token == Token_Opt) {
+			m_index.pos = read_start;
+		}
+	}
+	return token;
+}
+
 bool mtlSyntaxParser2::IsEnd(int pos) const
 {
 	return pos >= m_buffer.GetSize();
@@ -713,6 +784,106 @@ bool mtlSyntaxParser2::IsEnd(int pos) const
 bool mtlSyntaxParser2::InQuote( void ) const
 {
 	return m_quote_char != 0;
+}
+
+void mtlSyntaxParser2::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const
+{
+	mtlSyntaxParser2 p;
+	p.SetBuffer(expr);
+
+	int start = p.m_index.pos;
+
+	while (!p.IsEnd()) {
+		int end = p.m_index.pos;
+		short token = p.ReadToken();
+		if (p.m_brace_stack.GetSize() == 0 && token == Token_Split) {
+			out.AddLast(mtlChars(p.m_buffer, start, end).GetTrimmed());
+			start = p.m_index.pos;
+		} else if (p.IsEnd()) {
+			out.AddLast(mtlChars(p.m_buffer, start, p.m_index.pos).GetTrimmed());
+			start = p.m_index.pos;
+		}
+	}
+}
+
+int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
+{
+	mtlItem<char> *brace_item = m_brace_stack.GetLast();
+
+	if (!VerifyBraces(expr)) {
+		return (int)ExpressionInputError;
+	}
+
+	out.Free();
+	const int variable_count = CountVariables(expr);
+	out.SetCapacity(variable_count);
+
+	mtlSyntaxParser2 expr_parser;
+	expr_parser.SetBuffer(expr);
+
+	int result      = 1;
+	int start       = m_index.pos;
+	int brace_depth = GetBraceDepth();
+
+	while (!expr_parser.IsEnd() && result == 1) {
+
+		short expr_token = expr_parser.ReadToken();
+		if (IsEnd()) {
+			if (expr_token != Token_EndOfStream) {
+				result = (int)ExpressionNotFound;
+			}
+			break;
+		}
+
+		bool test_len = false;
+
+		switch (expr_token) {
+			// TODO: Read here
+			// Implement PeekToken
+		}
+	}
+	if (result == 1 && GetBraceDepth() != brace_depth) {
+		result = (int)ExpressionNotFound;
+	}
+	if (result != 1) {
+		out.Free();
+		m_index.pos = start;
+	}
+	if (seq != NULL) {
+		*seq = mtlChars(m_buffer, start, m_reader);
+		*seq = seq->GetTrimmed();
+	}
+
+	while (m_brace_stack.GetLast() != brace_item && m_brace_stack.GetSize() > 0) {
+		m_brace_stack.RemoveLast();
+	}
+
+	return result;
+}
+
+int mtlSyntaxParser2::CountVariables(const mtlChars &str) const
+{
+	mtlSyntaxParser p;
+	p.SetBuffer(str);
+	int count = 0;
+	while (!p.IsEnd()) {
+		short token = p.ReadToken();
+		if (token > 255) {
+			if (token == Token_EndOfStream) { break; }
+			++count;
+		}
+	}
+	return count;
+}
+
+bool mtlSyntaxParser2::VerifyBraces(const mtlChars &str) const
+{
+	mtlSyntaxParser2 parser;
+	parser.SetBuffer(str);
+	while (!parser.IsEnd()) {
+		parser.ReadChar();
+	}
+	return parser.GetBraceDepth() == 0;
 }
 
 mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_quote_char(0)
@@ -761,4 +932,78 @@ void mtlSyntaxParser2::DisableCaseSensitivity( void )
 bool mtlSyntaxParser2::IsCaseSensitive( void ) const
 {
 	return m_is_case_sensitive;
+}
+
+int mtlSyntaxParser2::GetBraceDepth( void ) const
+{
+	return m_brace_stack.GetSize();
+}
+
+int mtlSyntaxParser2::GetBraceDepth(char brace_type) const
+{
+	const mtlItem<char> *iter = m_brace_stack.GetFirst();
+	int depth = 0;
+	while (iter != NULL) {
+		if (iter->GetItem() == brace_type) {
+			++depth;
+		}
+		iter = iter->GetNext();
+	}
+	return depth;
+}
+
+int mtlSyntaxParser2::GetBufferSize( void ) const
+{
+	return m_buffer.GetSize();
+}
+
+int mtlSyntaxParser2::GetBufferSizeRemaining( void ) const
+{
+	return m_buffer.GetSize() - m_index.pos;
+}
+
+int mtlSyntaxParser2::GetLineIndex( void ) const
+{
+	return m_line;
+}
+
+int mtlSyntaxParser2::GetCharIndex( void ) const
+{
+	return m_index.pos;
+}
+
+const mtlChars &mtlSyntaxParser2::GetBuffer( void ) const
+{
+	return m_buffer;
+}
+
+mtlChars mtlSyntaxParser2::GetBufferRemaining( void ) const
+{
+	return mtlChars(m_buffer, m_index.pos, m_buffer.GetSize());
+}
+
+int mtlSyntaxParser2::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
+{
+	mtlList<mtlChars> exprs;
+	SplitExpressions(expr, exprs);
+	mtlItem<mtlChars> *expr_iter = exprs.GetFirst();
+
+	int i = 0;
+	while (expr_iter != NULL) {
+		int code = MatchSingle(expr_iter->GetItem(), out, seq);
+		switch (code) {
+		case 1:                    return i;
+		case ExpressionInputError: return (int)ExpressionInputError;
+		default:                   break;
+		}
+		++i;
+		expr_iter = expr_iter->GetNext();
+	}
+	return (int)ExpressionNotFound;
+}
+
+int mtlSyntaxParser2::Match(const mtlChars &expr, mtlChars *seq)
+{
+	mtlArray<mtlChars> m;
+	return Match(expr, m, seq);
 }

@@ -191,11 +191,22 @@ private:
 
 private:
 	CharType ClassifyChar(char ch) const;
+	short    ClassifyToken(short ch) const;
 	Index    PeekChar( void ) const;
 	short    ReadChar( void );
 	short    ReadToken( void );
 	bool     IsEnd(int pos) const;
 	bool     InQuote( void ) const;
+	void     SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const;
+	int      MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
+	int      CountVariables(const mtlChars &str) const;
+
+public:
+	enum ExpressionResult
+	{
+		ExpressionNotFound   = -1,
+		ExpressionInputError = -2
+	};
 
 public:
 	mtlSyntaxParser2( void );
@@ -208,6 +219,21 @@ public:
 	void EnableCaseSensitivity( void );
 	void DisableCaseSensitivity( void );
 	bool IsCaseSensitive( void ) const;
+
+	int  GetBraceDepth( void ) const;
+	int  GetBraceDepth(char brace_type) const;
+
+	int  GetBufferSize( void ) const;
+	int  GetBufferSizeRemaining( void ) const;
+
+	int  GetLineIndex( void ) const;
+	int  GetCharIndex( void ) const;
+
+	const mtlChars &GetBuffer( void ) const;
+	mtlChars GetBufferRemaining( void ) const;
+
+	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
+	int Match(const mtlChars &expr, mtlChars *seq = NULL);
 
 	char Debug_ReadChar( void ) { return (char)ReadChar(); }
 };
