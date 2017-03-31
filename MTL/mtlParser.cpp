@@ -765,9 +765,14 @@ short mtlSyntaxParser2::ReadToken( void )
 	int read_start = m_index.pos;
 	short token = ReadChar();
 	if (token == Variable) {
+		bool case_sensitivity = IsCaseSensitive();
+		DisableCaseSensitivity();
 		do {
 			token = ReadChar();
 		} while (m_index.typ == CharType_Stop);
+		if (case_sensitivity) {
+			EnableCaseSensitivity();
+		}
 		token = ClassifyToken(token);
 		if (token == Token_Opt) {
 			m_index.pos = read_start;
@@ -820,14 +825,19 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 
 	mtlSyntaxParser2 expr_parser;
 	expr_parser.SetBuffer(expr);
+	expr_parser.m_is_case_sensitive = m_is_case_sensitive;
+	expr_parser.m_hyphenators = m_hyphenators;
 
 	int result      = 1;
 	int start       = m_index.pos;
 	int brace_depth = GetBraceDepth();
 
+	short current_token = expr_parser.ReadToken();
+
 	while (!expr_parser.IsEnd() && result == 1) {
 
-		short expr_token = expr_parser.ReadToken();
+		short next_token = expr_parser.ReadToken();
+
 		if (IsEnd()) {
 			if (expr_token != Token_EndOfStream) {
 				result = (int)ExpressionNotFound;
@@ -837,10 +847,40 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 
 		bool test_len = false;
 
-		switch (expr_token) {
-			// TODO: Read here
-			// Implement PeekToken
+		switch (current_token) {
+		case Token_Char:
+			break;
+
+		case Token_Alpha:
+			break;
+
+		case Token_Int:
+			break;
+
+		case Token_Real:
+			break;
+
+		case Token_Word:
+			break;
+
+		case Token_Str:
+			test_len = true;
+		case Token_NullStr:
+			{}
+			break;
+
+		case Token_Opt:
+			test_len = true;
+		case Token_NullOpt:
+			{}
+			break;
+
+		case Token_EndOfStream:
+		default:
+			break;
 		}
+
+		current_token = next_token;
 	}
 	if (result == 1 && GetBraceDepth() != brace_depth) {
 		result = (int)ExpressionNotFound;
@@ -850,7 +890,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 		m_index.pos = start;
 	}
 	if (seq != NULL) {
-		*seq = mtlChars(m_buffer, start, m_reader);
+		*seq = mtlChars(m_buffer, start, m_index.pos);
 		*seq = seq->GetTrimmed();
 	}
 
@@ -863,7 +903,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 
 int mtlSyntaxParser2::CountVariables(const mtlChars &str) const
 {
-	mtlSyntaxParser p;
+	mtlSyntaxParser2 p;
 	p.SetBuffer(str);
 	int count = 0;
 	while (!p.IsEnd()) {

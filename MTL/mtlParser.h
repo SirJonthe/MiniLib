@@ -200,6 +200,7 @@ private:
 	void     SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const;
 	int      MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int      CountVariables(const mtlChars &str) const;
+	bool     VerifyBraces(const mtlChars &str) const;
 
 public:
 	enum ExpressionResult
@@ -230,7 +231,7 @@ public:
 	int  GetCharIndex( void ) const;
 
 	const mtlChars &GetBuffer( void ) const;
-	mtlChars GetBufferRemaining( void ) const;
+	mtlChars        GetBufferRemaining( void ) const;
 
 	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int Match(const mtlChars &expr, mtlChars *seq = NULL);
