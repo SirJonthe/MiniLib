@@ -165,8 +165,8 @@ private:
 		Token_NullStr,          // s
 		Token_Str,              // S
 		Token_Split,            // |
-		Token_NullOpt,          // ?
-		Token_Opt,              // !
+		Token_Opt,              // ?
+		Token_Alt,              // !
 		//Token_Any,              // &
 		//Token_AnyNot,           // ~
 		//Token_ComplexDelimiter, // .

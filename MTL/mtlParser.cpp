@@ -637,7 +637,7 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 
 mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
 {
-	if (m_hyphenators.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch)) {
+	if (m_hyphenators.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch) || ch == '_') {
 		return CharType_Alphanum;
 	} else if (mtlChars::IsWhitespace(ch)) {
 		return CharType_Stop;
@@ -651,9 +651,6 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 	case '0':
 		token = (short)Token_EndOfStream;
 		break;
-	//case 'c':
-	//	token = (short)Token_Char;
-	//	break;
 	case 'a':
 		token = (short)Token_Alpha;
 		break;
@@ -676,10 +673,10 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 		token = (short)Token_Split;
 		break;
 	case '?':
-		token = (short)Token_NullOpt;
+		token = (short)Token_Opt;
 		break;
 	case '!':
-		token = (short)Token_Opt;
+		token = (short)Token_Alt;
 		break;
 	//case '&':
 	//	token = (short)Token_Any;
@@ -770,9 +767,9 @@ short mtlSyntaxParser2::ReadChar( void )
 mtlSyntaxParser2::Index mtlSyntaxParser2::PeekToken( void ) const
 {
 	mtlSyntaxParser2 p;
-	p.m_buffer         = m_buffer;
-	p.m_index          = m_index;
-	p.m_quote_char     = m_quote_char;
+	p.m_buffer     = m_buffer;
+	p.m_index      = m_index;
+	p.m_quote_char = m_quote_char;
 
 	int read_start = p.m_index.pos;
 	p.ReadChar();
@@ -785,7 +782,8 @@ mtlSyntaxParser2::Index mtlSyntaxParser2::PeekToken( void ) const
 		if (case_sensitivity) {
 			p.EnableCaseSensitivity();
 		}
-		if (p.ClassifyToken(m_index.ch) == Token_Opt) {
+		short token = p.ClassifyToken(m_index.ch);
+		if (token == (short)Token_Opt || token == (short)Token_Alt) {
 			p.m_index.pos = read_start;
 		}
 	}
@@ -871,7 +869,22 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 
 		case Token_Real:
 			{
-				mtlChars real = ReadAny("%i.").GetTrimmed();
+				mtlChars real;
+				mtlArray<mtlChars> dummy;
+				result = MatchSingle("%i.%i", dummy, &real);
+				if (result != (int)ExpressionNotFound) {
+					for (int i = 0; i < real.GetSize(); ++i) {
+						if (!mtlChars::IsNumeric(real[i]) && real[i] != '.') {
+							result = (int)ExpressionNotFound;
+							break;
+						}
+					}
+				}
+				test_len = true;
+				break;
+
+
+				/*mtlChars real = ReadAny("%i.").GetTrimmed();
 				int dec_delim = 0;
 				for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
 					if (real[i] == '.') { ++dec_delim; }
@@ -882,7 +895,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 				} else {
 					result = (int)ExpressionNotFound;
 				}
-				break;
+				break;*/
 			}
 
 		case Token_Word:
@@ -899,9 +912,9 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 				break;
 			}
 
-		case Token_Opt:
+		case Token_Alt:
 			test_len = true;
-		case Token_NullOpt:
+		case Token_Opt:
 			{
 				mtlArray<mtlChars> m;
 				if (expr_parser.Match("(%s) %| %w", m) > -1) { out.Add(OptMatch(m[0]).GetTrimmed()); }
