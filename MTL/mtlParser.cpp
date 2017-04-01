@@ -651,9 +651,9 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 	case '0':
 		token = (short)Token_EndOfStream;
 		break;
-	case 'c':
-		token = (short)Token_Char;
-		break;
+	//case 'c':
+	//	token = (short)Token_Char;
+	//	break;
 	case 'a':
 		token = (short)Token_Alpha;
 		break;
@@ -681,9 +681,9 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 	case '!':
 		token = (short)Token_Opt;
 		break;
-	case '&':
-		token = (short)Token_Any;
-		break;
+	//case '&':
+	//	token = (short)Token_Any;
+	//	break;
 	//case '~':
 	//	token = (short)Token_AnyNot;
 	//	break;
@@ -701,31 +701,39 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 }
 
 mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
-{
+{	
 	Index i;
 	i.pos = m_index.pos;
 
-	if (m_index.typ == CharType_Stop) {
-		do {
+	if (IsEnd()) {
+
+		i.ch = (short)Token_EndOfStream;
+		i.typ = CharType_Stop;
+		i.pos = m_buffer.GetSize();
+
+	} else {
+
+		if (m_index.typ == CharType_Stop) {
+			do {
+				i.ch = (short)m_buffer[i.pos];
+				i.typ = ClassifyChar((char)i.ch);
+				i.pos = i.pos + 1;
+			} while (i.typ == CharType_Stop);
+		} else {
 			i.ch = (short)m_buffer[i.pos];
 			i.typ = ClassifyChar((char)i.ch);
-			i.pos = i.pos + 1;
-		} while (i.typ == CharType_Stop);
-	} else {
-		i.ch = (short)m_buffer[i.pos];
-		i.typ = ClassifyChar((char)i.ch);
-		if (m_index.typ != i.typ || m_index.typ == CharType_Other) {
-			i.ch = (short)' ';
-			i.typ = ClassifyChar((char)i.ch);
-		} else  {
-			i.pos = i.pos + 1;
+			if (m_index.typ != i.typ || m_index.typ == CharType_Other) {
+				i.ch = (short)' ';
+				i.typ = ClassifyChar((char)i.ch);
+			} else  {
+				i.pos = i.pos + 1;
+			}
 		}
-	}
 
-	if (IsEnd(i.pos - 1)) {
-		i.ch = (short)Token_EndOfStream;
-	} else if (!IsCaseSensitive() && !InQuote()) {
-		i.ch = (short)mtlChars::ToLower((char)i.ch);
+		if (!IsCaseSensitive() && !InQuote()) {
+			i.ch = (short)mtlChars::ToLower((char)i.ch);
+		}
+
 	}
 
 	return i;
@@ -733,9 +741,8 @@ mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
 
 short mtlSyntaxParser2::ReadChar( void )
 {
-	if (IsEnd()) { return (short)Token_EndOfStream; }
-
 	m_index = PeekChar();
+	if (m_index.ch == (short)Token_EndOfStream) { return m_index.ch; }
 
 	int quote_index = -1;
 	if ((quote_index = mtlChars::SameAsWhich(m_index.ch, Quotes, sizeof(Quotes))) != -1) {
@@ -760,30 +767,35 @@ short mtlSyntaxParser2::ReadChar( void )
 	return m_index.ch;
 }
 
-short mtlSyntaxParser2::ReadToken( void )
+mtlSyntaxParser2::Index mtlSyntaxParser2::PeekToken( void ) const
 {
-	int read_start = m_index.pos;
-	short token = ReadChar();
-	if (token == Variable) {
-		bool case_sensitivity = IsCaseSensitive();
-		DisableCaseSensitivity();
+	mtlSyntaxParser2 p;
+	p.m_buffer         = m_buffer;
+	p.m_index          = m_index;
+	p.m_quote_char     = m_quote_char;
+
+	int read_start = p.m_index.pos;
+	p.ReadChar();
+	if (m_index.ch == Variable) {
+		bool case_sensitivity = p.IsCaseSensitive();
+		p.DisableCaseSensitivity();
 		do {
-			token = ReadChar();
-		} while (m_index.typ == CharType_Stop);
+			p.ReadChar();
+		} while (p.m_index.typ == CharType_Stop);
 		if (case_sensitivity) {
-			EnableCaseSensitivity();
+			p.EnableCaseSensitivity();
 		}
-		token = ClassifyToken(token);
-		if (token == Token_Opt) {
-			m_index.pos = read_start;
+		if (p.ClassifyToken(m_index.ch) == Token_Opt) {
+			p.m_index.pos = read_start;
 		}
 	}
-	return token;
+	return p.m_index;
 }
 
-bool mtlSyntaxParser2::IsEnd(int pos) const
+short mtlSyntaxParser2::ReadToken( void )
 {
-	return pos >= m_buffer.GetSize();
+	m_index = PeekToken();
+	return ClassifyToken(m_index.ch);
 }
 
 bool mtlSyntaxParser2::InQuote( void ) const
@@ -813,6 +825,7 @@ void mtlSyntaxParser2::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> 
 
 int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
+	m_index.typ = CharType_Other;
 	mtlItem<char> *brace_item = m_brace_stack.GetLast();
 
 	if (!VerifyBraces(expr)) {
@@ -824,20 +837,17 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 	out.SetCapacity(variable_count);
 
 	mtlSyntaxParser2 expr_parser;
-	expr_parser.SetBuffer(expr);
 	expr_parser.m_is_case_sensitive = m_is_case_sensitive;
 	expr_parser.m_hyphenators = m_hyphenators;
+	expr_parser.SetBuffer(expr);
 
 	int result      = 1;
 	int start       = m_index.pos;
 	int brace_depth = GetBraceDepth();
 
-	short current_token = expr_parser.ReadToken();
-
 	while (!expr_parser.IsEnd() && result == 1) {
 
-		short next_token = expr_parser.ReadToken();
-
+		short expr_token = expr_parser.ReadToken();
 		if (IsEnd()) {
 			if (expr_token != Token_EndOfStream) {
 				result = (int)ExpressionNotFound;
@@ -847,40 +857,80 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 
 		bool test_len = false;
 
-		switch (current_token) {
-		case Token_Char:
-			break;
+		switch (expr_token) {
 
 		case Token_Alpha:
+			out.Add(ReadAny("%a").GetTrimmed());
+			test_len = true;
 			break;
 
 		case Token_Int:
+			out.Add(ReadAny("%i").GetTrimmed());
+			test_len = true;
 			break;
 
 		case Token_Real:
-			break;
+			{
+				mtlChars real = ReadAny("%i.").GetTrimmed();
+				int dec_delim = 0;
+				for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
+					if (real[i] == '.') { ++dec_delim; }
+				}
+				if (dec_delim == 1 && real.IsFloat()) {
+					out.Add(real);
+					test_len = true;
+				} else {
+					result = (int)ExpressionNotFound;
+				}
+				break;
+			}
 
 		case Token_Word:
+			out.Add(ReadAny("%a%i_").GetTrimmed());
+			test_len = true;
 			break;
 
 		case Token_Str:
 			test_len = true;
 		case Token_NullStr:
-			{}
-			break;
+			{
+				short next_expr_token = ClassifyToken(expr_parser.PeekToken().ch);
+				out.Add(ReadTo(next_expr_token));
+				break;
+			}
 
 		case Token_Opt:
 			test_len = true;
 		case Token_NullOpt:
-			{}
+			{
+				mtlArray<mtlChars> m;
+				if (expr_parser.Match("(%s) %| %w", m) > -1) { out.Add(OptMatch(m[0]).GetTrimmed()); }
+				else                                         { result = (int)ExpressionInputError; }
+				break;
+			}
+
+		case Token_Split:
+			result = (int)ExpressionInputError;
 			break;
 
 		case Token_EndOfStream:
 		default:
-			break;
+			{
+				char c1 = (char)ReadChar();
+				char c2 = (char)expr_token;
+				if (!InQuote() && !IsCaseSensitive()) {
+					c1 = mtlChars::ToLower(c1);
+					c2 = mtlChars::ToLower(c2);
+				}
+				if (c1 != c2) {
+					result = (int)ExpressionNotFound;
+				}
+			}
 		}
 
-		current_token = next_token;
+		if (test_len && out[out.GetSize() - 1].GetSize() < 1) {
+			result = (int)ExpressionNotFound;
+		}
 	}
 	if (result == 1 && GetBraceDepth() != brace_depth) {
 		result = (int)ExpressionNotFound;
@@ -890,8 +940,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 		m_index.pos = start;
 	}
 	if (seq != NULL) {
-		*seq = mtlChars(m_buffer, start, m_index.pos);
-		*seq = seq->GetTrimmed();
+		*seq = mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
 	}
 
 	while (m_brace_stack.GetLast() != brace_item && m_brace_stack.GetSize() > 0) {
@@ -926,37 +975,109 @@ bool mtlSyntaxParser2::VerifyBraces(const mtlChars &str) const
 	return parser.GetBraceDepth() == 0;
 }
 
+bool mtlSyntaxParser2::IsFormat(short ch, short token) const
+{
+	bool match = false;
+	switch (token) {
+
+	case Token_Alpha:
+		match = ch < ~((unsigned char)0) && mtlChars::IsAlpha(ch);
+		break;
+
+	case Token_Int:
+		match = ch < ~((unsigned char)0) && mtlChars::IsNumeric(ch);
+		break;
+
+	default:
+		match = ch == token;
+		break;
+	}
+	return match;
+}
+
+bool mtlSyntaxParser2::IsFormat(short ch, const mtlChars &format) const
+{
+	mtlSyntaxParser2 parser;
+	parser.SetBuffer(format);
+	parser.m_is_case_sensitive = m_is_case_sensitive;
+	bool match = false;
+	short token;
+
+	while (!parser.IsEnd() && !match) {
+		token = parser.ReadToken();
+		match = IsFormat(ch, token);
+	}
+
+	return match;
+}
+
+mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format)
+{
+	if (IsEnd()) { return mtlChars(); }
+
+	const int start = m_index.pos;
+
+	if (format.GetSize() > 0) {
+		while (!IsEnd()) {
+			const short next_ch = PeekChar().ch;
+			if (!IsFormat(next_ch, format)) { break; }
+			ReadChar();
+		}
+	} else {
+		ReadChar();
+	}
+
+	return mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
+}
+
+mtlChars mtlSyntaxParser2::ReadTo(short token)
+{
+	int brace_depth = GetBraceDepth();
+	int start = m_index.pos;
+
+	while (!IsEnd()) {
+		if (GetBraceDepth() == brace_depth && IsFormat(PeekChar().ch, token)) { break; }
+		ReadChar();
+	}
+
+	return mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
+}
+
+mtlChars mtlSyntaxParser2::OptMatch(const mtlChars &expr)
+{
+	mtlChars seq;
+	Match(expr, &seq);
+	return seq;
+}
+
 mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_quote_char(0)
 {
 	m_index.pos = 0;
-	m_index.typ = CharType_Other;
 }
 
-void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer)
+void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer, int line_offset)
 {
 	m_copy.Free();
-	m_buffer = buffer;
+	m_buffer = buffer.GetTrimmed();
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = CharType_Other;
-	m_line = 0;
+	m_line = line_offset;
 	m_quote_char = 0;
 }
 
-void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer)
+void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer, int line_offset)
 {
-	m_copy.Copy(buffer);
-	m_buffer = buffer;
+	m_copy.Copy(buffer.GetTrimmed());
+	m_buffer = m_copy;
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = CharType_Other;
-	m_line = 0;
+	m_line = line_offset;
 	m_quote_char = 0;
 }
 
 bool mtlSyntaxParser2::IsEnd( void ) const
 {
-	return IsEnd(m_index.pos);
+	return m_index.pos >= m_buffer.GetSize() && m_index.typ == CharType_Stop;
 }
 
 void mtlSyntaxParser2::EnableCaseSensitivity( void )

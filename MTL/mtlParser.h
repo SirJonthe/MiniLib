@@ -157,7 +157,7 @@ private:
 	enum TokenType
 	{
 		Token_EndOfStream = 256,
-		Token_Char,             // c
+		//Token_Char,             // c
 		Token_Alpha,            // a
 		Token_Int,              // i
 		Token_Real,             // r
@@ -167,10 +167,10 @@ private:
 		Token_Split,            // |
 		Token_NullOpt,          // ?
 		Token_Opt,              // !
-		Token_Any,              // &
-		Token_AnyNot,           // ~
-		Token_ComplexDelimiter, // .
-		Token_Wild              // *
+		//Token_Any,              // &
+		//Token_AnyNot,           // ~
+		//Token_ComplexDelimiter, // .
+		//Token_Wild              // *
 	};
 
 	struct Token
@@ -194,13 +194,18 @@ private:
 	short    ClassifyToken(short ch) const;
 	Index    PeekChar( void ) const;
 	short    ReadChar( void );
+	Index    PeekToken( void ) const;
 	short    ReadToken( void );
-	bool     IsEnd(int pos) const;
 	bool     InQuote( void ) const;
 	void     SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const;
 	int      MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int      CountVariables(const mtlChars &str) const;
 	bool     VerifyBraces(const mtlChars &str) const;
+	bool     IsFormat(short ch, short token) const;
+	bool     IsFormat(short ch, const mtlChars &format) const;
+	mtlChars ReadAny(const mtlChars &format);
+	mtlChars ReadTo(short token);
+	mtlChars OptMatch(const mtlChars &expr);
 
 public:
 	enum ExpressionResult
@@ -212,8 +217,8 @@ public:
 public:
 	mtlSyntaxParser2( void );
 
-	void SetBuffer(const mtlChars &buffer);
-	void CopyBuffer(const mtlChars &buffer);
+	void SetBuffer(const mtlChars &buffer, int line_offset = 0);
+	void CopyBuffer(const mtlChars &buffer, int line_offset = 0);
 
 	bool IsEnd( void ) const;
 
