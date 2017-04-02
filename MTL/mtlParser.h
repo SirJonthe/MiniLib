@@ -185,8 +185,10 @@ private:
 	mtlChars      m_hyphenators;
 	mtlList<char> m_brace_stack;
 	Index         m_index;
+	mtlString     m_diag_str;
 	int           m_line;
 	bool          m_is_case_sensitive;
+	bool          m_log_diag;
 	char          m_quote_char;
 
 private:
@@ -194,7 +196,7 @@ private:
 	short    ClassifyToken(short ch) const;
 	Index    PeekChar( void ) const;
 	short    ReadChar( void );
-	Index    PeekToken( void ) const;
+	short    PeekStopToken( void ) const;
 	short    ReadToken( void );
 	bool     InQuote( void ) const;
 	void     SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const;
@@ -206,6 +208,11 @@ private:
 	mtlChars ReadAny(const mtlChars &format);
 	mtlChars ReadTo(short token);
 	mtlChars OptMatch(const mtlChars &expr);
+	void     ClearLog( void );
+	void     LogStr(const mtlChars &str);
+	void     LogCompactStr(const mtlChars &str);
+	void     LogToken(short token);
+	void     LogChar(char ch);
 
 public:
 	enum ExpressionResult
@@ -226,6 +233,9 @@ public:
 	void DisableCaseSensitivity( void );
 	bool IsCaseSensitive( void ) const;
 
+	void EnableDiagnostics( void );
+	void DisableDiagnostics( void );
+
 	int  GetBraceDepth( void ) const;
 	int  GetBraceDepth(char brace_type) const;
 
@@ -238,10 +248,12 @@ public:
 	const mtlChars &GetBuffer( void ) const;
 	mtlChars        GetBufferRemaining( void ) const;
 
+	const mtlChars &GetDiagnostics( void ) const;
+
 	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int Match(const mtlChars &expr, mtlChars *seq = NULL);
 
-	char Debug_ReadChar( void ) { return (char)ReadChar(); }
+	//char Debug_ReadChar( void ) { return (char)ReadChar(); }
 };
 
 #endif

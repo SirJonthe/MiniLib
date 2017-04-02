@@ -438,6 +438,15 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 	return *this;
 }
 
+mtlString &mtlString::Append(char ch)
+{
+	NewPoolPreserve(m_size + 1);
+	m_mut_str[m_size] = ch;
+	m_size += 1;
+	m_mut_str[m_size] = '\0';
+	return *this;
+}
+
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
 	if (p_at > m_size) { return; }
