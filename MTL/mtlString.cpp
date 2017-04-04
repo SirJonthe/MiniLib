@@ -500,7 +500,7 @@ mtlString &mtlString::AppendInt(int i)
 {
 	mtlString tmp;
 	tmp.FromInt(i);
-	return Append(i);
+	return Append(tmp);
 }
 
 mtlString &mtlString::AppendFloat(float f)

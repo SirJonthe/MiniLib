@@ -969,10 +969,8 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 			{
 				char c1 = (char)ReadChar();
 				char c2 = (char)expr_token;
-				LogStr("comparing ");
+				LogStr("got ");
 				LogChar(c1);
-				LogStr(" and ");
-				LogChar(c2);
 				LogStr(", ");
 				if (c1 != c2) {
 					result = (int)ExpressionNotFound;
@@ -1153,9 +1151,7 @@ void mtlSyntaxParser2::LogCompactStr(const mtlChars &str)
 void mtlSyntaxParser2::LogToken(short token)
 {
 	if (m_log_diag) {
-		mtlString num;
-		num.FromInt(token);
-		m_diag_str.Append(num);
+		m_diag_str.AppendInt(token);
 		LogChar((char)token);
 	}
 }
@@ -1181,6 +1177,7 @@ void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = buffer.GetTrimmed();
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
+	m_index.typ = CharType_Other;
 	m_line = line_offset;
 	m_quote_char = 0;
 }
@@ -1191,6 +1188,7 @@ void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = m_copy;
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
+	m_index.typ = CharType_Other;
 	m_line = line_offset;
 	m_quote_char = 0;
 }
