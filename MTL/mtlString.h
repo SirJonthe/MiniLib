@@ -111,12 +111,15 @@ public:
 	void               Reserve(int p_size);
 	inline void        SetPoolGrowth(int p_growth);
 
+	void               Free( void );
+	void               Overwrite(const mtlChars &p_str, int p_at);
+	void               Remove(int p_start, int p_end = -1);
 	void               Insert(const mtlChars &p_str, int p_at);
 	mtlString         &Append(const mtlChars &p_str);
 	mtlString         &Append(char ch);
-	void               Overwrite(const mtlChars &p_str, int p_at);
-	void               Remove(int p_start, int p_end = -1);
-	void               Free( void );
+	mtlString         &AppendBool(bool b);
+	mtlString         &AppendInt(int i);
+	mtlString         &AppendFloat(float f);
 	void               Copy(const mtlChars &p_str);
 
 	void               Reverse( void );

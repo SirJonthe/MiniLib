@@ -406,6 +406,43 @@ void mtlString::Reserve(int p_size)
 	SetSize(old_size);
 }
 
+void mtlString::Free( void )
+{
+	delete [] m_mut_str;
+	m_str = NULL;
+	m_mut_str = NULL;
+	m_size = 0;
+	m_pool = 0;
+}
+
+void mtlString::Overwrite(const mtlChars &p_str, int p_at)
+{
+	//if (p_at > m_size) { return; }
+	//const int num = p_str.GetSize();
+	//const int newSize = num + p_at;
+	//const char *str = p_str.GetChars();
+	//NewPoolPreserve(newSize);
+	//mtlCopy(m_mut_str+p_at, str, num);
+	//m_size = m_size > newSize ? m_size : newSize;
+	//m_mut_str[m_size] = '\0';
+
+	if (p_at < 0) { return; }
+	const int min_size = p_at + p_str.GetSize();
+	if (min_size > m_size) {
+		SetSize(min_size);
+	}
+	mtlCopy(m_mut_str + p_at, p_str.GetChars(), p_str.GetSize());
+}
+
+void mtlString::Remove(int p_start, int p_end)
+{
+	int end = p_end < 0 ? m_size : p_end;
+	int num = end - p_start;
+	mtlCopy(m_mut_str + p_start, m_str + p_start + num, m_size + 1);
+	m_size -= num;
+	m_mut_str[m_size] = '\0';
+}
+
 void mtlString::Insert(const mtlChars &p_str, int p_at)
 {
 	if (p_at >= m_size) {
@@ -431,50 +468,46 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 
 mtlString &mtlString::Append(const mtlChars &p_str)
 {
-	NewPoolPreserve(m_size + p_str.GetSize());
-	mtlCopy(m_mut_str + m_size, p_str.GetChars(), p_str.GetSize());
-	m_size += p_str.GetSize();
-	m_mut_str[m_size] = '\0';
+	//NewPoolPreserve(m_size + p_str.GetSize());
+	//mtlCopy(m_mut_str + m_size, p_str.GetChars(), p_str.GetSize());
+	//m_size += p_str.GetSize();
+	//m_mut_str[m_size] = '\0';
+
+	Overwrite(p_str, m_size);
 	return *this;
 }
 
 mtlString &mtlString::Append(char ch)
 {
-	NewPoolPreserve(m_size + 1);
-	m_mut_str[m_size] = ch;
-	m_size += 1;
-	m_mut_str[m_size] = '\0';
+	//NewPoolPreserve(m_size + 1);
+	//m_mut_str[m_size] = ch;
+	//m_size += 1;
+	//m_mut_str[m_size] = '\0';
+
+	const char str[1] = { ch };
+	Append(mtlChars::FromDynamic(str, 1));
 	return *this;
 }
 
-void mtlString::Overwrite(const mtlChars &p_str, int p_at)
+mtlString &mtlString::AppendBool(bool b)
 {
-	if (p_at > m_size) { return; }
-	const int num = p_str.GetSize();
-	const int newSize = num + p_at;
-	const char *str = p_str.GetChars();
-	NewPoolPreserve(newSize);
-	mtlCopy(m_mut_str+p_at, str, num);
-	m_size = m_size > newSize ? m_size : newSize;
-	m_mut_str[m_size] = '\0';
+	mtlString tmp;
+	tmp.FromBool(b);
+	return Append(tmp);
 }
 
-void mtlString::Remove(int p_start, int p_end)
+mtlString &mtlString::AppendInt(int i)
 {
-	int end = p_end < 0 ? m_size : p_end;
-	int num = end - p_start;
-	mtlCopy(m_mut_str + p_start, m_str + p_start + num, m_size + 1);
-	m_size -= num;
-	m_mut_str[m_size] = '\0';
+	mtlString tmp;
+	tmp.FromInt(i);
+	return Append(i);
 }
 
-void mtlString::Free( void )
+mtlString &mtlString::AppendFloat(float f)
 {
-	delete [] m_mut_str;
-	m_str = NULL;
-	m_mut_str = NULL;
-	m_size = 0;
-	m_pool = 0;
+	mtlString tmp;
+	tmp.FromFloat(f);
+	return Append(f);
 }
 
 void mtlString::Copy(const mtlChars &p_str)
