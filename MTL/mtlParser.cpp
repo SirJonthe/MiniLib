@@ -1050,7 +1050,7 @@ bool mtlSyntaxParser2::IsFormat(short ch, short token) const
 		break;
 
 	default:
-		match = ch == token;
+		match = (ch == token);
 		break;
 	}
 	return match;
@@ -1061,15 +1061,15 @@ bool mtlSyntaxParser2::IsFormat(short ch, const mtlChars &format) const
 	mtlSyntaxParser2 parser;
 	parser.SetBuffer(format);
 	parser.m_is_case_sensitive = m_is_case_sensitive;
-	bool match = false;
 	short token;
 
-	while (!parser.IsEnd() && !match) {
+	while (!parser.IsEnd()) {
 		token = parser.ReadToken();
-		match = IsFormat(ch, token);
+		if ((char)token == ' ')  { continue; }
+		if (IsFormat(ch, token)) { return true; }
 	}
 
-	return match;
+	return false;
 }
 
 mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format)
