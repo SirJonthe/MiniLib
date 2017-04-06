@@ -772,6 +772,7 @@ short mtlSyntaxParser2::PeekStopToken( void ) const
 	p.m_quote_char        = m_quote_char;
 	p.m_is_case_sensitive = m_is_case_sensitive;
 	p.m_hyphenators       = m_hyphenators;
+	p.m_brace_stack.Copy(m_brace_stack);
 	short token;
 	do {
 		token = p.ReadToken();
@@ -1042,11 +1043,11 @@ bool mtlSyntaxParser2::IsFormat(short ch, short token) const
 	switch (token) {
 
 	case Token_Alpha:
-		match = ch < ~((unsigned char)0) && mtlChars::IsAlpha(ch);
+		match = ch <= (unsigned char)(~0) && mtlChars::IsAlpha(ch);
 		break;
 
 	case Token_Int:
-		match = ch < ~((unsigned char)0) && mtlChars::IsNumeric(ch);
+		match = ch <= (unsigned char)(~0) && mtlChars::IsNumeric(ch);
 		break;
 
 	default:
