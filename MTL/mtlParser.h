@@ -205,7 +205,8 @@ private:
 	bool     VerifyBraces(const mtlChars &str) const;
 	bool     IsFormat(short ch, short token) const;
 	bool     IsFormat(short ch, const mtlChars &format) const;
-	mtlChars ReadAny(const mtlChars &format);
+	mtlChars ReadAny(const mtlChars &format1, const mtlChars &format2 = mtlChars(""));
+	mtlChars ReadWord( void );
 	mtlChars ReadTo(short token);
 	mtlChars OptMatch(const mtlChars &expr);
 	void     ClearLog( void );
@@ -226,6 +227,7 @@ public:
 
 	void SetBuffer(const mtlChars &buffer, int line_offset = 0);
 	void CopyBuffer(const mtlChars &buffer, int line_offset = 0);
+	void SetHyphenators(const mtlChars &hyphenators);
 
 	bool IsEnd( void ) const;
 
@@ -253,7 +255,7 @@ public:
 	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int Match(const mtlChars &expr, mtlChars *seq = NULL);
 
-	//char Debug_ReadChar( void ) { return (char)ReadChar(); }
+	char Debug_ReadChar( void ) { return (char)ReadChar(); }
 };
 
 #endif

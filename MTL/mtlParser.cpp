@@ -637,7 +637,7 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 
 mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
 {
-	if (m_hyphenators.FindFirstChar(ch) != -1 || mtlChars::IsAlphanumeric(ch) || ch == '_') {
+	if (m_hyphenators.SameAsAny(ch) || mtlChars::IsAlphanumeric(ch)) {
 		return CharType_Alphanum;
 	} else if (mtlChars::IsWhitespace(ch)) {
 		return CharType_Stop;
@@ -783,7 +783,7 @@ short mtlSyntaxParser2::PeekStopToken( void ) const
 short mtlSyntaxParser2::ReadToken( void )
 {
 	int read_start = m_index.pos;
-	short token = ReadChar();
+	ReadChar();
 	if (m_index.ch == Variable) {
 		bool case_sensitivity = IsCaseSensitive();
 		DisableCaseSensitivity();
@@ -793,12 +793,13 @@ short mtlSyntaxParser2::ReadToken( void )
 		if (case_sensitivity) {
 			EnableCaseSensitivity();
 		}
-		token = ClassifyToken(m_index.ch);
-		if (token == (short)Token_Opt || token == (short)Token_Alt) {
+		m_index.ch = ClassifyToken(m_index.ch);
+		m_index.typ = CharType_Other; // the token is the type, not an alphanum or stop
+		if (m_index.ch == (short)Token_Opt || m_index.ch == (short)Token_Alt) {
 			m_index.pos = read_start;
 		}
 	}
-	return token;
+	return m_index.ch;
 }
 
 bool mtlSyntaxParser2::InQuote( void ) const
@@ -922,7 +923,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 			}
 
 		case Token_Word:
-			out.Add(ReadAny("%a%i_").GetTrimmed());
+			out.Add(ReadAny("%a%i", m_hyphenators).GetTrimmed());
 			test_len = true;
 			LogStr("reading complex word, found ");
 			LogCompactStr(out[out.GetSize() - 1]);
@@ -1073,16 +1074,16 @@ bool mtlSyntaxParser2::IsFormat(short ch, const mtlChars &format) const
 	return false;
 }
 
-mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format)
+mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format1, const mtlChars &format2)
 {
 	if (IsEnd()) { return mtlChars(); }
 
 	const int start = m_index.pos;
 
-	if (format.GetSize() > 0) {
+	if (format1.GetSize() > 0) {
 		while (!IsEnd()) {
 			const short next_ch = PeekChar().ch;
-			if (!IsFormat(next_ch, format)) { break; }
+			if (!IsFormat(next_ch, format1) && !IsFormat(next_ch, format2)) { break; }
 			ReadChar();
 		}
 	} else {
@@ -1166,7 +1167,7 @@ void mtlSyntaxParser2::LogChar(char ch)
 	}
 }
 
-mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0)
+mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0), m_hyphenators("_")
 {
 	m_index.pos = 0;
 	m_diag_str.SetPoolGrowth(4096);
@@ -1192,6 +1193,11 @@ void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer, int line_offset)
 	m_index.typ = CharType_Other;
 	m_line = line_offset;
 	m_quote_char = 0;
+}
+
+void mtlSyntaxParser2::SetHyphenators(const mtlChars &hyphenators)
+{
+	m_hyphenators = hyphenators;
 }
 
 bool mtlSyntaxParser2::IsEnd( void ) const
