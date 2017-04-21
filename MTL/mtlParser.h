@@ -42,7 +42,7 @@ public:
 	int      FindSignature(const mtlChars &signature) const;
 };
 
-class mtlSyntaxParser
+/*class mtlSyntaxParser
 {
 private:
 	mtlString     m_copy;
@@ -135,9 +135,9 @@ public:
 
 	int Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq = NULL);
 	int Match(const mtlChars &expr, mtlChars *seq = NULL);
-};
+};*/
 
-class mtlSyntaxParser2
+class mtlSyntaxParser
 {
 private:
 	enum CharType
@@ -223,7 +223,9 @@ public:
 	};
 
 public:
-	mtlSyntaxParser2( void );
+	static bool BufferFile(const mtlPath &p_file, mtlString &p_buffer);
+
+	mtlSyntaxParser( void );
 
 	void SetBuffer(const mtlChars &buffer, int line_offset = 0);
 	void CopyBuffer(const mtlChars &buffer, int line_offset = 0);

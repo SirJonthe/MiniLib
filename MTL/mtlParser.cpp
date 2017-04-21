@@ -69,7 +69,7 @@ int mtlBinaryParser::FindSignature(const mtlChars &signature) const
 //#define Escape       '\\'
 #define Variable     '%'
 
-bool mtlSyntaxParser::IsFormat(char ch, short token) const
+/*bool mtlSyntaxParser::IsFormat(char ch, short token) const
 {
 	bool match = false;
 	switch (token) {
@@ -633,9 +633,9 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 {
 	mtlArray<mtlChars> m;
 	return Match(expr, m, seq);
-}
+}*/
 
-mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
+mtlSyntaxParser::CharType mtlSyntaxParser::ClassifyChar(char ch) const
 {
 	if (m_hyphenators.SameAsAny(ch) || mtlChars::IsAlphanumeric(ch)) {
 		return CharType_Alphanum;
@@ -645,7 +645,7 @@ mtlSyntaxParser2::CharType mtlSyntaxParser2::ClassifyChar(char ch) const
 	return CharType_Other;
 }
 
-short mtlSyntaxParser2::ClassifyToken(short token) const
+short mtlSyntaxParser::ClassifyToken(short token) const
 {
 	switch (token) {
 	case '0':
@@ -697,7 +697,7 @@ short mtlSyntaxParser2::ClassifyToken(short token) const
 	return token;
 }
 
-mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
+mtlSyntaxParser::Index mtlSyntaxParser::PeekChar( void ) const
 {	
 	Index i;
 	i.pos = m_index.pos;
@@ -736,7 +736,7 @@ mtlSyntaxParser2::Index mtlSyntaxParser2::PeekChar( void ) const
 	return i;
 }
 
-short mtlSyntaxParser2::ReadChar( void )
+short mtlSyntaxParser::ReadChar( void )
 {
 	m_index = PeekChar();
 	if (m_index.ch == (short)Token_EndOfStream) { return m_index.ch; }
@@ -764,9 +764,9 @@ short mtlSyntaxParser2::ReadChar( void )
 	return m_index.ch;
 }
 
-short mtlSyntaxParser2::PeekStopToken( void ) const
+short mtlSyntaxParser::PeekStopToken( void ) const
 {
-	mtlSyntaxParser2 p;
+	mtlSyntaxParser p;
 	p.m_buffer            = m_buffer;
 	p.m_index             = m_index;
 	p.m_quote_char        = m_quote_char;
@@ -780,7 +780,7 @@ short mtlSyntaxParser2::PeekStopToken( void ) const
 	return token;
 }
 
-short mtlSyntaxParser2::ReadToken( void )
+short mtlSyntaxParser::ReadToken( void )
 {
 	int read_start = m_index.pos;
 	ReadChar();
@@ -802,14 +802,14 @@ short mtlSyntaxParser2::ReadToken( void )
 	return m_index.ch;
 }
 
-bool mtlSyntaxParser2::InQuote( void ) const
+bool mtlSyntaxParser::InQuote( void ) const
 {
 	return m_quote_char != 0;
 }
 
-void mtlSyntaxParser2::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const
+void mtlSyntaxParser::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &out) const
 {
-	mtlSyntaxParser2 p;
+	mtlSyntaxParser p;
 	p.SetBuffer(expr);
 
 	int start = p.m_index.pos;
@@ -827,7 +827,7 @@ void mtlSyntaxParser2::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> 
 	}
 }
 
-int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
+int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	m_index.typ = CharType_Other;
 	mtlItem<char> *brace_item = m_brace_stack.GetLast();
@@ -844,7 +844,7 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 	const int variable_count = CountVariables(expr);
 	out.SetCapacity(variable_count);
 
-	mtlSyntaxParser2 expr_parser;
+	mtlSyntaxParser expr_parser;
 	expr_parser.m_is_case_sensitive = m_is_case_sensitive;
 	expr_parser.m_hyphenators = m_hyphenators;
 	expr_parser.SetBuffer(expr);
@@ -901,25 +901,28 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 							break;
 						}
 					}
+					if (result != (int)ExpressionNotFound) {
+						out.Add(real);
+					}
 				}
 				test_len = true;
 				LogStr("reading complex real, found ");
-				LogCompactStr(out[out.GetSize() - 1]);
+				LogCompactStr(real);
 				break;
 
 
-				/*mtlChars real = ReadAny("%i.").GetTrimmed();
-				int dec_delim = 0;
-				for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
-					if (real[i] == '.') { ++dec_delim; }
-				}
-				if (dec_delim == 1 && real.IsFloat()) {
-					out.Add(real);
-					test_len = true;
-				} else {
-					result = (int)ExpressionNotFound;
-				}
-				break;*/
+				//mtlChars real = ReadAny("%i.").GetTrimmed();
+				//int dec_delim = 0;
+				//for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
+				//	if (real[i] == '.') { ++dec_delim; }
+				//}
+				//if (dec_delim == 1 && real.IsFloat()) {
+				//	out.Add(real);
+				//	test_len = true;
+				//} else {
+				//	result = (int)ExpressionNotFound;
+				//}
+				break;
 			}
 
 		case Token_Word:
@@ -1013,9 +1016,9 @@ int mtlSyntaxParser2::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out,
 	return result;
 }
 
-int mtlSyntaxParser2::CountVariables(const mtlChars &str) const
+int mtlSyntaxParser::CountVariables(const mtlChars &str) const
 {
-	mtlSyntaxParser2 p;
+	mtlSyntaxParser p;
 	p.SetBuffer(str);
 	int count = 0;
 	while (!p.IsEnd()) {
@@ -1028,9 +1031,9 @@ int mtlSyntaxParser2::CountVariables(const mtlChars &str) const
 	return count;
 }
 
-bool mtlSyntaxParser2::VerifyBraces(const mtlChars &str) const
+bool mtlSyntaxParser::VerifyBraces(const mtlChars &str) const
 {
-	mtlSyntaxParser2 parser;
+	mtlSyntaxParser parser;
 	parser.SetBuffer(str);
 	while (!parser.IsEnd()) {
 		parser.ReadChar();
@@ -1038,7 +1041,7 @@ bool mtlSyntaxParser2::VerifyBraces(const mtlChars &str) const
 	return parser.GetBraceDepth() == 0;
 }
 
-bool mtlSyntaxParser2::IsFormat(short ch, short token) const
+bool mtlSyntaxParser::IsFormat(short ch, short token) const
 {
 	bool match = false;
 	switch (token) {
@@ -1058,9 +1061,9 @@ bool mtlSyntaxParser2::IsFormat(short ch, short token) const
 	return match;
 }
 
-bool mtlSyntaxParser2::IsFormat(short ch, const mtlChars &format) const
+bool mtlSyntaxParser::IsFormat(short ch, const mtlChars &format) const
 {
-	mtlSyntaxParser2 parser;
+	mtlSyntaxParser parser;
 	parser.SetBuffer(format);
 	parser.m_is_case_sensitive = m_is_case_sensitive;
 	short token;
@@ -1074,7 +1077,7 @@ bool mtlSyntaxParser2::IsFormat(short ch, const mtlChars &format) const
 	return false;
 }
 
-mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format1, const mtlChars &format2)
+mtlChars mtlSyntaxParser::ReadAny(const mtlChars &format1, const mtlChars &format2)
 {
 	if (IsEnd()) { return mtlChars(); }
 
@@ -1093,7 +1096,7 @@ mtlChars mtlSyntaxParser2::ReadAny(const mtlChars &format1, const mtlChars &form
 	return mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
 }
 
-mtlChars mtlSyntaxParser2::ReadTo(short token)
+mtlChars mtlSyntaxParser::ReadTo(short token)
 {
 	int brace_depth = GetBraceDepth();
 	int start = m_index.pos;
@@ -1106,14 +1109,14 @@ mtlChars mtlSyntaxParser2::ReadTo(short token)
 	return mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
 }
 
-mtlChars mtlSyntaxParser2::OptMatch(const mtlChars &expr)
+mtlChars mtlSyntaxParser::OptMatch(const mtlChars &expr)
 {
 	mtlChars seq;
 	Match(expr, &seq);
 	return seq;
 }
 
-void mtlSyntaxParser2::ClearLog( void )
+void mtlSyntaxParser::ClearLog( void )
 {
 	if (m_log_diag) {
 		m_diag_str.Free();
@@ -1121,14 +1124,14 @@ void mtlSyntaxParser2::ClearLog( void )
 	}
 }
 
-void mtlSyntaxParser2::LogStr(const mtlChars &str)
+void mtlSyntaxParser::LogStr(const mtlChars &str)
 {
 	if (m_log_diag) {
 		m_diag_str.Append(str);
 	}
 }
 
-void mtlSyntaxParser2::LogCompactStr(const mtlChars &str)
+void mtlSyntaxParser::LogCompactStr(const mtlChars &str)
 {
 	if (m_log_diag) {
 		m_diag_str.Append("\"");
@@ -1150,7 +1153,7 @@ void mtlSyntaxParser2::LogCompactStr(const mtlChars &str)
 	}
 }
 
-void mtlSyntaxParser2::LogToken(short token)
+void mtlSyntaxParser::LogToken(short token)
 {
 	if (m_log_diag) {
 		m_diag_str.AppendInt(token);
@@ -1158,7 +1161,7 @@ void mtlSyntaxParser2::LogToken(short token)
 	}
 }
 
-void mtlSyntaxParser2::LogChar(char ch)
+void mtlSyntaxParser::LogChar(char ch)
 {
 	if (m_log_diag) {
 		m_diag_str.Append("(");
@@ -1167,13 +1170,23 @@ void mtlSyntaxParser2::LogChar(char ch)
 	}
 }
 
-mtlSyntaxParser2::mtlSyntaxParser2( void ) : m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0), m_hyphenators("_")
+bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
+{
+	if (!p_file.IsFile()) { return false; }
+	std::ifstream fin(p_file.GetPath().GetChars(), std::ios::ate|std::ios::binary);
+	if (!fin.is_open()) { return false; }
+	p_buffer.SetSize((int)fin.tellg());
+	fin.seekg(0, std::ios::beg);
+	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
+}
+
+mtlSyntaxParser::mtlSyntaxParser( void ) : m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0), m_hyphenators("_")
 {
 	m_index.pos = 0;
 	m_diag_str.SetPoolGrowth(4096);
 }
 
-void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer, int line_offset)
+void mtlSyntaxParser::SetBuffer(const mtlChars &buffer, int line_offset)
 {
 	m_copy.Free();
 	m_buffer = buffer.GetTrimmed();
@@ -1184,7 +1197,7 @@ void mtlSyntaxParser2::SetBuffer(const mtlChars &buffer, int line_offset)
 	m_quote_char = 0;
 }
 
-void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer, int line_offset)
+void mtlSyntaxParser::CopyBuffer(const mtlChars &buffer, int line_offset)
 {
 	m_copy.Copy(buffer.GetTrimmed());
 	m_buffer = m_copy;
@@ -1195,48 +1208,48 @@ void mtlSyntaxParser2::CopyBuffer(const mtlChars &buffer, int line_offset)
 	m_quote_char = 0;
 }
 
-void mtlSyntaxParser2::SetHyphenators(const mtlChars &hyphenators)
+void mtlSyntaxParser::SetHyphenators(const mtlChars &hyphenators)
 {
 	m_hyphenators = hyphenators;
 }
 
-bool mtlSyntaxParser2::IsEnd( void ) const
+bool mtlSyntaxParser::IsEnd( void ) const
 {
 	return m_index.pos >= m_buffer.GetSize() && m_index.typ == CharType_Stop;
 }
 
-void mtlSyntaxParser2::EnableCaseSensitivity( void )
+void mtlSyntaxParser::EnableCaseSensitivity( void )
 {
 	m_is_case_sensitive = true;
 }
 
-void mtlSyntaxParser2::DisableCaseSensitivity( void )
+void mtlSyntaxParser::DisableCaseSensitivity( void )
 {
 	m_is_case_sensitive = false;
 }
 
-bool mtlSyntaxParser2::IsCaseSensitive( void ) const
+bool mtlSyntaxParser::IsCaseSensitive( void ) const
 {
 	return m_is_case_sensitive;
 }
 
-void mtlSyntaxParser2::EnableDiagnostics( void )
+void mtlSyntaxParser::EnableDiagnostics( void )
 {
 	m_log_diag = true;
 }
 
-void mtlSyntaxParser2::DisableDiagnostics( void )
+void mtlSyntaxParser::DisableDiagnostics( void )
 {
 	m_log_diag = false;
 	m_diag_str.Free();
 }
 
-int mtlSyntaxParser2::GetBraceDepth( void ) const
+int mtlSyntaxParser::GetBraceDepth( void ) const
 {
 	return m_brace_stack.GetSize();
 }
 
-int mtlSyntaxParser2::GetBraceDepth(char brace_type) const
+int mtlSyntaxParser::GetBraceDepth(char brace_type) const
 {
 	const mtlItem<char> *iter = m_brace_stack.GetFirst();
 	int depth = 0;
@@ -1249,42 +1262,42 @@ int mtlSyntaxParser2::GetBraceDepth(char brace_type) const
 	return depth;
 }
 
-int mtlSyntaxParser2::GetBufferSize( void ) const
+int mtlSyntaxParser::GetBufferSize( void ) const
 {
 	return m_buffer.GetSize();
 }
 
-int mtlSyntaxParser2::GetBufferSizeRemaining( void ) const
+int mtlSyntaxParser::GetBufferSizeRemaining( void ) const
 {
 	return m_buffer.GetSize() - m_index.pos;
 }
 
-int mtlSyntaxParser2::GetLineIndex( void ) const
+int mtlSyntaxParser::GetLineIndex( void ) const
 {
 	return m_line;
 }
 
-int mtlSyntaxParser2::GetCharIndex( void ) const
+int mtlSyntaxParser::GetCharIndex( void ) const
 {
 	return m_index.pos;
 }
 
-const mtlChars &mtlSyntaxParser2::GetBuffer( void ) const
+const mtlChars &mtlSyntaxParser::GetBuffer( void ) const
 {
 	return m_buffer;
 }
 
-mtlChars mtlSyntaxParser2::GetBufferRemaining( void ) const
+mtlChars mtlSyntaxParser::GetBufferRemaining( void ) const
 {
 	return mtlChars(m_buffer, m_index.pos, m_buffer.GetSize());
 }
 
-const mtlChars &mtlSyntaxParser2::GetDiagnostics( void ) const
+const mtlChars &mtlSyntaxParser::GetDiagnostics( void ) const
 {
 	return m_diag_str;
 }
 
-int mtlSyntaxParser2::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
+int mtlSyntaxParser::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
 	ClearLog();
 	mtlList<mtlChars> exprs;
@@ -1305,7 +1318,7 @@ int mtlSyntaxParser2::Match(const mtlChars &expr, mtlArray<mtlChars> &out, mtlCh
 	return (int)ExpressionNotFound;
 }
 
-int mtlSyntaxParser2::Match(const mtlChars &expr, mtlChars *seq)
+int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 {
 	mtlArray<mtlChars> m;
 	return Match(expr, m, seq);
