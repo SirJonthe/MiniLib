@@ -880,48 +880,36 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			break;
 
 		case Token_Int:
-			out.Add(ReadAny("%i").GetTrimmed());
-			test_len = true;
+		{
+			mtlChars hyp = m_hyphenators;
+			m_hyphenators = "+-";
+			mtlChars integer = ReadAny("+-%i").GetTrimmed();
+			if (integer.IsInt()) {
+				out.Add(integer);
+				test_len = true;
+			} else {
+				result = (int)ExpressionNotFound;
+			}
 			LogStr("reading int, found ");
-			LogCompactStr(out[out.GetSize() - 1]);
+			LogCompactStr(integer);
+			m_hyphenators = hyp;
 			break;
+		}
 
 		case Token_Real:
 			{
-				mtlChars real;
-				mtlArray<mtlChars> dummy;
-				bool diags = m_log_diag;
-				m_log_diag = false;
-				result = MatchSingle("%i.%i", dummy, &real);
-				m_log_diag = diags;
-				if (result != (int)ExpressionNotFound) {
-					for (int i = 0; i < real.GetSize(); ++i) {
-						if (!mtlChars::IsNumeric(real[i]) && real[i] != '.') {
-							result = (int)ExpressionNotFound;
-							break;
-						}
-					}
-					if (result != (int)ExpressionNotFound) {
-						out.Add(real);
-					}
+				mtlChars hyp = m_hyphenators;
+				m_hyphenators = "+-.";
+				mtlChars real = ReadAny("+-.%i").GetTrimmed();
+				if (real.IsFloat()) {
+					out.Add(real);
+					test_len = true;
+				} else {
+					result = (int)ExpressionNotFound;
 				}
-				test_len = true;
-				LogStr("reading complex real, found ");
+				LogStr("reading int, found ");
 				LogCompactStr(real);
-				break;
-
-
-				//mtlChars real = ReadAny("%i.").GetTrimmed();
-				//int dec_delim = 0;
-				//for (int i = 0; i < real.GetSize() && dec_delim < 2; ++i) {
-				//	if (real[i] == '.') { ++dec_delim; }
-				//}
-				//if (dec_delim == 1 && real.IsFloat()) {
-				//	out.Add(real);
-				//	test_len = true;
-				//} else {
-				//	result = (int)ExpressionNotFound;
-				//}
+				m_hyphenators = hyp;
 				break;
 			}
 

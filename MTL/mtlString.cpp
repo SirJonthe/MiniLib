@@ -140,7 +140,7 @@ bool mtlChars::ToInt(int &p_out) const
 	long val = 0;
 	for (; i < m_size; ++i) {
 		char ch = m_str[i];
-		if (ch < '0' || ch > '9') { return false; }
+		if (!mtlChars::IsNumeric(ch)) { return false; }
 		val += (m_str[i] - '0') * magnitude;
 		magnitude /= 10;
 	}
@@ -189,7 +189,7 @@ bool mtlChars::ToFloat(float &p_out) const
 	double val = 0;
 	for (; i < seg1; ++i) {
 		char ch = m_str[i];
-		if (ch < '0' || ch > '9') { return false; }
+		if (!mtlChars::IsNumeric(ch)) { return false; }
 		val += (float)((m_str[i] - '0') * magnitude);
 		magnitude /= 10.0;
 	}
@@ -197,7 +197,7 @@ bool mtlChars::ToFloat(float &p_out) const
 	++i; // skip the '.'
 	for (; i < seg2; ++i) {
 		char ch = m_str[i];
-		if (ch < '0' || ch > '9') { return false; }
+		if (!mtlChars::IsNumeric(ch)) { return false; }
 		val += (float)((m_str[i] - '0') * magnitude);
 		magnitude /= 10.0;
 	}
