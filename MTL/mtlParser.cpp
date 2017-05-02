@@ -795,6 +795,7 @@ short mtlSyntaxParser::ReadToken( void )
 		}
 		m_index.ch = ClassifyToken(m_index.ch);
 		m_index.typ = CharType_Other; // the token is the type, not an alphanum or stop
+		// BUG HERE
 		if (m_index.ch == (short)Token_Opt || m_index.ch == (short)Token_Alt) {
 			m_index.pos = read_start;
 		}
