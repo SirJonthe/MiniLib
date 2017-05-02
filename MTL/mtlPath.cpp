@@ -38,7 +38,7 @@ void mtlPath::RefreshDirs( void )
 {
 	m_fullpath.SplitByChar(m_dirs, mtlDirSeparator);
 
-	mtlItem<mtlChars> *i = m_dirs.GetFirst();
+	//mtlItem<mtlChars> *i = m_dirs.GetFirst();
 	if (m_dirs.GetSize() > 0 && m_dirs.GetLast()->GetItem().GetSize() <= 0) {
 		m_dirs.RemoveLast();
 	}

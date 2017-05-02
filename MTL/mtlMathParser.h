@@ -21,6 +21,7 @@ private:
 		TermNode *right;
 
 		TermNode( void ) : left(NULL), right(NULL) {}
+		virtual ~TermNode( void ) { delete left; delete right; }
 
 		virtual float Evaluate( void )        const = 0;
 		virtual bool  IsConstant( void )      const = 0;

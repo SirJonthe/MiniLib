@@ -1168,7 +1168,7 @@ bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
 	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
 }
 
-mtlSyntaxParser::mtlSyntaxParser( void ) : m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0), m_hyphenators("_")
+mtlSyntaxParser::mtlSyntaxParser( void ) : m_hyphenators("_"), m_line(0), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0)
 {
 	m_index.pos = 0;
 	m_diag_str.SetPoolGrowth(4096);

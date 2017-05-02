@@ -205,7 +205,6 @@ bool mglTexture::LoadTGA(const mtlPath &p_filename)
 		unsigned short origin_y = *(unsigned short*)(header+ORIGIN_Y);
 
 		if (origin_x != 0) {
-			int y = 0;
 			for (int y = 0; y < m_height; ++y) {
 				int x_right = 0;
 				int x_left  = m_width - 1 - m_format.bytes_per_pixel;
@@ -274,20 +273,20 @@ void mglTexture::Compress_VQ(const mtlByte *pixels, int total_size)
 
 	// allocate node?
 
-	unsigned long long r = 0, g = 0, b = 0, a = 0;
+	//unsigned long long r = 0, g = 0, b = 0, a = 0;
 
-	for (int i = 0; i < total_size; i += m_format.bytes_per_pixel) {
-		mglPixel32 p = DecodePixel(pixels+i);
-		r += p.bytes[0];
-		g += p.bytes[1];
-		b += p.bytes[2];
-		a += p.bytes[3];
-	}
-	mglPixel32 center;
-	center.bytes[0] = r / total_size;
-	center.bytes[1] = g / total_size;
-	center.bytes[2] = b / total_size;
-	center.bytes[3] = a / total_size;
+	//for (int i = 0; i < total_size; i += m_format.bytes_per_pixel) {
+	//	mglPixel32 p = DecodePixel(pixels+i);
+	//	r += p.bytes[0];
+	//	g += p.bytes[1];
+	//	b += p.bytes[2];
+	//	a += p.bytes[3];
+	//}
+	//mglPixel32 center;
+	//center.bytes[0] = r / total_size;
+	//center.bytes[1] = g / total_size;
+	//center.bytes[2] = b / total_size;
+	//center.bytes[3] = a / total_size;
 
 	// Compress_VQ(pixels, total_size >> 1, node);
 	// Compress_VQ(pixels + (total_size >> 1), total_size >> 1, node);
@@ -360,12 +359,16 @@ mglTexture::mglTexture(int p_width, int p_height, mglPixelFormat format) : m_pix
 {
 	m_format.bytes_per_pixel = 4;
 	m_format.color           = mglPixelFormat::Color_Truecolor;
+	m_format.byte_order      = mglVideoByteOrder();
 	Create(p_width, p_height, format);
 }
 
 bool mglTexture::Create(int width, int height)
 {
-	mglPixelFormat format = { 4, mglPixelFormat::Color_Truecolor };
+	mglPixelFormat format;
+	format.bytes_per_pixel = 4;
+	format.color           = mglPixelFormat::Color_Truecolor;
+	format.byte_order      = mglVideoByteOrder();
 	return Create(width, height, format);
 }
 
