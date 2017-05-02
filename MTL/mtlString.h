@@ -95,7 +95,7 @@ protected:
 	int   m_growth;
 	
 private:
-			   mtlString(const mtlString&) {}
+			   mtlString(const mtlString&) : mtlChars() {}
 	mtlString &operator=(const mtlString&) { return *this; }
 	//inline int	CalculatePoolSize(int p_size) const;
 	char      *NewPool(int p_size);
