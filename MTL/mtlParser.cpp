@@ -796,9 +796,9 @@ short mtlSyntaxParser::ReadToken( void )
 		m_index.ch = ClassifyToken(m_index.ch);
 		m_index.typ = CharType_Other; // the token is the type, not an alphanum or stop
 		// BUG HERE
-		if (m_index.ch == (short)Token_Opt || m_index.ch == (short)Token_Alt) {
-			m_index.pos = read_start;
-		}
+		//if (m_index.ch == (short)Token_Opt || m_index.ch == (short)Token_Alt) {
+		//	m_index.pos = read_start;
+		//}
 	}
 	return m_index.ch;
 }
@@ -943,7 +943,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			{
 				LogStr("reading alt complex string, found ");
 				mtlArray<mtlChars> m;
-				if (expr_parser.Match("(%s) %| %w", m) > -1) {
+				if (expr_parser.MatchSingle("(%s)", m) > -1) {
 					out.Add(OptMatch(m[0]).GetTrimmed());
 					LogCompactStr(out[out.GetSize() - 1]);
 				} else {
