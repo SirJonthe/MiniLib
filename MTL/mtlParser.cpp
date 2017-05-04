@@ -782,7 +782,7 @@ short mtlSyntaxParser::PeekStopToken( void ) const
 
 short mtlSyntaxParser::ReadToken( void )
 {
-	int read_start = m_index.pos;
+	//int read_start = m_index.pos;
 	ReadChar();
 	if (m_index.ch == Variable) {
 		bool case_sensitivity = IsCaseSensitive();
@@ -850,9 +850,9 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	expr_parser.m_hyphenators = m_hyphenators;
 	expr_parser.SetBuffer(expr);
 
-	int result      = 1;
-	int start       = m_index.pos;
-	int brace_depth = GetBraceDepth();
+	int   result      = 1;
+	Index start       = m_index;
+	int   brace_depth = GetBraceDepth();
 
 	while (!expr_parser.IsEnd() && result == 1) {
 
@@ -944,12 +944,14 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 				LogStr("reading alt complex string, found ");
 				mtlArray<mtlChars> m;
 				if (expr_parser.MatchSingle("(%s)", m) > -1) {
-					out.Add(OptMatch(m[0]).GetTrimmed());
-					LogCompactStr(out[out.GetSize() - 1]);
+					mtlChars match = OptMatch(m[0]).GetTrimmed();
+					out.Add(match);
+					LogCompactStr(match);
 				} else {
 					result = (int)ExpressionInputError;
 					LogStr("input token error");
 				}
+				m_index.typ = expr_parser.m_index.typ = CharType_Other;
 				break;
 			}
 
@@ -986,10 +988,10 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	}
 	if (result != 1) {
 		out.Free();
-		m_index.pos = start;
+		m_index = start;
 	}
 	if (seq != NULL) {
-		*seq = mtlChars(m_buffer, start, m_index.pos).GetTrimmed();
+		*seq = mtlChars(m_buffer, start.pos, m_index.pos).GetTrimmed();
 	}
 
 	while (m_brace_stack.GetLast() != brace_item && m_brace_stack.GetSize() > 0) {
@@ -1100,8 +1102,11 @@ mtlChars mtlSyntaxParser::ReadTo(short token)
 
 mtlChars mtlSyntaxParser::OptMatch(const mtlChars &expr)
 {
+	bool diag = m_log_diag;
+	m_log_diag = false;
 	mtlChars seq;
 	Match(expr, &seq);
+	m_log_diag = diag;
 	return seq;
 }
 
@@ -1146,7 +1151,52 @@ void mtlSyntaxParser::LogToken(short token)
 {
 	if (m_log_diag) {
 		m_diag_str.AppendInt(token);
-		LogChar((char)token);
+
+		switch (token) {
+
+		case Token_Alpha:
+			m_diag_str.Append("(ALPHA)");
+			break;
+
+		case Token_Int:
+			m_diag_str.Append("(INT)");
+			break;
+
+		case Token_Real:
+			m_diag_str.Append("(REAL)");
+			break;
+
+		case Token_Word:
+			m_diag_str.Append("(WORD)");
+			break;
+
+		case Token_Str:
+			m_diag_str.Append("(STR)");
+			break;
+
+		case Token_NullStr:
+			m_diag_str.Append("(NULL_STR)");
+			break;
+
+		case Token_Alt:
+			m_diag_str.Append("(ALT)");
+			break;
+
+		case Token_Opt:
+			m_diag_str.Append("(OPT)");
+			break;
+
+		case Token_Split:
+			m_diag_str.Append("(SPLIT)");
+			break;
+
+		case Token_EndOfStream:
+			m_diag_str.Append("(END)");
+			break;
+
+		default:
+			LogChar((char)token);
+		}
 	}
 }
 
@@ -1204,7 +1254,10 @@ void mtlSyntaxParser::SetHyphenators(const mtlChars &hyphenators)
 
 bool mtlSyntaxParser::IsEnd( void ) const
 {
-	return m_index.pos >= m_buffer.GetSize() && m_index.typ == CharType_Stop;
+	return
+		m_index.pos >= m_buffer.GetSize() //&&
+		//m_index.typ == CharType_Stop
+	;
 }
 
 void mtlSyntaxParser::EnableCaseSensitivity( void )
