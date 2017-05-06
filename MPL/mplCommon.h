@@ -11,7 +11,9 @@
 #define MPL_SIMD_AVX512 3
 #define MPL_SIMD_NEON   4
 
-// add support for AVX-256 and AVX-512
+// add support for AVX-256 and AVX-512 (#include <immintrin.h> on gcc and msvc)
+// low priority: add support for PowerPC Altivec (#include <altivec.h> on gcc)
+	// need a computer to test it on
 
 // Detect instruction set
 #if defined(__GNUC__)
@@ -120,6 +122,9 @@
 #define MPL_CEIL(X)         MPL_FLOOR((X) + MPL_WIDTH_MASK)
 
 // Include appropriate headers
+// Some notes,
+// Catchall include for MSVC is "#include <intrin.h>"
+// Catchall include for GCC is "#include <x86intrin.h>"
 #if MPL_SIMD == MPL_SIMD_AVX256 || MPL_SIMD == MPL_SIMD_AVX512
 	#include <immintrin.h>
 #elif MPL_SIMD == MPL_SIMD_SSE
