@@ -606,6 +606,45 @@ namespace mpl {
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(vshrq_n_s32(r.i, n)) {}
 
+#elif MPL_SIMD == MPL_SIMD_ALTIVEC
+
+	// https://gcc.gnu.org/onlinedocs/gcc-4.3.3/gcc/PowerPC-AltiVec-Built_002din-Functions.html
+	// http://www.nxp.com/assets/documents/data/en/reference-manuals/ALTIVECPEM.pdf
+
+	#error "AltiVec not supported yet."
+
+	union wide_bool
+	{
+		friend class wide_float;
+		friend class wide_int;
+		template < int n >
+		friend class wide_fixed
+
+	private:
+		__vector float        f;
+		__vector bool int     b;
+		__vector unsigned int u;
+
+	private:
+		wide_bool(const __vector float &r) : f(r) {}
+		wide_bool(const __vector bool int &r) : b(r) {}
+		wide_bool(const __vector unsigned int &r) : u(r) {}
+
+	public:
+		wide_bool( void ) {}
+		wide_bool(const wide_bool &b) : f(b.f) {}
+		wide_bool(bool b);
+		wide_bool(const bool *b);
+
+		wide_bool operator||(const wide_bool &r) const { return vec_and(b, r.b); }
+		wide_bool operator&&(const wide_bool &r) const { return vec_or(b, r.b); }
+
+		wide_bool operator!( void ) const { return vec_xor(b, wide_bool(true).b); }
+
+		bool all_fail( void ) const;
+		bool all_pass( void ) const;
+	};
+
 #elif MPL_SIMD == MPL_SIMD_NONE
 
 #ifndef MPL_SIGNED_SHIFT

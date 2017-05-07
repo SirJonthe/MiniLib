@@ -5,11 +5,12 @@
 #define MPL_COMPILER_MSVC    1
 #define MPL_COMPILER_GCC     2
 
-#define MPL_SIMD_NONE   0
-#define MPL_SIMD_SSE    1
-#define MPL_SIMD_AVX256 2
-#define MPL_SIMD_AVX512 3
-#define MPL_SIMD_NEON   4
+#define MPL_SIMD_NONE    0
+#define MPL_SIMD_SSE     1
+#define MPL_SIMD_AVX256  2
+#define MPL_SIMD_AVX512  3
+#define MPL_SIMD_NEON    4
+#define MPL_SIMD_ALTIVEC 5
 
 // add support for AVX-256 and AVX-512 (#include <immintrin.h> on gcc and msvc)
 // low priority: add support for PowerPC Altivec (#include <altivec.h> on gcc)
@@ -20,7 +21,6 @@
 	#define MPL_COMPILER MPL_COMPILER_GCC
 	#ifdef MPL_FALLBACK_SCALAR
 		#define MPL_SIMD MPL_SIMD_NONE
-		#define MPL_SIMD_VER 1
 	#elif defined(__AVX__)
 		#define MPL_SIMD MPL_SIMD_AVX256
 		#ifdef __AVX2__
@@ -43,6 +43,9 @@
 			// -mfloat-abi=hard
 			// -mfpu=neon-vfpv4
 		#define MPL_SIMD MPL_SIMD_NEON
+	#elif defined(__VEC__) && defined(__ALTIVEC__)
+		// Use the "-maltivec" flag to enable PowerPC AltiVec support
+		#define MPL_SIMD MPL_SIMD_ALTIVEC
 	#else
 		#define MPL_SIMD MPL_SIMD_NONE
 		#warning No SIMD support, falling back to scalar
@@ -78,7 +81,7 @@
 	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
 #elif MPL_SIMD == MPL_SIMD_NEON
 	#define MPL_WIDTH         4
-	#define MPL_BYTE_ALIGN    4
+	#define MPL_BYTE_ALIGN    16
 	#define MPL_BLOCK_X       2
 	#define MPL_BLOCK_Y       2
 	#define MPL_OFFSETS       { 0, 1, 2, 3 }
@@ -99,6 +102,14 @@
 	#define MPL_BLOCK_Y       4
 	#define MPL_OFFSETS       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }
 	#define MPL_X_OFFSETS     { 0, 1, 2, 3 }
+	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
+#elif MPL_SIMD == MPL_SIMD_ALTIVEC
+	#define MPL_WIDTH         4
+	#define MPL_BYTE_ALIGN    16
+	#define MPL_BLOCK_X       2
+	#define MPL_BLOCK_Y       2
+	#define MPL_OFFSETS       { 0, 1, 2, 3 }
+	#define MPL_X_OFFSETS     { 0, 1 }
 	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
 #elif MPL_SIMD == MPL_SIMD_NONE
 	#define MPL_WIDTH         1
@@ -131,6 +142,12 @@
 	#include <xmmintrin.h>
 #elif MPL_SIMD == MPL_SIMD_NEON
 	#include <arm_neon.h>
+#elif MPL_SIMD == MPL_SIMD_ALTIVEC
+	#include <altivec.h>
+	// undef these to avoid future collisions
+	#undef vector
+	#undef pixel
+	#undef bool
 #endif
 
 #if ((-2 >> 1) == (-2 / 2)) && ((-2 << 1) == (-2 * 2))
