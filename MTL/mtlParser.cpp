@@ -698,7 +698,7 @@ short mtlSyntaxParser::ClassifyToken(short token) const
 }
 
 mtlSyntaxParser::Index mtlSyntaxParser::PeekChar( void ) const
-{	
+{
 	Index i;
 	i.pos = m_index.pos;
 
@@ -951,7 +951,7 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 					result = (int)ExpressionInputError;
 					LogStr("input token error");
 				}
-				m_index.typ = expr_parser.m_index.typ = CharType_Other;
+				m_index.typ = expr_parser.m_index.typ = CharType_Stop;
 				break;
 			}
 
@@ -1255,8 +1255,8 @@ void mtlSyntaxParser::SetHyphenators(const mtlChars &hyphenators)
 bool mtlSyntaxParser::IsEnd( void ) const
 {
 	return
-		m_index.pos >= m_buffer.GetSize() //&&
-		//m_index.typ == CharType_Stop
+		m_index.pos >= m_buffer.GetSize() &&
+		m_index.typ == CharType_Stop
 	;
 }
 
