@@ -25,7 +25,7 @@ mglColorCMYK::mglColorCMYK(const mglColorRGB &rgb)
 		m = 1.0f - rgb.g;
 		y = 1.0f - rgb.b;
 
-		k = mmlMin3(c, m, y);
+		k = mmlMin(c, m, y);
 		c = (c - k) / (1.0f - k);
 		m = (m - k) / (1.0f - k);
 		y = (y - k) / (1.0f - k);
@@ -34,8 +34,8 @@ mglColorCMYK::mglColorCMYK(const mglColorRGB &rgb)
 
 mglColorHSL::mglColorHSL(const mglColorRGB &rgb)
 {
-	float max = mmlMax3(rgb.r, rgb.g, rgb.b);
-	float min = mmlMin3(rgb.r, rgb.g, rgb.b);
+	float max = mmlMax(rgb.r, rgb.g, rgb.b);
+	float min = mmlMin(rgb.r, rgb.g, rgb.b);
 	l = (max + min) / 2.0f;
 	if (l > 0.0f) {
 		float diff = max - min;
@@ -56,8 +56,8 @@ mglColorHSL::mglColorHSL(const mglColorRGB &rgb)
 
 mglColorHSVC::mglColorHSVC(const mglColorRGB &rgb)
 {
-	float max = mmlMax3(rgb.r, rgb.g, rgb.b);
-	float min = mmlMin3(rgb.r, rgb.g, rgb.b);
+	float max = mmlMax(rgb.r, rgb.g, rgb.b);
+	float min = mmlMin(rgb.r, rgb.g, rgb.b);
 	v = max;
 	c = max - min;
 	s = max == 0.0f ? 0.0f : c / max;
