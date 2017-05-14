@@ -103,7 +103,7 @@ public:
 	fixed &operator+=(fixed r) { x += r.x; return *this; }
 	fixed &operator-=(fixed r) { x -= r.x; return *this; }
 	fixed &operator*=(fixed r) { x = mmlSignedRShift(x * r.x, prec); return *this; }
-	fixed &operator/=(fixed r) { x = (x * (1 << prec)) / r.x; return *this; }
+	fixed &operator/=(fixed r) { x = base_t((lng_int(base_t)(x) * (1 << prec)) / r.x); return *this; }
 
 	fixed operator-( void ) const { fixed o; o.x = -x; return o; }
 

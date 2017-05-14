@@ -235,7 +235,7 @@ mtlByte mglExtractStencilBit(const mtlByte *stencil_bits, int num_bits_width, in
 
 void mglDrawChar(char ch, const mtlByte *stencil_bits, int font_width, int char_count_width, int char_width, int char_height, mtlByte *dst, int dst_bpp, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale)
 {
-	typedef mml::fixed<unsigned long long,16> fixed;
+	typedef mml::fixed<unsigned int,16> fixed;
 
 	unsigned char *dst0 = dst;
 
