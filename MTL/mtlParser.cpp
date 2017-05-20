@@ -960,6 +960,10 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 			break;
 
 		case Token_EndOfStream:
+			// Since Token_EndOfStream can be triggered by %0 we need to prevent the expression parser
+			// from reading %0, then whitespace, then the real 0 terminator.
+			expr_parser.ClearBuffer();
+
 		default:
 			{
 				char c1 = (char)ReadChar();
@@ -1111,10 +1115,8 @@ mtlChars mtlSyntaxParser::OptMatch(const mtlChars &expr)
 
 void mtlSyntaxParser::ClearLog( void )
 {
-	if (m_log_diag) {
-		m_diag_str.Free();
-		m_diag_str.Reserve(4096);
-	}
+	m_diag_str.Free();
+	m_diag_str.Reserve(4096);
 }
 
 void mtlSyntaxParser::LogStr(const mtlChars &str)
@@ -1230,7 +1232,7 @@ void mtlSyntaxParser::SetBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = buffer.GetTrimmed();
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = CharType_Other;
+	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_line = line_offset;
 	m_quote_char = 0;
 }
@@ -1241,8 +1243,19 @@ void mtlSyntaxParser::CopyBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = m_copy;
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = CharType_Other;
+	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_line = line_offset;
+	m_quote_char = 0;
+}
+
+void mtlSyntaxParser::ClearBuffer( void )
+{
+	m_buffer = "";
+	m_copy.Free();
+	m_index.pos = 0;
+	m_index.typ = CharType_Stop;
+	m_line = 0;
+	m_brace_stack.RemoveAll();
 	m_quote_char = 0;
 }
 

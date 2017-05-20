@@ -229,6 +229,7 @@ public:
 
 	void SetBuffer(const mtlChars &buffer, int line_offset = 0);
 	void CopyBuffer(const mtlChars &buffer, int line_offset = 0);
+	void ClearBuffer( void );
 	void SetHyphenators(const mtlChars &hyphenators);
 
 	bool IsEnd( void ) const;
