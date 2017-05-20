@@ -830,7 +830,6 @@ void mtlSyntaxParser::SplitExpressions(const mtlChars &expr, mtlList<mtlChars> &
 
 int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, mtlChars *seq)
 {
-	m_index.typ = CharType_Other;
 	mtlItem<char> *brace_item = m_brace_stack.GetLast();
 
 	LogStr("matching: ");
@@ -851,25 +850,25 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	expr_parser.SetBuffer(expr);
 
 	int   result      = 1;
-	Index start       = m_index;
 	int   brace_depth = GetBraceDepth();
+	Index start       = m_index;
+	m_index.typ       = CharType_Other; // Important to set this to CharType_Other (to catch a starting and ending whitespace) *after* start index is initialized to current index (m_index)
 
 	while (!expr_parser.IsEnd() && result == 1) {
 
 		short expr_token = expr_parser.ReadToken();
+		bool test_len = false;
 
 		LogStr("  looking for ");
 		LogToken(expr_token);
 		LogStr("...");
 
-		if (IsEnd()) {
-			if (expr_token != Token_EndOfStream) {
-				result = (int)ExpressionNotFound;
-			}
-			break;
-		}
-
-		bool test_len = false;
+		//if (IsEnd()) {
+		//	if (expr_token != Token_EndOfStream && expr_token != Token_NullStr && expr_token != Token_Opt) {
+		//		result = (int)ExpressionNotFound;
+		//		break;
+		//	}
+		//}
 
 		switch (expr_token) {
 
