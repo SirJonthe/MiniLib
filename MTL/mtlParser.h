@@ -56,7 +56,6 @@ private:
 	{
 		int      pos;
 		int      line;
-		int      match_line;
 		CharType typ;
 		short    ch;
 	};
@@ -133,8 +132,8 @@ public:
 
 	mtlSyntaxParser( void );
 
-	void SetBuffer(const mtlChars &buffer, int line_offset = 0);
-	void CopyBuffer(const mtlChars &buffer, int line_offset = 0);
+	void SetBuffer(const mtlChars &buffer, int line_offset = 1);
+	void CopyBuffer(const mtlChars &buffer, int line_offset = 1);
 	void ClearBuffer( void );
 	void SetHyphenators(const mtlChars &hyphenators);
 
@@ -153,9 +152,8 @@ public:
 	int  GetBufferSize( void ) const;
 	int  GetBufferSizeRemaining( void ) const;
 
-	int  GetLineIndex( void ) const;
 	int  GetCharIndex( void ) const;
-	int  GetMatchLineIndex( void ) const;
+	int  GetLineIndex( void ) const;
 
 	const mtlChars &GetBuffer( void ) const;
 	mtlChars        GetBufferRemaining( void ) const;

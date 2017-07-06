@@ -136,7 +136,6 @@ mtlSyntaxParser::Index mtlSyntaxParser::PeekChar( void ) const
 	Index i;
 	i.pos = m_index.pos;
 	i.line = m_index.line;
-	i.match_line = m_index.match_line;
 
 	if (IsEnd()) {
 
@@ -151,21 +150,21 @@ mtlSyntaxParser::Index mtlSyntaxParser::PeekChar( void ) const
 				i.ch = (short)m_buffer[i.pos];
 				i.typ = ClassifyChar((char)i.ch);
 				i.pos = i.pos + 1;
-				if (mtlChars::IsWhitespace((char)i.ch)) {
-					++i.line;
+				if (mtlChars::IsNewline((char)i.ch)) {
+					i.line = i.line + 1;
 				}
 			} while (i.typ == CharType_Stop);
 		} else {
 			i.ch = (short)m_buffer[i.pos];
 			i.typ = ClassifyChar((char)i.ch);
-			if (mtlChars::IsWhitespace((char)i.ch)) {
-				++i.line;
-			}
 			if (m_index.typ != i.typ || m_index.typ == CharType_Other) {
 				i.ch = (short)' ';
 				i.typ = ClassifyChar((char)i.ch);
 			} else  {
 				i.pos = i.pos + 1;
+				if (mtlChars::IsNewline((char)i.ch)) {
+					i.line = i.line + 1;
+				}
 			}
 		}
 
@@ -294,7 +293,6 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	int   result      = 1;
 	int   brace_depth = GetBraceDepth();
 	Index start       = m_index;
-	start.match_line  = m_index.line;
 	m_index.typ       = CharType_Other; // Important to set this to CharType_Other (to catch a starting and ending whitespace) *after* start index is initialized to current index (m_index)
 
 	while (!expr_parser.IsEnd() && result == 1) {
@@ -435,13 +433,6 @@ int mtlSyntaxParser::MatchSingle(const mtlChars &expr, mtlArray<mtlChars> &out, 
 	if (result != 1) {
 		out.Free();
 		m_index = start;
-	} else { // increment the start line so that it points to the line where the match starts (after preceting white spaces)
-		for (int i = start.pos; i < m_buffer.GetSize() && mtlChars::IsWhitespace(m_buffer[i]); ++i) {
-			if (mtlChars::IsNewline(m_buffer[i])) {
-				++start.match_line;
-			}
-		}
-		m_index.match_line = start.match_line;
 	}
 	if (seq != NULL) {
 		*seq = mtlChars(m_buffer, start.pos, m_index.pos).GetTrimmed();
@@ -673,8 +664,7 @@ bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
 mtlSyntaxParser::mtlSyntaxParser( void ) : m_hyphenators("_"), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0)
 {
 	m_index.pos = 0;
-	m_index.line = 0;
-	m_index.match_line = 0;
+	m_index.line = 1;
 	m_diag_str.SetPoolGrowth(4096);
 }
 
@@ -684,9 +674,8 @@ void mtlSyntaxParser::SetBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = buffer.GetTrimmed();
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_index.line = line_offset;
-	m_index.match_line = line_offset;
+	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_quote_char = 0;
 }
 
@@ -696,9 +685,8 @@ void mtlSyntaxParser::CopyBuffer(const mtlChars &buffer, int line_offset)
 	m_buffer = m_copy;
 	m_brace_stack.RemoveAll();
 	m_index.pos = 0;
-	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_index.line = line_offset;
-	m_index.match_line = line_offset;
+	m_index.typ = m_buffer.GetSize() > 0 ? CharType_Other : CharType_Stop;
 	m_quote_char = 0;
 }
 
@@ -707,9 +695,8 @@ void mtlSyntaxParser::ClearBuffer( void )
 	m_buffer = "";
 	m_copy.Free();
 	m_index.pos = 0;
+	m_index.line = 1;
 	m_index.typ = CharType_Stop;
-	m_index.line = 0;
-	m_index.match_line = 0;
 	m_brace_stack.RemoveAll();
 	m_quote_char = 0;
 }
@@ -781,19 +768,14 @@ int mtlSyntaxParser::GetBufferSizeRemaining( void ) const
 	return m_buffer.GetSize() - m_index.pos;
 }
 
-int mtlSyntaxParser::GetLineIndex( void ) const
-{
-	return m_index.line;
-}
-
 int mtlSyntaxParser::GetCharIndex( void ) const
 {
 	return m_index.pos;
 }
 
-int mtlSyntaxParser::GetMatchLineIndex( void ) const
+int mtlSyntaxParser::GetLineIndex( void ) const
 {
-	return m_index.match_line;
+	return m_index.line;
 }
 
 const mtlChars &mtlSyntaxParser::GetBuffer( void ) const
