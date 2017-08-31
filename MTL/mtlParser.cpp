@@ -227,12 +227,12 @@ short mtlSyntaxParser::ReadToken( void )
 	ReadChar();
 	if (m_index.ch == Variable) {
 		bool case_sensitivity = IsCaseSensitive();
-		DisableCaseSensitivity();
+		EnableCaseSensitivity();
 		do {
 			ReadChar();
 		} while (m_index.typ == CharType_Stop);
-		if (case_sensitivity) {
-			EnableCaseSensitivity();
+		if (!case_sensitivity) {
+			DisableCaseSensitivity();
 		}
 		m_index.ch = ClassifyToken(m_index.ch);
 		m_index.typ = CharType_Other; // the token is the type, not an alphanum or stop
