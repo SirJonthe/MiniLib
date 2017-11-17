@@ -432,6 +432,7 @@ void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 		SetSize(min_size);
 	}
 	mtlCopy(m_mut_str + p_at, p_str.GetChars(), p_str.GetSize());
+	m_mut_str[m_size] = '\0';
 }
 
 void mtlString::Remove(int p_start, int p_end)
