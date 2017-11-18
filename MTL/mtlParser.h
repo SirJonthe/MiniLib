@@ -72,7 +72,7 @@ private:
 		Token_Str,              // S
 		Token_Split,            // |
 		Token_Opt,              // ?
-		Token_Alt,              // !
+		Token_Alt               // !
 		//Token_Any,              // &
 		//Token_AnyNot,           // ~
 		//Token_ComplexDelimiter, // .
