@@ -40,7 +40,7 @@ private:
 	mtlDuplex<other_t, self_t> *m_other;
 public:
 	mtlDuplex(self_t * const p_self) : m_self(p_self), m_other(NULL) {}
-	~mtlDuplex( void )
+	virtual ~mtlDuplex( void )
 	{
 		Disconnect();
 	}
