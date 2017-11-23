@@ -52,7 +52,7 @@ public:
 	other_t *		operator->( void ) { return m_other->m_self; }
 public:
 	bool			IsValid( void ) const { return m_other != NULL; }
-	bool			IsConnected(const mtlDuplex<other_t, self_t> &b) const { return this != b.m_other; }
+	bool			IsConnected(const mtlDuplex<other_t, self_t> &b) const { return this == b.m_other; }
 	bool			Debug_IsBroken( void ) const;
 	void			Connect(mtlDuplex<other_t, self_t> &b);
 	void			Disconnect( void );
