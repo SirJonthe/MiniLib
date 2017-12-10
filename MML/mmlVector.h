@@ -421,7 +421,8 @@ inline mmlVector<n> mmlMax(const mmlVector<n> &x, mmlVector<n> y)
 //
 // mmlReflect
 //
-inline mmlVector<3> mmlReflect(const mmlVector<3> &incident, const mmlVector<3> &surfaceNormal)
+template < int n >
+inline mmlVector<n> mmlReflect(const mmlVector<n> &incident, const mmlVector<n> &surfaceNormal)
 {
 	return incident - surfaceNormal * 2.0f * mmlDot(incident, surfaceNormal);
 }
@@ -429,15 +430,16 @@ inline mmlVector<3> mmlReflect(const mmlVector<3> &incident, const mmlVector<3> 
 //
 // mmlRefract
 //
-inline bool mmlRefract(const mmlVector<3> &incident, const mmlVector<3> &surfaceNormal, float incidentRefractionIndex, float surfaceRefractionIndex, mmlVector<3> &outRefraction)
+template < int n >
+inline bool mmlRefract(const mmlVector<n> &incident, const mmlVector<n> &surfaceNormal, float incidentRefractionIndex, float surfaceRefractionIndex, mmlVector<n> &outRefraction)
 {
-	const float n = incidentRefractionIndex / surfaceRefractionIndex;
+	const float rel = incidentRefractionIndex / surfaceRefractionIndex;
 	const float cos = mmlDot(surfaceNormal, incident);
-	const float sin = n * n * (1.0f - cos * cos);
+	const float sin = rel * rel * (1.0f - cos * cos);
 	if (sin > 1.0f) {
 		return false;
 	}
-	outRefraction = n * incident - (n + sqrt(1.0f - sin)) * surfaceNormal;
+	outRefraction = rel * incident - (rel + sqrt(1.0f - sin)) * surfaceNormal;
 	return true;
 }
 
