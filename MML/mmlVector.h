@@ -40,10 +40,10 @@ public:
 	//
 	// initializer list
 	//
-	explicit mmlVector(float e0, ...) {
+	explicit mmlVector(double e0, ...) {
 		va_list vl;
 		va_start(vl, e0);
-		e[0] = e0;
+		e[0] = (float)e0;
 		for (int j = 1; j < n; ++j) {
 			e[j] = (float)va_arg(vl, double);
 		}

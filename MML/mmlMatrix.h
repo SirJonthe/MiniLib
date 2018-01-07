@@ -74,10 +74,10 @@ public:
 	//
 	// initializer
 	//
-	mmlMatrix(float e00, ...) {
+	mmlMatrix(double e00, ...) {
 		va_list vl;
 		va_start(vl, e00);
-		e[0][0] = e00;
+		e[0][0] = (float)e00;
 		for (int p_column = 1; p_column < columns; ++p_column) { e[0][p_column] = (float)va_arg(vl, double); }
 		for (int p_row = 1; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
