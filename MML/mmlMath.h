@@ -48,6 +48,7 @@ template < typename T > inline T mmlMax(const T &pA, const T &pB)               
 template < typename T > inline T mmlMin(const T &pA, const T &pB, const T &pC)        { return mmlMin(mmlMin(pA,pB),pC); }
 template < typename T > inline T mmlMax(const T &pA, const T &pB, const T &pC)        { return mmlMax(mmlMax(pA,pB),pC); }
 template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
+template < typename T > inline T mmlAbs(const T &x)                                   { return x > 0 ? x : -x; }
 
 #define mmlAtLeast mmlMax
 #define mmlAtMost  mmlMin

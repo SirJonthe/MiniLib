@@ -310,7 +310,7 @@ inline float mmlCross2(const mmlVector<2> &v, const mmlVector<2> &w)
 }
 
 //
-// mmlNormal
+// mmlSurfaceNormal
 //
 inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3> &x, const mmlVector<3> &y, const mmlVector<3> &z) // this should be a specialization of mmlVector<3>
 {
@@ -453,6 +453,15 @@ inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
 	tan[1] = normal[0];
 	return tan;
 }
+
+//
+// mmlLineNormal
+//
+inline mmlVector<2> mmlLineNormal(const mmlVector<2> &a, const mmlVector<2> &b)
+{
+	return mmlTangent(mmlNormalize(b - a));
+}
+
 //
 // mmlAbs
 //
