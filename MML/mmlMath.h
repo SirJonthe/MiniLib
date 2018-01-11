@@ -117,6 +117,50 @@ inline bool mmlIsNegInf(float x)
 	return (tmp == x) && ((tmp - x) != 0.0f) && (x < 0.0f);
 }
 
+template < int n, typename type_t >
+inline type_t mmlPi( void )
+{
+	// Nilakantha series
+	type_t pi = type_t(3);
+	const int iter = n * 4;
+	for (int i = 0; i < iter; i += 4) {
+		pi = pi + (type_t(4) / type_t((i+2) * (i+3) * (i+4))) - (type_t(4) / type_t((i+4) * (i+5) * (i+6)));
+	}
+	return pi;
+}
+
+template < typename type_t >
+inline type_t mmlSin(type_t x)
+{
+	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
+
+	// Wrap input to valid range -pi ... pi
+	if (x < -mmlPI) {
+		do {
+			x += (mmlPI * 2.0);
+		} while (x < -mmlPI);
+	} else if (x >  mmlPI) {
+		do {
+			x -= (mmlPI * 2.0);
+		} while (x >  mmlPI);
+	}
+
+	// Compute sine
+	type_t sin1 = x < 0.0 ?
+		1.27323954 * x + 0.405284735 * x * x :
+		1.27323954 * x - 0.405284735 * x * x;
+	type_t sin = sin1 < 0.0 ?
+		0.225 * (sin1 *-sin1 - sin1) + sin1 :
+		0.225 * (sin1 * sin1 - sin1) + sin1;
+	return sin;
+}
+
+template < typename type_t >
+inline type_t mmlCos(type_t x)
+{
+	return mmlSin(x + (mmlPI/2.0));
+}
+
 /*inline bool mmlIsNAN(float x)
 {
 	union bits32
