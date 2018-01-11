@@ -449,8 +449,8 @@ inline bool mmlRefract(const mmlVector<n> &incident, const mmlVector<n> &surface
 inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
 {
 	mmlVector<2> tan;
-	tan[0] = normal[1];
-	tan[1] = normal[0];
+	tan[0] = -normal[1];
+	tan[1] =  normal[0];
 	return tan;
 }
 
