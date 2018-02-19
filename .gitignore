@@ -10,7 +10,8 @@
 /Unit
 
 # QtCreator files
-*.pro*
+*.pro
+*.pro.*
 
 # Specific files
 main.cpp
