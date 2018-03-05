@@ -33,6 +33,8 @@ namespace mpl {
 		wide_bool(const __m128 &r) : f(r) {}
 
 	public:
+		typedef bool serial_t;
+
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
 		wide_bool(bool b) : u(_mm_set1_epi32(b ? MPL_TRUE_BITS : MPL_FALSE_BITS)) {}
@@ -70,6 +72,8 @@ namespace mpl {
 		wide_float(const __m128 &r) : f(r) {}
 
 	public:
+		typedef float serial_t;
+
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(_mm_set1_ps(val)) {}
@@ -145,6 +149,12 @@ namespace mpl {
 		wide_fixed(const __m128i &r) : i(r) {}
 
 	public:
+#ifdef MML_FIXED_H_INCLUDED__
+		typedef mml::fixed<int, n> serial_t;
+#else
+		typedef int serial_t;
+#endif
+
 		wide_fixed( void ) {}
 		wide_fixed(const wide_fixed<n> &r) : i(r.i) {}
 		wide_fixed(int val) : i(_mm_slli_epi32(_mm_set1_epi32(val), n)) {}
@@ -241,6 +251,8 @@ namespace mpl {
 		wide_int(const __m128i &r) : i(r) {}
 
 	public:
+		typedef int serial_t;
+
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(_mm_set1_epi32(val)) {}
@@ -263,8 +275,8 @@ namespace mpl {
 		wide_int &operator|=(const wide_bool &r) { i = _mm_or_si128(i, r.u);  return *this; }
 		wide_int &operator&=(const wide_int &r)  { i = _mm_and_si128(i, r.i); return *this; }
 		wide_int &operator&=(const wide_bool &r) { i = _mm_and_si128(i, r.u); return *this; }
-		wide_int &operator<<=(const wide_int &r) { i = _mm_sll_epi32(i, r.i); return *this; }
-		wide_int &operator>>=(const wide_int &r) { i = _mm_sra_epi32(i, r.i); return *this; }
+		wide_int &operator<<=(int r) { i = _mm_slli_epi32(i, r); return *this; }
+		wide_int &operator>>=(int r) { i = _mm_srai_epi32(i, r); return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return _mm_add_epi32(i, r.i); }
 		wide_int operator-(const wide_int &r)  const { return _mm_sub_epi32(i, r.i); }
@@ -273,8 +285,8 @@ namespace mpl {
 		wide_int operator|(const wide_bool &r) const { return _mm_or_si128(i, r.u);  }
 		wide_int operator&(const wide_int &r)  const { return _mm_and_si128(i, r.i); }
 		wide_int operator&(const wide_bool &r) const { return _mm_and_si128(i, r.u); }
-		wide_int operator<<(const wide_int &r) const { return _mm_sll_epi32(i, r.i); }
-		wide_int operator>>(const wide_int &r) const { return _mm_sra_epi32(i, r.i); }
+		wide_int operator<<(int r) const { return _mm_slli_epi32(i, r); }
+		wide_int operator>>(int r) const { return _mm_srai_epi32(i, r); }
 
 		wide_bool operator==(const wide_int &r) const { return _mm_cmpeq_epi32(i, r.i); }
 		wide_bool operator!=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
@@ -361,6 +373,8 @@ namespace mpl {
 		wide_bool(const float32x4_t &r) : f(r) {}
 
 	public:
+		typedef bool serial_t;
+
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
 		wide_bool(bool b) : u(vdupq_n_u32(b ? MPL_TRUE_BITS : MPL_FALSE_BITS)) {}
@@ -413,6 +427,8 @@ namespace mpl {
 		wide_float(const float32x4_t &r) : f(r) {}
 
 	public:
+		typedef float serial_t;
+
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(vdupq_n_f32(val)) {}
@@ -499,6 +515,12 @@ namespace mpl {
 		wide_fixed(const int32x4_t &r) : i(r) {}
 
 	public:
+#ifdef MML_FIXED_H_INCLUDED__
+		typedef mml::fixed<int, n> serial_t;
+#else
+		typedef int serial_t;
+#endif
+
 		wide_fixed( void ) {}
 		wide_fixed(const wide_fixed<n> &r) : i(r.i) {}
 		wide_fixed(int val) : i(vshlq_n_s32(vdupq_n_s32(val), n)) {}
@@ -561,6 +583,8 @@ namespace mpl {
 		wide_int(const int32x4_t &r) : i(r) {}
 
 	public:
+		typedef int serial_t;
+
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(vdupq_n_s32(val)) {}
@@ -581,8 +605,8 @@ namespace mpl {
 		wide_int &operator|=(const wide_bool &r) { i = vorrq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 		wide_int &operator&=(const wide_int &r)  { i = vandq_s32(i, r.i); return *this; }
 		wide_int &operator&=(const wide_bool &r) { i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
-		wide_int &operator<<=(const wide_int &r) { i = vshlq_s32(i, r.i); return *this; }
-		wide_int &operator>>=(const wide_int &r) { i = vshlq_s32(i, (-r).i); return *this; }
+		wide_int &operator<<=(int r) { i = vshlq_n_s32(i, r); return *this; }
+		wide_int &operator>>=(int r) { i = vshlq_n_s32(i, -r); return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return vaddq_s32(i, r.i); }
 		wide_int operator-(const wide_int &r)  const { return vsubq_s32(i, r.i); }
@@ -591,8 +615,8 @@ namespace mpl {
 		wide_int operator|(const wide_bool &r) const { return vorrq_s32(i, *(const int32x4_t*)(&r.u)); }
 		wide_int operator&(const wide_int &r)  const { return vandq_s32(i, r.i); }
 		wide_int operator&(const wide_bool &r) const { return vandq_s32(i, *(const int32x4_t*)(&r.u)); }
-		wide_int operator<<(const wide_int &r) const { return vshlq_s32(i, r.i); }
-		wide_int operator>>(const wide_int &r) const { return vshlq_s32(i, (-r).i); }
+		wide_int operator<<(int r) const { return vshlq_n_s32(i, r); }
+		wide_int operator>>(int r) const { return vshlq_n_s32(i, -r); }
 
 		wide_bool operator==(const wide_int &r) const { return vceqq_s32(i, r.i); }
 		wide_bool operator!=(const wide_int &r) const { return vmvnq_u32(vceqq_s32(i, r.i)); }
@@ -652,6 +676,8 @@ namespace mpl {
 		wide_bool(const __vector unsigned int &r) : u(r) {}
 
 	public:
+		typedef bool serial_t;
+
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
 		wide_bool(bool b);
@@ -684,6 +710,8 @@ namespace mpl {
 		float        f;
 
 	public:
+		typedef bool serial_t;
+
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : u(b.u) {}
 		wide_bool(bool b) : u(b ? MPL_TRUE_BITS : MPL_FALSE_BITS) {}
@@ -711,6 +739,8 @@ namespace mpl {
 		float f;
 
 	public:
+		typedef float serial_t;
+
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(val) {}
@@ -799,6 +829,12 @@ namespace mpl {
 		}
 
 	public:
+#ifdef MML_FIXED_H_INCLUDED__
+		typedef mml::fixed<int, n> serial_t;
+#else
+		typedef int serial_t;
+#endif
+
 		wide_fixed( void ) {}
 		wide_fixed(const wide_fixed<n> &f) : i(f.i) {}
 		wide_fixed(int val) : i(signed_lshift(val, n)) {}
@@ -854,6 +890,8 @@ namespace mpl {
 		int i;
 
 	public:
+		typedef int serial_t;
+
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(val) {}
@@ -871,8 +909,8 @@ namespace mpl {
 		wide_int &operator|=(const wide_bool &r) { i |= r.u; return *this; }
 		wide_int &operator&=(const wide_int &r)  { i &= r.i; return *this; }
 		wide_int &operator&=(const wide_bool &r) { i &= r.u; return *this; }
-		wide_int &operator<<=(const wide_int &r) { i <<= r.i; return *this; }
-		wide_int &operator>>=(const wide_int &r) { i >>= r.i; return *this; }
+		wide_int &operator<<=(int r) { i <<= r; return *this; }
+		wide_int &operator>>=(int r) { i >>= r; return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return i + r.i; }
 		wide_int operator-(const wide_int &r)  const { return i - r.i; }
@@ -881,8 +919,8 @@ namespace mpl {
 		wide_int operator|(const wide_bool &r) const { return i | r.u; }
 		wide_int operator&(const wide_int &r)  const { return i & r.i; }
 		wide_int operator&(const wide_bool &r) const { return i & r.u; }
-		wide_int operator<<(const wide_int &r) const { return i << r.i; }
-		wide_int operator>>(const wide_int &r) const { return i >> r.i; }
+		wide_int operator<<(int r) const { return i << r; }
+		wide_int operator>>(int r) const { return i >> r; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE_BITS : MPL_FALSE_BITS; return o; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE_BITS : MPL_FALSE_BITS; return o; }
