@@ -261,6 +261,24 @@ template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 }
 
 //
+// mmlJoin
+//
+template < int m, int n >
+inline mmlVector<m+n> mmlJoin(const mmlVector<m> &a, const mmlVector<n> &b)
+{
+	mmlVector<m+n> v;
+	for (int i = 0; i < m; ++i) {
+		v[i] = a[i];
+	}
+	for (int i = 0; i < n; ++i) {
+		v[m + i] = b[i];
+	}
+	return v;
+}
+template < int m, int n >
+inline mmlVector<m+n> operator&(const mmlVector<m> &a, const mmlVector<n> &b) { return mmlJoin(a, b); }
+
+//
 // mmlDot
 //
 template < int n >

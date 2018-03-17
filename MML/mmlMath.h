@@ -158,7 +158,7 @@ inline type_t mmlSin(type_t x)
 template < typename type_t >
 inline type_t mmlCos(type_t x)
 {
-	return mmlSin(x + (mmlPI/2.0));
+	return mmlSin(x + (mmlPI / 2.0));
 }
 
 /*inline bool mmlIsNAN(float x)

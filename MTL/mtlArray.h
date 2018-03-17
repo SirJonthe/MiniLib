@@ -33,6 +33,7 @@ public:
 	void				SetCapacity(int p_size);
 	int					GetCapacity( void ) const;
 	void				Add(const type_t &p_value);
+	type_t             &Add( void );
 	inline				operator const type_t *( void ) const;
 	inline				operator type_t *( void );
 };
@@ -230,8 +231,19 @@ int mtlArray<type_t>::GetCapacity( void ) const
 template < typename type_t >
 void mtlArray<type_t>::Add(const type_t &p_value)
 {
+	bool poolValue = poolMemory;
 	Resize(m_size+1);
+	poolMemory = poolValue;
 	m_arr[m_size-1] = p_value;
+}
+
+template < typename type_t >
+type_t &mtlArray<type_t>::Add( void )
+{
+	bool poolValue = poolMemory;
+	Resize(m_size+1);
+	poolMemory = poolValue;
+	return m_arr[m_size-1];
 }
 
 #endif
