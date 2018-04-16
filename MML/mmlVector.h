@@ -243,6 +243,8 @@ public:
 			e[j] = fabs(e[j]);
 		}
 	}
+	template < int m >
+	mmlVector<n+m> Join(const mmlVector<m> &v) { return mmlJoin(*this, v); }
 };
 
 //
@@ -275,8 +277,6 @@ inline mmlVector<m+n> mmlJoin(const mmlVector<m> &a, const mmlVector<n> &b)
 	}
 	return v;
 }
-template < int m, int n >
-inline mmlVector<m+n> operator&(const mmlVector<m> &a, const mmlVector<n> &b) { return mmlJoin(a, b); }
 
 //
 // mmlDot
