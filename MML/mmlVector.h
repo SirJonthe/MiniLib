@@ -244,7 +244,18 @@ public:
 		}
 	}
 	template < int m >
-	mmlVector<n+m> Join(const mmlVector<m> &v) { return mmlJoin(*this, v); }
+	mmlVector<n+m> Join(const mmlVector<m> &b) {
+		mmlVector<m+n> v;
+		for (int i = 0; i < n; ++i) { v[i] = e[i]; }
+		for (int i = 0; i < m; ++i) { v[n + i] = b[i]; }
+		return v;
+	}
+	mmlVector<n+1> Join(float b) {
+		mmlVector<n+1> v;
+		for (int i = 0; i < n; ++i) { v[i] = e[i]; }
+		v[n] = b;
+		return v;
+	}
 };
 
 //
@@ -259,22 +270,6 @@ template < int n > inline mmlVector<n> operator/(mmlVector<n> l, float r) { retu
 template < int n > inline mmlVector<n> operator/(mmlVector<n> l, const mmlVector<n> &r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 	for (int j = 0; j < n; ++j) { v[j] = -v[j]; }
-	return v;
-}
-
-//
-// mmlJoin
-//
-template < int m, int n >
-inline mmlVector<m+n> mmlJoin(const mmlVector<m> &a, const mmlVector<n> &b)
-{
-	mmlVector<m+n> v;
-	for (int i = 0; i < m; ++i) {
-		v[i] = a[i];
-	}
-	for (int i = 0; i < n; ++i) {
-		v[m + i] = b[i];
-	}
 	return v;
 }
 
