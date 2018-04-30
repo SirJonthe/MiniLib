@@ -155,7 +155,7 @@ void mtlArray<type_t>::Resize(int p_size)
 			mtlCopy(m_arr, data, minSize);
 			delete [] data;
 		} else if (!poolMemory) {
-			delete m_arr;
+			delete [] m_arr;
 			m_arr = NULL;
 		}
 		m_pool = p_size;
@@ -212,8 +212,6 @@ mtlArray<type_t>::operator type_t *( void )
 template < typename type_t >
 void mtlArray<type_t>::SetCapacity(int p_size)
 {
-	if (poolMemory && p_size <= m_pool) { return; }
-	
 	bool poolValue = poolMemory;
 	poolMemory = true;
 	int sizeValue = m_size;
