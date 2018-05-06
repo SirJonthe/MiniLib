@@ -379,6 +379,7 @@ void mtlString::NewPoolDelete(int p_size)
 		delete [] m_mut_str;
 		m_mut_str = newPool;
 		m_str = newPool;
+		m_mut_str[p_size] = '\0';
 	}
 }
 
@@ -390,6 +391,7 @@ void mtlString::NewPoolPreserve(int p_size)
 		delete [] m_mut_str;
 		m_mut_str = newPool;
 		m_str = newPool;
+		m_mut_str[p_size] = '\0';
 	}
 }
 
