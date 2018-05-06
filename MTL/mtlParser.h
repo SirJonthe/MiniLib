@@ -17,6 +17,8 @@
 #define mtlAlphaStr			"abcdefghijklmnopqrstuvwxyz_"
 #define mtlAlphanumStr		"abcdefghijklmnopqrstuvwxyz0123456789_"
 
+bool mtlBufferFile(const mtlPath &filename, mtlString &buffer);
+
 class mtlBinaryParser
 {
 private:
@@ -128,7 +130,7 @@ public:
 	};
 
 public:
-	static bool BufferFile(const mtlPath &p_file, mtlString &p_buffer);
+	//static bool BufferFile(const mtlPath &p_file, mtlString &p_buffer);
 
 	mtlSyntaxParser( void );
 

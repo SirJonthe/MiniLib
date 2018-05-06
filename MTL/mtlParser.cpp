@@ -1,6 +1,16 @@
 #include <fstream>
 #include "mtlParser.h"
 
+bool mtlBufferFile(const mtlPath &p_file, mtlString &p_buffer)
+{
+	if (!p_file.IsFile()) { return false; }
+	std::ifstream fin(p_file.GetPath().GetChars(), std::ios::ate|std::ios::binary);
+	if (!fin.is_open()) { return false; }
+	p_buffer.SetSize((int)fin.tellg());
+	fin.seekg(0, std::ios::beg);
+	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
+}
+
 // Input    "This is a string! (btw, I love strings)"
 // Read as: "|this|is|a|string|!|(|btw|,|I|love|strings|)|\0"
 
@@ -651,15 +661,15 @@ void mtlSyntaxParser::LogChar(char ch)
 	}
 }
 
-bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
-{
-	if (!p_file.IsFile()) { return false; }
-	std::ifstream fin(p_file.GetPath().GetChars(), std::ios::ate|std::ios::binary);
-	if (!fin.is_open()) { return false; }
-	p_buffer.SetSize((int)fin.tellg());
-	fin.seekg(0, std::ios::beg);
-	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
-}
+//bool mtlSyntaxParser::BufferFile(const mtlPath &p_file, mtlString &p_buffer)
+//{
+//	if (!p_file.IsFile()) { return false; }
+//	std::ifstream fin(p_file.GetPath().GetChars(), std::ios::ate|std::ios::binary);
+//	if (!fin.is_open()) { return false; }
+//	p_buffer.SetSize((int)fin.tellg());
+//	fin.seekg(0, std::ios::beg);
+//	return !fin.read(p_buffer.GetChars(), p_buffer.GetSize()).bad();
+//}
 
 mtlSyntaxParser::mtlSyntaxParser( void ) : m_hyphenators("_"), m_is_case_sensitive(false), m_log_diag(false), m_quote_char(0)
 {
