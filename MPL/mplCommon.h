@@ -77,40 +77,40 @@
 	#define MPL_BLOCK_X       2
 	#define MPL_BLOCK_Y       2
 	#define MPL_OFFSETS       { 0, 1, 2, 3 }
-	#define MPL_X_OFFSETS     { 0, 1 }
-	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
+	#define MPL_X_OFFSETS     { 0, 1, 0, 1 }
+	#define MPL_Y_OFFSETS     { 0, 0, 1, 1 }
 #elif MPL_SIMD == MPL_SIMD_NEON
 	#define MPL_WIDTH         4
 	#define MPL_BYTE_ALIGN    16
 	#define MPL_BLOCK_X       2
 	#define MPL_BLOCK_Y       2
 	#define MPL_OFFSETS       { 0, 1, 2, 3 }
-	#define MPL_X_OFFSETS     { 0, 1 }
-	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
+	#define MPL_X_OFFSETS     { 0, 1, 0, 1 }
+	#define MPL_Y_OFFSETS     { 0, 0, 1, 1 }
 #elif MPL_SIMD == MPL_SIMD_AVX256
 	#define MPL_WIDTH         8
 	#define MPL_BYTE_ALIGN    32
 	#define MPL_BLOCK_X       4
 	#define MPL_BLOCK_Y       2
 	#define MPL_OFFSETS       { 0, 1, 2, 3, 4, 5, 6, 7 }
-	#define MPL_X_OFFSETS     { 0, 1, 2, 3 }
-	#define MPL_Y_OFFSETS     { 0, 1 }
+	#define MPL_X_OFFSETS     { 0, 1, 2, 3, 0, 1, 2, 3 }
+	#define MPL_Y_OFFSETS     { 0, 0, 0, 0, 1, 1, 1, 1 }
 #elif MPL_SIMD == MPL_SIMD_AVX512
 	#define MPL_WIDTH         16
 	#define MPL_BYTE_ALIGN    64
 	#define MPL_BLOCK_X       4
 	#define MPL_BLOCK_Y       4
 	#define MPL_OFFSETS       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }
-	#define MPL_X_OFFSETS     { 0, 1, 2, 3 }
-	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
+	#define MPL_X_OFFSETS     { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1,  2,  3,  0,  1,  2,  3 }
+	#define MPL_Y_OFFSETS     { 0, 0, 0, 0, 1, 1, 1, 1, 2, 2,  2,  2,  3,  3,  3,  3 }
 #elif MPL_SIMD == MPL_SIMD_ALTIVEC
 	#define MPL_WIDTH         4
 	#define MPL_BYTE_ALIGN    16
 	#define MPL_BLOCK_X       2
 	#define MPL_BLOCK_Y       2
 	#define MPL_OFFSETS       { 0, 1, 2, 3 }
-	#define MPL_X_OFFSETS     { 0, 1 }
-	#define MPL_Y_OFFSETS     MPL_X_OFFSETS
+	#define MPL_X_OFFSETS     { 0, 1, 0, 1 }
+	#define MPL_Y_OFFSETS     { 0, 0, 1, 1 }
 #elif MPL_SIMD == MPL_SIMD_NONE
 	#define MPL_WIDTH         1
 	#define MPL_BYTE_ALIGN    1
