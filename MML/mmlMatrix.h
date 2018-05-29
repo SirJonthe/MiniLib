@@ -573,7 +573,7 @@ inline mmlMatrix<4,4> mmlEulerRotationMatrix(float head, float pitch, float roll
 		);
 }*/
 
-inline mmlMatrix<4,4> mmlAxisRotationMatrix(const mmlVector<3> &p_axis, float p_rot)
+inline mmlMatrix<4,4> mmlAxisRotationMatrix4(const mmlVector<3> &p_axis, float p_rot)
 {
 	const float x = p_axis[0];
 	const float y = p_axis[1];
@@ -586,6 +586,21 @@ inline mmlMatrix<4,4> mmlAxisRotationMatrix(const mmlVector<3> &p_axis, float p_
 		(y * x) * (1.0f - c) - (z * s), (y * y) * (1.0f - c) + c,       (y * z) * (1.0f - c) + (x * s), 0.f,
 		(z * x) * (1.0f - c) + (y * s), (z * y) * (1.0f - c) - (x * s), (z * z) * (1.0f - c) + c,       0.f,
 		0.f,                            0.f,                            0.f,                            1.f
+	);
+}
+
+inline mmlMatrix<3,3> mmlAxisRotationMatrix3(const mmlVector<3> &p_axis, float p_rot)
+{
+	const float x = p_axis[0];
+	const float y = p_axis[1];
+	const float z = p_axis[2];
+	const float c = cosf(p_rot);
+	const float s = sinf(p_rot);
+
+	return mmlMatrix<3,3>(
+		(x * x) * (1.0f - c) + c,       (x * y) * (1.0f - c) + (z * s), (x * z) * (1.0f - c) - (y * s),
+		(y * x) * (1.0f - c) - (z * s), (y * y) * (1.0f - c) + c,       (y * z) * (1.0f - c) + (x * s),
+		(z * x) * (1.0f - c) + (y * s), (z * y) * (1.0f - c) - (x * s), (z * z) * (1.0f - c) + c
 	);
 }
 
