@@ -11,8 +11,8 @@ inline mpl::wide_int                         mmlMin(const mpl::wide_int &a, cons
 template < int n > inline mpl::wide_fixed<n> mmlMax(const mpl::wide_fixed<n> &a, const mpl::wide_fixed<n> &b) { return mpl::wide_fixed<n>::max(a, b); }
 template < int n > inline mpl::wide_fixed<n> mmlMin(const mpl::wide_fixed<n> &a, const mpl::wide_fixed<n> &b) { return mpl::wide_fixed<n>::min(a, b); }
 
-// inline mpl::wide_float mmlFloor(const mpl::wide_float &x) { return mpl::Floor(x); }
-// inline mpl::wide_float mmlCeil(const mpl::wide_float &x)  { return mpl::Ceil(x);  }
-// inline mpl::wide_float mmlRound(const mpl::wide_float &x) { return mpl::Round(x); }
+inline mpl::wide_int mmlRound(const mpl::wide_float &x) { return mpl::wide_int(x + 0.5f); }
+inline mpl::wide_int mmlFloor(const mpl::wide_float &x) { return mpl::wide_int(x + (1<<15)) - (1<<15); }
+inline mpl::wide_int mmlCeil(const mpl::wide_float &x)  { return mpl::wide_int(1<<15) - mpl::wide_int(mpl::wide_float(1<<15) - x); }
 
 #endif // MPL_MATH_H_INCLUDED__
