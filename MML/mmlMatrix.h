@@ -18,8 +18,10 @@ class mmlMatrix
 public:
 	static const int Rows = rows;
 	static const int Columns = columns;
+
 private:
 	mmlVector<columns> e[rows];
+
 public:
 	//
 	// index operators
@@ -31,6 +33,7 @@ public:
 	//
 	operator float * ( void ) { return e[0]; }
 	operator const float * const ( void ) const { return e[0]; }
+
 public:
 	//
 	// default
@@ -96,6 +99,7 @@ public:
 			}
 		}
 	}
+
 public:
 	static mmlMatrix<rows, columns> &Cast(void *ptr)
 	{

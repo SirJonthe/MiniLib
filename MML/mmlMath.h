@@ -24,8 +24,8 @@
 
 /* general mathematical functions
  ========================================*/
-inline float     mmlDegToRad(float pDeg)         { return pDeg *((mmlRAD_QUAD*2.f)/(mmlDEG_QUAD*2.f)); }
-inline float     mmlRadToDeg(float pRad)         { return pRad *((mmlDEG_QUAD*2.f)/(mmlRAD_QUAD*2.f)); }
+inline float     mmlDegToRad(float pDeg)         { return pDeg *((mmlRAD_QUAD*2.0f)/(mmlDEG_QUAD*2.0f)); }
+inline float     mmlRadToDeg(float pRad)         { return pRad *((mmlDEG_QUAD*2.0f)/(mmlRAD_QUAD*2.0f)); }
 inline float     mmlUnitToRad(float pUnit)       { return pUnit * mmlRAD_MAX; }
 inline float     mmlRadToUnit(float pRad)        { return pRad / mmlRAD_MAX; }
 inline float     mmlUnitToDeg(float pUnit)       { return pUnit * mmlDEG_MAX; }
@@ -47,21 +47,20 @@ template < typename T > inline T mmlMin(const T &pA, const T &pB)               
 template < typename T > inline T mmlMax(const T &pA, const T &pB)                     { return (pA > pB) ? (pA) : (pB); }
 template < typename T > inline T mmlMin(const T &pA, const T &pB, const T &pC)        { return mmlMin(mmlMin(pA,pB),pC); }
 template < typename T > inline T mmlMax(const T &pA, const T &pB, const T &pC)        { return mmlMax(mmlMax(pA,pB),pC); }
-template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return value < min ? min : (value > max ? max : value); }
-template < typename T > inline T mmlAbs(const T &x)                                   { return x > 0 ? x : -x; }
+template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return mmlMax(mmlMin(value, max), min); }
+template < typename T > inline T mmlAbs(const T &x)                                   { return mmlMax(x, -x); }
 
 #define mmlAtLeast mmlMax
 #define mmlAtMost  mmlMin
 
 template < typename T > inline void mmlSwap(T &pA, T &pB) { T temp = pA; pA = pB; pB = temp; }
 
-template < typename TA, typename TB > inline TA mmlLerp(TA a, TA b, TB x)                             { return a + (b - a) * x; }
-template < typename TA, typename TB > inline TA mmlBilerp(TA i00, TA i10, TA i01, TA i11, TB x, TB y) { return mmlLerp(mmlLerp(i00, i10, x), mmlLerp(i01, i11, x), y); }
-template < typename TA, typename TB > inline TA mmlTrilerp(TA i000, TA i100, TA i010, TA i110, TA i001, TA i101, TA i011, TA i111, TB x, TB y, TB z)
-																									  { return mmlLerp(mmlBilerp(i000, i100, i010, i110, x, y), mmlBilerp(i001, i101, i011, i111, x, y), z); }
-template < typename TA, typename TB > inline TA mmlQuerp(TA a, TA b, TA c, TA d, TB x)                { return b + 0.5 * x * (c - a + x * (2 * a - 5 * b + 4 * c - d + x * (3 * (b - c) + d - a))); }
-template < typename TA, typename TB > inline TA mmlBiquerp(TA i[4][4], TB x, TB y)                    { return mmlQuerp(mmlQuerp(i[0], y), mmlQuerp(i[1], y), mmlQuerp(i[2], y), mmlQuerp(i[3], y), x); }
-template < typename TA, typename TB > inline TA mmlTriquerp(TA i[4][4][4], TB x, TB y, TB z)          { return mmlQuerp(mmlBiquerp(i[0], y, z), mmlBiquerp(i[1], y, z), mmlBiquerp(i[2], y, z), mmlBiquerp(i[3], y, z), x); }
+template < typename TA, typename TB > inline TA mmlLerp(const TA &a, const TA &b, const TB &x) { return a + (b - a) * x; }
+template < typename TA, typename TB > inline TA mmlBilerp(const TA &i00, const TA &i10, const TA &i01, const TA &i11, const TB &x, const TB &y) { return mmlLerp(mmlLerp(i00, i10, x), mmlLerp(i01, i11, x), y); }
+template < typename TA, typename TB > inline TA mmlTrilerp(const TA &i000, const TA &i100, const TA &i010, const TA &i110, const TA &i001, const TA &i101, const TA &i011, const TA &i111, const TB &x, const TB &y, const TB &z) { return mmlLerp(mmlBilerp(i000, i100, i010, i110, x, y), mmlBilerp(i001, i101, i011, i111, x, y), z); }
+template < typename TA, typename TB > inline TA mmlQuerp(const TA &a, const TA &b, const TA &c, const TA &d, const TB &x) { return b + 0.5 * x * (c - a + x * (2 * a - 5 * b + 4 * c - d + x * (3 * (b - c) + d - a))); }
+template < typename TA, typename TB > inline TA mmlBiquerp(const TA i[4][4], const TB &x, const TB &y) { return mmlQuerp(mmlQuerp(i[0], y), mmlQuerp(i[1], y), mmlQuerp(i[2], y), mmlQuerp(i[3], y), x); }
+template < typename TA, typename TB > inline TA mmlTriquerp(const TA i[4][4][4], const TB &x, const TB &y, const TB &z) { return mmlQuerp(mmlBiquerp(i[0], y, z), mmlBiquerp(i[1], y, z), mmlBiquerp(i[2], y, z), mmlBiquerp(i[3], y, z), x); }
 
 template < typename type_t >
 inline type_t mmlSqrt(const type_t &x)
