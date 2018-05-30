@@ -63,6 +63,12 @@ template < typename TA, typename TB > inline TA mmlQuerp(TA a, TA b, TA c, TA d,
 template < typename TA, typename TB > inline TA mmlBiquerp(TA i[4][4], TB x, TB y)                    { return mmlQuerp(mmlQuerp(i[0], y), mmlQuerp(i[1], y), mmlQuerp(i[2], y), mmlQuerp(i[3], y), x); }
 template < typename TA, typename TB > inline TA mmlTriquerp(TA i[4][4][4], TB x, TB y, TB z)          { return mmlQuerp(mmlBiquerp(i[0], y, z), mmlBiquerp(i[1], y, z), mmlBiquerp(i[2], y, z), mmlBiquerp(i[3], y, z), x); }
 
+template < typename type_t >
+inline type_t mmlSqrt(const type_t &x)
+{
+	return type_t(sqrt((double)x));
+}
+
 inline float mmlFastInvSqrt(float pX)
 {
 	union bits32

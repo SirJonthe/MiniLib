@@ -10,75 +10,76 @@
 #include <cmath>
 
 #include "mmlMath.h"
-
-#define mmlVectorCast(vec_ptr, n) *(mmlVector<n>*)(vec_ptr)
+#include "mmlInt.h"
 
 //
 // mmlVector
 //
-template < int n >
+template < int n, typename type_t = float >
 class mmlVector
 {
 public:
 	static const int Dimension = n;
+
 private:
-	float e[n];
+	type_t e[n];
+
 public:
 	//
 	// default
 	//
 	mmlVector( void ) {
-		for (int i = 0; i < n; ++i) { e[i] = 0.0f; }
+		//for (int i = 0; i < n; ++i) { e[i] = type_t(0); }
 		// do nothing, let initialize to garbage
 	}
 	//
 	// copy
 	//
-	mmlVector(const mmlVector<n> &v) {
-		for (int j = 0; j < n; ++j) e[j] = v.e[j];
+	mmlVector(const mmlVector<n,type_t> &v) {
+		for (int j = 0; j < n; ++j) { e[j] = v.e[j]; }
 	}
 	//
 	// initializer list
 	//
-	explicit mmlVector(double e0, ...) {
+	explicit mmlVector(typename mml::va_cast<type_t>::va_t e0, ...) {
 		va_list vl;
 		va_start(vl, e0);
-		e[0] = (float)e0;
+		e[0] = type_t(e0);
 		for (int j = 1; j < n; ++j) {
-			e[j] = (float)va_arg(vl, double);
+			e[j] = type_t(va_arg(vl, typename mml::va_cast<type_t>::va_t));
 		}
 		va_end(vl);
 	}
 	//
 	// conversion
 	//
-	template < int size2 >
-	explicit mmlVector(const mmlVector<size2> &v) {
-		if (n < size2) {
-			for (int j = 0; j < n; ++j) e[j] = v[j];
+	template < int m >
+	explicit mmlVector(const mmlVector<m,type_t> &v) {
+		if (n < m) {
+			for (int j = 0; j < n; ++j) { e[j] = v[j]; }
 		} else {
 			int j = 0;
-			for (; j < size2; ++j) e[j] = v[j];
-			for (; j < n; ++j) e[j] = 0.f;
+			for (; j < m; ++j) { e[j] = v[j]; }
+			for (; j < n; ++j) { e[j] = type_t(0); }
 		}
 	}
 	//
 	// conversion
 	//
-	explicit mmlVector(const float * const v) {
-		for (int j = 0; j < n; ++j) e[j] = v[j];
+	explicit mmlVector(const type_t * const v) {
+		for (int j = 0; j < n; ++j) { e[j] = v[j]; }
 	}
 public:
 	//
 	// index and conversion
 	//
-	operator float*( void ) { return e; }
-	operator const float* const ( void ) const { return e; }
+	operator type_t*( void ) { return e; }
+	operator const type_t* const ( void ) const { return e; }
 public:
 	//
 	// comparison
 	//
-	bool operator==(const mmlVector<n> &r) const {
+	bool operator==(const mmlVector<n,type_t> &r) const {
 		for (int j = 0; j < n; ++j) {
 			if (e[j] != r[j]) {
 				return false;
@@ -86,7 +87,7 @@ public:
 		}
 		return true;
 	}
-	bool operator!=(const mmlVector<n> &r) const {
+	bool operator!=(const mmlVector<n,type_t> &r) const {
 		for (int j = 0; j < n; ++j) {
 			if (e[j] == r[j]) {
 				return false;
@@ -94,10 +95,10 @@ public:
 		}
 		return true;
 	}
-	static bool Compare(const mmlVector<n> &u, const mmlVector<n> &v, float p_tolerance)
+	static bool Compare(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v, const type_t &p_tolerance)
 	{
 		for (int i = 0; i < n; ++i) {
-			if (u[i] < v[i]-p_tolerance || u[i] > v[i]+p_tolerance) {
+			if (u[i] < v[i] - p_tolerance || u[i] > v[i] + p_tolerance) {
 				return false;
 			}
 		}
@@ -107,50 +108,50 @@ public:
 	//
 	// assignment operators
 	//
-	mmlVector<n> &operator=(const mmlVector<n> &r)
+	mmlVector<n,type_t> &operator=(const mmlVector<n,type_t> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] = r.e[j];
+		for (int j = 0; j < n; ++j) { e[j] = r.e[j]; }
 		return *this;
 	}
-	mmlVector<n> &operator+=(const mmlVector<n> &r)
+	mmlVector<n,type_t> &operator+=(const mmlVector<n,type_t> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] += r.e[j];
+		for (int j = 0; j < n; ++j) { e[j] += r.e[j]; }
 		return *this;
 	}
-	mmlVector<n> &operator-=(const mmlVector<n> &r)
+	mmlVector<n,type_t> &operator-=(const mmlVector<n,type_t> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] -= r.e[j];
+		for (int j = 0; j < n; ++j) { e[j] -= r.e[j]; }
 		return *this;
 	}
-	mmlVector<n> &operator*=(const mmlVector<n> &r)
+	mmlVector<n,type_t> &operator*=(const mmlVector<n,type_t> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] *= r.e[j];
+		for (int j = 0; j < n; ++j) { e[j] *= r.e[j]; }
 		return *this;
 	}
-	mmlVector<n> &operator*=(float r)
+	mmlVector<n,type_t> &operator*=(const type_t &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] *= r;
+		for (int j = 0; j < n; ++j) { e[j] *= r; }
 		return *this;
 	}
-	mmlVector<n> &operator/=(float r)
+	mmlVector<n,type_t> &operator/=(const type_t &r)
 	{
-		return *this *= (1.0f / r);
+		return *this *= (type_t(1) / r);
 	}
-	mmlVector<n> &operator/=(const mmlVector<n> &r)
+	mmlVector<n,type_t> &operator/=(const mmlVector<n,type_t> &r)
 	{
-		for (int j = 0; j < n; ++j) e[j] /= r.e[j];
+		for (int j = 0; j < n; ++j) { e[j] /= r.e[j]; }
 		return *this;
 	}
 public:
-	static mmlVector<n> &Cast(void *ptr)
+	static mmlVector<n,type_t> &Cast(void *ptr)
 	{
-		return *(mmlVector<n>*)ptr;
+		return *(mmlVector<n,type_t>*)ptr;
 	}
-	static const mmlVector<n> &Cast(const void *ptr)
+	static const mmlVector<n,type_t> &Cast(const void *ptr)
 	{
-		return *(const mmlVector<n>*)ptr;
+		return *(const mmlVector<n,type_t>*)ptr;
 	}
-	void Clamp(const mmlVector<n> &min, const mmlVector<n> &max)
+	void Clamp(const mmlVector<n,type_t> &min, const mmlVector<n,type_t> &max)
 	{
 		for (int i = 0; i < n; ++i) {
 			e[i] = mmlClamp(min[i], e[i], max[i]);
@@ -159,7 +160,7 @@ public:
 	void Round( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			e[i] = floor(e[i] + 0.5f);
+			e[i] = floor(e[i] + type_t(0.5));
 		}
 	}
 	void Floor( void )
@@ -177,52 +178,35 @@ public:
 	void SnapInt( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			e[i] = float(int(e[i]));
+			e[i] = type_t(int(e[i]));
 		}
 	}
 	void Zero( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			e[i] = 0.f;
+			e[i] = type_t(0);
 		}
 	}
-	float Len( void ) const
+	type_t Len( void ) const
 	{
-		float l = 0.f;
-		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
-		return sqrt(l);
-	}
-	float InvLenFast( void ) const
-	{
-		float l = 0.f;
-		for (int j = 0; j < n; ++j) { l += e[j]*e[j]; }
-		return mmlFastInvSqrt(l);
-	}
-	float LenFast( void ) const
-	{
-		return 1.0f / InvLenFast();
+		type_t l = type_t(0);
+		for (int j = 0; j < n; ++j) { l += e[j] * e[j]; }
+		return mmlSqrt(l);
 	}
 	void Normalize( void )
 	{
-		const float invlen = 1.f/Len();
+		const type_t invlen = type_t(1) / Len();
 		for (int j = 0; j < n; ++j) {
 			e[j] *= invlen;
 		}
 	}
-	void NormalizeFast( void )
+	bool IsNormalized(const type_t &p_tolerance = type_t(0)) const
 	{
-		const float invlen = 1.f/LenFast();
-		for (int j = 0; j < n; ++j) {
-			e[j] *= invlen;
-		}
-	}
-	bool IsNormalized(const float p_tolerance = 0.f) const
-	{
-		float unit = 0.f;
+		type_t unit = type_t(0);
 		for (int i = 0; i < n; ++i) {
-			unit += e[i]*e[i];
+			unit += e[i] * e[i];
 		}
-		unit -= 1.f;
+		unit -= type_t(1);
 		return (unit <= p_tolerance && unit >= -p_tolerance);
 	}
 	void FixDenormals( void )
@@ -233,7 +217,7 @@ public:
 	}
 	void Swap(int i, int j)
 	{
-		float t = e[i];
+		type_t t = e[i];
 		e[i] = e[j];
 		e[j] = t;
 	}
@@ -244,14 +228,14 @@ public:
 		}
 	}
 	template < int m >
-	mmlVector<n+m> Join(const mmlVector<m> &b) {
-		mmlVector<m+n> v;
+	mmlVector<n+m,type_t> Join(const mmlVector<m,type_t> &b) {
+		mmlVector<m+n,type_t> v;
 		for (int i = 0; i < n; ++i) { v[i] = e[i]; }
 		for (int i = 0; i < m; ++i) { v[n + i] = b[i]; }
 		return v;
 	}
-	mmlVector<n+1> Join(float b) {
-		mmlVector<n+1> v;
+	mmlVector<n+1,type_t> Join(const type_t &b) {
+		mmlVector<n+1,type_t> v;
 		for (int i = 0; i < n; ++i) { v[i] = e[i]; }
 		v[n] = b;
 		return v;
@@ -261,14 +245,14 @@ public:
 //
 // arithmetic operators
 //
-template < int n > inline mmlVector<n> operator+(mmlVector<n> l, const mmlVector<n> &r) { return (l+=r); }
-template < int n > inline mmlVector<n> operator-(mmlVector<n> l, const mmlVector<n> &r) { return (l-=r); }
-template < int n > inline mmlVector<n> operator*(mmlVector<n> l, const mmlVector<n> &r) { return (l*=r); }
-template < int n > inline mmlVector<n> operator*(mmlVector<n> l, float r) { return (l*=r); }
-template < int n > inline mmlVector<n> operator*(float l, mmlVector<n> r) { return (r*=l); }
-template < int n > inline mmlVector<n> operator/(mmlVector<n> l, float r) { return (l/=r); }
-template < int n > inline mmlVector<n> operator/(mmlVector<n> l, const mmlVector<n> &r) { return (l/=r); }
-template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
+template < int n, typename type_t > inline mmlVector<n,type_t> operator+(mmlVector<n,type_t> l, const mmlVector<n,type_t> &r) { return (l+=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator-(mmlVector<n,type_t> l, const mmlVector<n,type_t> &r) { return (l-=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator*(mmlVector<n,type_t> l, const mmlVector<n,type_t> &r) { return (l*=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator*(mmlVector<n,type_t> l, const type_t &r) { return (l*=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator*(const type_t &l, mmlVector<n,type_t> r) { return (r*=l); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator/(mmlVector<n,type_t> l, const type_t &r) { return (l/=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator/(mmlVector<n,type_t> l, const mmlVector<n,type_t> &r) { return (l/=r); }
+template < int n, typename type_t > inline mmlVector<n,type_t> operator-(mmlVector<n,type_t> v) {
 	for (int j = 0; j < n; ++j) { v[j] = -v[j]; }
 	return v;
 }
@@ -276,10 +260,10 @@ template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 //
 // mmlDot
 //
-template < int n >
-inline float mmlDot(const mmlVector<n> &u, const mmlVector<n> &v)
+template < int n, typename type_t >
+inline type_t mmlDot(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
-	float d = 0.f;
+	type_t d = type_t(0);
 	for (int j = 0; j < n; ++j) { d += u[j] * v[j]; }
 	return d;
 }
@@ -287,8 +271,8 @@ inline float mmlDot(const mmlVector<n> &u, const mmlVector<n> &v)
 //
 // mmlDist
 //
-template < int n >
-inline float mmlDist(const mmlVector<n> &u, const mmlVector<n> &v)
+template < int n, typename type_t >
+inline float mmlDist(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
 	return (u - v).Len();
 }
@@ -296,18 +280,19 @@ inline float mmlDist(const mmlVector<n> &u, const mmlVector<n> &v)
 //
 // mmlAng
 //
-template < int n >
-inline float mmlAng(const mmlVector<n> &u, const mmlVector<n> &v)
+template < int n, typename type_t >
+inline double mmlAng(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
-	return acos( mmlDot(u,v) / (u.Len() * v.Len()) );
+	return acos(double(mmlDot(u,v) / (u.Len() * v.Len())));
 }
 
 //
 // mmlCross
 //
-inline mmlVector<3> mmlCross(const mmlVector<3> &u, const mmlVector<3> &v)
+template < typename type_t >
+inline mmlVector<3,type_t> mmlCross(const mmlVector<3,type_t> &u, const mmlVector<3,type_t> &v)
 {
-	mmlVector<3> res;
+	mmlVector<3,type_t> res;
 	res[0] = u[1]*v[2] - u[2]*v[1];
 	res[1] = u[2]*v[0] - u[0]*v[2];
 	res[2] = u[0]*v[1] - u[1]*v[0];
@@ -317,7 +302,8 @@ inline mmlVector<3> mmlCross(const mmlVector<3> &u, const mmlVector<3> &v)
 //
 // mmlCross2
 //
-inline float mmlCross2(const mmlVector<2> &v, const mmlVector<2> &w)
+template < typename type_t >
+inline float mmlCross2(const mmlVector<2,type_t> &v, const mmlVector<2,type_t> &w)
 {
 	return v[0]*w[1] - v[1]*w[0];
 }
@@ -325,9 +311,10 @@ inline float mmlCross2(const mmlVector<2> &v, const mmlVector<2> &w)
 //
 // mmlSurfaceNormal
 //
-inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3> &x, const mmlVector<3> &y, const mmlVector<3> &z) // this should be a specialization of mmlVector<3>
+template < typename type_t >
+inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3,type_t> &x, const mmlVector<3,type_t> &y, const mmlVector<3,type_t> &z) // this should be a specialization of mmlVector<3>
 {
-	mmlVector<3> normal = mmlCross(y-x, z-x);
+	mmlVector<3,type_t> normal = mmlCross(y-x, z-x);
 	normal.Normalize();
 	return normal;
 }
@@ -335,86 +322,54 @@ inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3> &x, const mmlVector<3> &
 //
 // mmlSlerp
 //
-template < int n >
-mmlVector<n> mmlSlerp(const mmlVector<n> &u, mmlVector<n> v, float d)
+template < int n, typename type_t >
+mmlVector<n> mmlSlerp(const mmlVector<n,type_t> &u, mmlVector<n,type_t> v, const type_t &d)
 {
-	float dot = mmlClamp(-1.0f, mmlDot(u, v), 1.0f); // clamp to remove floating point imprecision issues
-	float theta = acos(dot) * d;
+	type_t dot = mmlClamp(type_t(-1), mmlDot(u, v), type_t(1)); // clamp to remove floating point imprecision issues
+	type_t theta = acos(dot) * d;
 	v = v - u * dot;
 	v.Normalize();
-	return ((u * cos(theta)) + (v * sin(theta)));
-}
-
-//
-// mmlSlerpFast
-//
-template < int n >
-mmlVector<n> mmlSlerpFast(const mmlVector<n> &u, mmlVector<n> v, float d)
-{
-	float dot = mmlClamp(-1.0f, mmlDot(u, v), 1.0f); // clamp to remove floating point imprecision issues
-	float theta = acos(dot) * d;
-	v = v - u * dot;
-	v.NormalizeFast();
 	return ((u * cos(theta)) + (v * sin(theta)));
 }
 
 //
 // mmlNlerp
 //
-template < int n >
-mmlVector<n> mmlNlerp(const mmlVector<n> &u, const mmlVector<n> &v, float d)
+template < int n, typename type_t  >
+mmlVector<n,type_t> mmlNlerp(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v, const type_t &d)
 {
 	return mmlNormalize(mmlLerp(u, v, d));
 }
 
 //
-// mmlNlerpFast
-//
-template < int n >
-mmlVector<n> mmlNlerpFast(const mmlVector<n> &u, const mmlVector<n> &v, float d)
-{
-	return mmlNormalizeFast(mmlLerp(u, v, d));
-}
-
-//
 // mmlQlerp
 //
-template < int n >
-mmlVector<n> mmlQlerp(const mmlVector<n> &a, const mmlVector<n> &b, const mmlVector<n> &c, const mmlVector<n> &d, float u, float v)
+template < int n, typename type_t  >
+mmlVector<n,type_t> mmlQlerp(const mmlVector<n,type_t> &a, const mmlVector<n,type_t> &b, const mmlVector<n,type_t> &c, const mmlVector<n,type_t> &d, const type_t &u, const type_t &v)
 {
-	mmlVector<n> v1 = mmlLerp(a, b, u);
-	mmlVector<n> v2 = mmlLerp(d, c, u);
+	mmlVector<n,type_t> v1 = mmlLerp(a, b, u);
+	mmlVector<n,type_t> v2 = mmlLerp(d, c, u);
 	return mmlLerp(v1, v2, v);
 }
 
 //
 // mmlNormalize
 //
-template < int n >
-inline mmlVector<n> mmlNormalize(mmlVector<n> v)
+template < int n, typename type_t  >
+inline mmlVector<n> mmlNormalize(mmlVector<n,type_t> v)
 {
 	v.Normalize();
 	return v;
 }
 
 //
-// mmlNormalizeFast
-//
-template < int n >
-inline mmlVector<n> mmlNormalizeFast(mmlVector<n> v)
-{
-	v.NormalizeFast();
-	return v;
-}
-
-//
 // mmlMin
 //
-template < int n >
+template < int n, typename type_t  >
 inline mmlVector<n> mmlMin(const mmlVector<n> &x, mmlVector<n> y)
 {
 	for (int i = 0; i < n; ++i) {
-		y[i] = (y[i] < x[i]) ? y[i] : x[i];
+		y[i] = mmlMin(x[i], y[i]);
 	}
 	return y;
 }
@@ -422,11 +377,11 @@ inline mmlVector<n> mmlMin(const mmlVector<n> &x, mmlVector<n> y)
 //
 // mmlMax
 //
-template < int n >
+template < int n, typename type_t  >
 inline mmlVector<n> mmlMax(const mmlVector<n> &x, mmlVector<n> y)
 {
 	for (int i = 0; i < n; ++i) {
-		y[i] = (y[i] > x[i]) ? y[i] : x[i];
+		y[i] = mmlMax(x[i], y[i]);
 	}
 	return y;
 }
@@ -434,34 +389,35 @@ inline mmlVector<n> mmlMax(const mmlVector<n> &x, mmlVector<n> y)
 //
 // mmlReflect
 //
-template < int n >
-inline mmlVector<n> mmlReflect(const mmlVector<n> &incident, const mmlVector<n> &surfaceNormal)
+template < int n, typename type_t  >
+inline mmlVector<n,type_t> mmlReflect(const mmlVector<n,type_t> &incident, const mmlVector<n,type_t> &surfaceNormal)
 {
-	return incident - surfaceNormal * 2.0f * mmlDot(incident, surfaceNormal);
+	return incident - surfaceNormal * type_t(2) * mmlDot(incident, surfaceNormal);
 }
 
 //
 // mmlRefract
 //
-template < int n >
-inline bool mmlRefract(const mmlVector<n> &incident, const mmlVector<n> &surfaceNormal, float incidentRefractionIndex, float surfaceRefractionIndex, mmlVector<n> &outRefraction)
+template < int n, typename type_t  >
+inline bool mmlRefract(const mmlVector<n,type_t> &incident, const mmlVector<n,type_t> &surfaceNormal, const type_t &incidentRefractionIndex, const type_t &surfaceRefractionIndex, mmlVector<n,type_t> &outRefraction)
 {
-	const float rel = incidentRefractionIndex / surfaceRefractionIndex;
-	const float cos = mmlDot(surfaceNormal, incident);
-	const float sin = rel * rel * (1.0f - cos * cos);
-	if (sin > 1.0f) {
+	const type_t rel = incidentRefractionIndex / surfaceRefractionIndex;
+	const type_t cos = mmlDot(surfaceNormal, incident);
+	const type_t sin = rel * rel * (type_t(1) - cos * cos);
+	if (sin > type_t(1)) {
 		return false;
 	}
-	outRefraction = rel * incident - (rel + sqrt(1.0f - sin)) * surfaceNormal;
+	outRefraction = rel * incident - (rel + sqrt(type_t(1) - sin)) * surfaceNormal;
 	return true;
 }
 
 //
 // mmlTangent
 //
-inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
+template < typename type_t >
+inline mmlVector<2,type_t> mmlTangent(const mmlVector<2,type_t> &normal)
 {
-	mmlVector<2> tan;
+	mmlVector<2,type_t> tan;
 	tan[0] = -normal[1];
 	tan[1] =  normal[0];
 	return tan;
@@ -470,7 +426,8 @@ inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
 //
 // mmlLineNormal
 //
-inline mmlVector<2> mmlLineNormal(const mmlVector<2> &a, const mmlVector<2> &b)
+template < typename type_t >
+inline mmlVector<2,type_t> mmlLineNormal(const mmlVector<2,type_t> &a, const mmlVector<2,type_t> &b)
 {
 	return mmlTangent(mmlNormalize(b - a));
 }
@@ -478,8 +435,8 @@ inline mmlVector<2> mmlLineNormal(const mmlVector<2> &a, const mmlVector<2> &b)
 //
 // mmlAbs
 //
-template < int n >
-inline mmlVector<n> mmlAbs(mmlVector<n> v)
+template < int n, typename type_t >
+inline mmlVector<n,type_t> mmlAbs(mmlVector<n,type_t> v)
 {
 	v.Abs();
 	return v;

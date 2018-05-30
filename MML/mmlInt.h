@@ -90,6 +90,13 @@ public:
 	typedef mml::s64 sign_t;
 };
 
+template < typename base_t > class va_cast           { public: typedef base_t   va_t; };
+template <>                  class va_cast<mml::s8>  { public: typedef mml::s32 va_t; };
+template <>                  class va_cast<mml::s16> { public: typedef mml::s32 va_t; };
+template <>                  class va_cast<mml::u8>  { public: typedef mml::u32 va_t; };
+template <>                  class va_cast<mml::u16> { public: typedef mml::u32 va_t; };
+template <>                  class va_cast<float>    { public: typedef double   va_t; };
+
 }
 
 #define MML_BITSOF(type) (sizeof(type) * CHAR_BIT)
