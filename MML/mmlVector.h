@@ -41,7 +41,7 @@ public:
 	//
 	// initializer list
 	//
-	explicit mmlVector(typename mml::va_cast<type_t>::va_t e0, ...) {
+	explicit mmlVector(const typename mml::va_cast<type_t>::va_t &e0, ...) {
 		va_list vl;
 		va_start(vl, e0);
 		e[0] = type_t(e0);

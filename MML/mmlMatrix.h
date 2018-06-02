@@ -12,7 +12,7 @@
 //
 // mmlMatrix
 //
-template < int rows, int columns > // rows is rows (V), columns is columns (->), p_row is current row, p_column is current column
+template < int rows, int columns, typename type_t = float > // rows is rows (V), columns is columns (->), p_row is current row, p_column is current column
 class mmlMatrix
 {
 public:
@@ -20,19 +20,19 @@ public:
 	static const int Columns = columns;
 
 private:
-	mmlVector<columns> e[rows];
+	mmlVector<columns,type_t> e[rows];
 
 public:
 	//
 	// index operators
 	//
-	const mmlVector<columns> &operator[](int p_row) const { return e[p_row]; }
-	mmlVector<columns> &operator[](int p_row) { return e[p_row]; }
+	const mmlVector<columns,type_t> &operator[](int p_row) const { return e[p_row]; }
+	mmlVector<columns,type_t> &operator[](int p_row) { return e[p_row]; }
 	//
 	// conversion operators
 	//
-	operator float * ( void ) { return e[0]; }
-	operator const float * const ( void ) const { return e[0]; }
+	operator type_t * ( void ) { return e[0]; }
+	operator const type_t * const ( void ) const { return e[0]; }
 
 public:
 	//
@@ -44,7 +44,7 @@ public:
 	//
 	// copy
 	//
-	mmlMatrix(const mmlMatrix<rows,columns> &mat) {
+	mmlMatrix(const mmlMatrix<rows,columns,type_t> &mat) {
 		for (int p_row = 0; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
 				e[p_row][p_column] = mat[p_row][p_column];
@@ -55,7 +55,7 @@ public:
 	// conversion
 	//
 	template < int m2, int n2>
-	explicit mmlMatrix(const mmlMatrix<m2,n2> &mat) {
+	explicit mmlMatrix(const mmlMatrix<m2,n2,type_t> &mat) {
 		const int minm = rows < m2 ? rows : m2;
 		const int minn = columns < n2 ? columns : n2;
 		int p_row = 0;
@@ -65,26 +65,26 @@ public:
 				e[p_row][p_column] = mat[p_row][p_column];
 			}
 			for (; p_column < columns; ++p_column) {
-				e[p_row][p_column] = 0.f;
+				e[p_row][p_column] = type_t(0);
 			}
 		}
 		for (; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
-				e[p_row][p_column] = 0.f;
+				e[p_row][p_column] = type_t(0);
 			}
 		}
 	}
 	//
 	// initializer
 	//
-	mmlMatrix(double e00, ...) {
+	mmlMatrix(const typename mml::va_cast<type_t>::va_t &e00, ...) {
 		va_list vl;
 		va_start(vl, e00);
-		e[0][0] = (float)e00;
-		for (int p_column = 1; p_column < columns; ++p_column) { e[0][p_column] = (float)va_arg(vl, double); }
+		e[0][0] = type_t(e00);
+		for (int p_column = 1; p_column < columns; ++p_column) { e[0][p_column] = type_t(va_arg(vl, typename mml::va_cast<type_t>::va_t)); }
 		for (int p_row = 1; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
-				e[p_row][p_column] = (float)va_arg(vl, double);
+				e[p_row][p_column] = type_t(va_arg(vl, typename mml::va_cast<type_t>::va_t));
 			}
 		}
 		va_end(vl);
@@ -92,7 +92,7 @@ public:
 	//
 	// conversion
 	//
-	mmlMatrix(const float * const mat) {
+	mmlMatrix(const type_t * const mat) {
 		for (int p_row = 0; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
 				e[p_row][p_column] = mat[p_row*rows + p_column];
@@ -101,32 +101,18 @@ public:
 	}
 
 public:
-	static mmlMatrix<rows, columns> &Cast(void *ptr)
+	static mmlMatrix<rows, columns,type_t> &Cast(void *ptr)
 	{
-		return *(mmlMatrix<rows, columns>*)ptr;
+		return *(mmlMatrix<rows, columns,type_t>*)ptr;
 	}
-	static const mmlMatrix<rows, columns> &Cast(const void *ptr)
+	static const mmlMatrix<rows, columns,type_t> &Cast(const void *ptr)
 	{
-		return *(mmlMatrix<rows, columns>*)ptr;
+		return *(mmlMatrix<rows, columns,type_t>*)ptr;
 	}
-	/*//
-	// Trace
-	//
-	float Trace( void ) const
-	{
-		return mmlTrace(*this);
-	}
-	//
-	// Det
-	//
-	float Det( void ) const
-	{
-		return mmlDet(*this);
-	}*/
 	//
 	// Stack
 	//
-	void Stack(const mmlMatrix<rows,columns> &mat)
+	void Stack(const mmlMatrix<rows,columns,type_t> &mat)
 	{
 		*this = mat * (*this);
 	}
@@ -137,28 +123,28 @@ public:
 	{
 		for (int p_row = 0; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
-				e[p_row][p_column] = (float)(p_row == p_column);
+				e[p_row][p_column] = type_t(p_row == p_column ? 1 : 0);
 			}
 		}
 	}
 	//
 	// IdentityMatrix
 	//
-	static mmlMatrix<rows,rows> IdentityMatrix( void )
+	static mmlMatrix<rows,rows,type_t> IdentityMatrix( void )
 	{
-		mmlMatrix<rows,rows> ident;
+		mmlMatrix<rows,rows,type_t> ident;
 		ident.SetIdentity();
 		return ident;
 	}
 	//
 	// ScaleMatrix
 	//
-	static mmlMatrix<rows, columns> ScaleMatrix(float scale)
+	static mmlMatrix<rows, columns, type_t> ScaleMatrix(const type_t &scale)
 	{
-		mmlMatrix<rows,columns> m;
+		mmlMatrix<rows,columns, type_t> m;
 		for (int p_row = 0; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
-				m.e[p_row][p_column] = (float)(p_row == p_column) * scale;
+				m.e[p_row][p_column] = type_t(p_row == p_column ? 1 : 0) * scale;
 			}
 		}
 		return m;
@@ -286,11 +272,11 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 			}
 			inv[p_column][p_row] -= sum;
 		}
-		if (p_row == rows-1) continue;
+		if (p_row == rows-1) { continue; }
 		for (int p_column = p_row+1; p_column < rows; ++p_column) {  // do a row of U
 			float sum = 0.f;
 			for (int k = 0; k < p_row; ++k) {
-				sum += inv[p_row][k]*inv[k][p_column];
+				sum += inv[p_row][k] * inv[k][p_column];
 			}
 			inv[p_row][p_column] = (inv[p_row][p_column]-sum) / inv[p_row][p_row];
 		}
@@ -301,7 +287,7 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 			if (p_row != p_column) {
 				x = 0.f;
 				for (int k = p_row; k < p_column; ++k) {
-					x -= inv[p_column][k]*inv[k][p_row];
+					x -= inv[p_column][k] * inv[k][p_row];
 				}
 			}
 			inv[p_column][p_row] = x / inv[p_column][p_column];
@@ -312,7 +298,7 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 			if (p_row == p_column) { continue; }
 			float sum = 0.f;
 			for (int k = p_row; k < p_column; ++k) {
-				sum += inv[k][p_column]*( (p_row==k) ? 1.f : inv[p_row][k] );
+				sum += inv[k][p_column] * ((p_row==k) ? 1.f : inv[p_row][k]);
 			}
 			inv[p_row][p_column] = -sum;
 		}
@@ -320,8 +306,8 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 	for (int p_row = 0; p_row < rows; ++p_row) {   // final inversion
 		for (int p_column = 0; p_column < rows; ++p_column) {
 			float sum = 0.f;
-			for (int k = ((p_row>p_column)?p_row:p_column); k < rows; ++k) {
-				sum += ((p_column==k)?1.f:inv[p_column][k])*inv[k][p_row];
+			for (int k = ((p_row > p_column) ? p_row : p_column); k < rows; ++k) {
+				sum += ((p_column==k) ? 1.f : inv[p_column][k]) * inv[k][p_row];
 			}
 			inv[p_column][p_row] = sum;
 		}
