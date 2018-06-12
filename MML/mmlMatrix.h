@@ -192,10 +192,10 @@ mmlMatrix<rows-1,columns-1> mmlCollapse(const mmlMatrix<rows,columns> &mat, int 
 //
 // mmlTrace
 //
-template < int rows >
-float mmlTrace(const mmlMatrix<rows,rows> &mat)
+template < int rows, typename type_t >
+type_t mmlTrace(const mmlMatrix<rows,rows,type_t> &mat)
 {
-	float trace = 0.f;
+	type_t trace = type_t(0);
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		trace += mat[p_row][p_row];
 	}
@@ -205,25 +205,26 @@ float mmlTrace(const mmlMatrix<rows,rows> &mat)
 //
 // mmlDet
 //
-template < int rows >
-float mmlDet(const mmlMatrix<rows,rows> &mat)
+template < int rows, typename type_t >
+type_t mmlDet(const mmlMatrix<rows,rows> &mat)
 {
 	// Stopping conditions
-	if (rows < 1) { return 0.f; }
+	if (rows < 1) { return type_t(0); }
 	if (rows == 1) { return mat[0][0]; }
 
 	// Transform to upper triangular matrix
-	mmlMatrix<rows,rows> upperTri = mat;
+	mmlMatrix<rows,rows,type_t> upperTri = mat;
 	int counti = 0;
 	for(int p_row = 0; p_row < rows-1; ++p_row) {
 		// Elementary Row Operation I
-		if(upperTri[p_row][p_row] == 0.f) {
+		if(upperTri[p_row][p_row] == type_t(0)) {
 			for(int k = p_row; k < rows; ++k) {
-				if(upperTri[k][p_row] != 0.f) {
+				if(upperTri[k][p_row] != type_t(0)) {
 					for(int p_column = 0; p_column < rows; ++p_column) {
-						float temp = upperTri[p_row][p_column];
-						upperTri[p_row][p_column] = upperTri[k][p_column];
-						upperTri[k][p_column] = temp;
+//						type_t temp = upperTri[p_row][p_column];
+//						upperTri[p_row][p_column] = upperTri[k][p_column];
+//						upperTri[k][p_column] = temp;
+						mmlSwap(upperTri[p_row][p_column], upperTri[k][p_column]);
 					}
 					k = rows;
 				}
@@ -231,9 +232,9 @@ float mmlDet(const mmlMatrix<rows,rows> &mat)
 			++counti;
 		}
 		// Elementary Row Operation III
-		if(upperTri[p_row][p_row] != 0.f) {
+		if(upperTri[p_row][p_row] != type_t(0)) {
 			for(int k = p_row + 1; k < rows; ++k) {
-				float factor = -1.f * upperTri[k][p_row] /  upperTri[p_row][p_row];
+				type_t factor = -type_t(1) * upperTri[k][p_row] /  upperTri[p_row][p_row];
 				for(int p_column = p_row; p_column < rows; ++p_column) {
 					upperTri[k][p_column] = upperTri[k][p_column] + (factor * upperTri[p_row][p_column]);
 				}
@@ -242,7 +243,7 @@ float mmlDet(const mmlMatrix<rows,rows> &mat)
 	}
 
 	// Calculate determinant
-	float det = 1.f;
+	type_t det = type_t(1);
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		det *= upperTri[p_row][p_row];
 	}
@@ -256,17 +257,17 @@ float mmlDet(const mmlMatrix<rows,rows> &mat)
 //
 // mmlInv
 //
-template < int rows >
-mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
+template < int rows, typename type_t >
+mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 {
 	// Hasn't checked the determinant. If det=0 then there is no inverse.
-	mmlMatrix<rows,rows> inv = mat;
+	mmlMatrix<rows,rows,type_t> inv = mat;
 	//if (rows <= 0) { return; }  // sanity check
 	//if (rows == 1) { return; }  // must be of dimension >= 2
 	for (int p_row = 1; p_row < rows; ++p_row) { inv[0][p_row] /= inv[0][0]; } // normalize row 0
 	for (int p_row = 1; p_row < rows; ++p_row) { 
 		for (int p_column = p_row; p_column < rows; ++p_column) { // do a column of L
-			float sum = 0.f;
+			float sum = type_t(0);
 			for (int k = 0; k < p_row; ++k) { 
 				sum += inv[p_column][k] * inv[k][p_row];
 			}
@@ -274,7 +275,7 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 		}
 		if (p_row == rows-1) { continue; }
 		for (int p_column = p_row+1; p_column < rows; ++p_column) {  // do a row of U
-			float sum = 0.f;
+			float sum = type_t(0);
 			for (int k = 0; k < p_row; ++k) {
 				sum += inv[p_row][k] * inv[k][p_column];
 			}
@@ -283,9 +284,9 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 	}
 	for (int p_row = 0; p_row < rows; ++p_row) { // invert L
 		for (int p_column = p_row; p_column < rows; ++p_column) {
-			float x = 1.f;
+			float x = type_t(1);
 			if (p_row != p_column) {
-				x = 0.f;
+				x = type_t(0);
 				for (int k = p_row; k < p_column; ++k) {
 					x -= inv[p_column][k] * inv[k][p_row];
 				}
@@ -296,18 +297,18 @@ mmlMatrix<rows,rows> mmlInv(const mmlMatrix<rows,rows> &mat)
 	for (int p_row = 0; p_row < rows; ++p_row) {  // invert U
 		for (int p_column = p_row; p_column < rows; ++p_column) {
 			if (p_row == p_column) { continue; }
-			float sum = 0.f;
+			float sum = type_t(0);
 			for (int k = p_row; k < p_column; ++k) {
-				sum += inv[k][p_column] * ((p_row==k) ? 1.f : inv[p_row][k]);
+				sum += inv[k][p_column] * ((p_row==k) ? type_t(1) : inv[p_row][k]);
 			}
 			inv[p_row][p_column] = -sum;
 		}
 	}
 	for (int p_row = 0; p_row < rows; ++p_row) {   // final inversion
 		for (int p_column = 0; p_column < rows; ++p_column) {
-			float sum = 0.f;
+			float sum = type_t(0);
 			for (int k = ((p_row > p_column) ? p_row : p_column); k < rows; ++k) {
-				sum += ((p_column==k) ? 1.f : inv[p_column][k]) * inv[k][p_row];
+				sum += ((p_column==k) ? type_t(1) : inv[p_column][k]) * inv[k][p_row];
 			}
 			inv[p_column][p_row] = sum;
 		}
@@ -411,26 +412,28 @@ inline mmlVector<3> &operator*=(mmlVector<3> &v, const mmlMatrix<4,4> &m)
 //
 // mmlTranslationMatrix
 //
-inline mmlMatrix<4,4> mmlTranslationMatrix(float x, float y, float z)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlTranslationMatrix(const type_t &x, const type_t &y, const type_t &z)
 {
-	return mmlMatrix<4,4>(
-		1.f, 0.f, 0.f, x,
-		0.f, 1.f, 0.f, y,
-		0.f, 0.f, 1.f, z,
-		0.f, 0.f, 0.f, 1.f
+	return mmlMatrix<4,4,type_t>(
+		type_t(1), type_t(0), type_t(0), x,
+		type_t(0), type_t(1), type_t(0), y,
+		type_t(0), type_t(0), type_t(1), z,
+		type_t(0), type_t(0), type_t(0), type_t(1)
 		);
 }
 
 //
 // mmlScaleMatrix
 //
-inline mmlMatrix<4,4> mmlScaleMatrix(float x, float y, float z)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlScaleMatrix(const type_t &x, const type_t &y, const type_t &z)
 {
-	return mmlMatrix<4,4>(
-		x,   0.f, 0.f, 0.f,
-		0.f, y,   0.f, 0.f,
-		0.f, 0.f, z,   0.f,
-		0.f, 0.f, 0.f, 1.f
+	return mmlMatrix<4,4,type_t>(
+		x,         type_t(0), type_t(0), type_t(0),
+		type_t(0), y,         type_t(0), type_t(0),
+		type_t(0), type_t(0), z,         type_t(0),
+		type_t(0), type_t(0), type_t(0), type_t(1)
 		);
 }
 
@@ -447,29 +450,30 @@ inline mmlMatrix<3,3> mmlNormalTransformMatrix(const mmlMatrix<4,4> &mat)
 // Input: 3 vertices making up a triangle in the format [X Y Z U V] (where U and V are texture coordinates)
 // Output: a matrix that rotates a 3D vertex lying in the same space as the input vertices to texture space.
 //
-inline mmlMatrix<3,3> mmlTextureSpaceMatrix(const mmlVector<5> &va, const mmlVector<5> &vb, const mmlVector<5> &vc)
+template < typename type_t >
+inline mmlMatrix<3,3,type_t> mmlTextureSpaceMatrix(const mmlVector<5,type_t> &va, const mmlVector<5,type_t> &vb, const mmlVector<5,type_t> &vc)
 {
 	mmlVector<3> t, b, n;
 
 	// tangent
 	const float eu21 = vb[3] - va[3];
-	if (eu21 != 0.0f) {
-		const mmlVector<3> exyz21 = mmlVector<3>::Cast(&(vb[0])) - mmlVector<3>::Cast(&(va[0]));
-		t = mmlNormalize(exyz21 * (1.0f / eu21));
+	if (eu21 != type_t(0)) {
+		const mmlVector<3,type_t> exyz21 = mmlVector<3,type_t>::Cast(&(vb[0])) - mmlVector<3,type_t>::Cast(&(va[0]));
+		t = mmlNormalize(exyz21 * (type_t(1) / eu21));
 	} else {
 		const float eu31 = vc[3] - va[3];
-		const mmlVector<3> exyz31 = mmlVector<3>::Cast(&(vc[0])) - mmlVector<3>::Cast(&(va[0]));
-		t = mmlNormalize(exyz31 * (1.0f / eu31));
+		const mmlVector<3,type_t> exyz31 = mmlVector<3,type_t>::Cast(&(vc[0])) - mmlVector<3,type_t>::Cast(&(va[0]));
+		t = mmlNormalize(exyz31 * (type_t(1) / eu31));
 	}
 
 	// normal
-	n = mmlSurfaceNormal(mmlVector<3>::Cast(&(va[0])), mmlVector<3>::Cast(&(vb[0])), mmlVector<3>::Cast(&(vc[0])));
+	n = mmlSurfaceNormal(mmlVector<3,type_t>::Cast(&(va[0])), mmlVector<3,type_t>::Cast(&(vb[0])), mmlVector<3,type_t>::Cast(&(vc[0])));
 
 	// binormal
 	b = mmlCross(t, n);
 
 	// TBN matrix that transforms directly to tangent space from world space
-	return mmlMatrix<3,3>(
+	return mmlMatrix<3,3,type_t>(
 		t[0], t[1], t[2],
 		b[0], b[1], b[2],
 		n[0], n[1], n[2]
@@ -479,53 +483,57 @@ inline mmlMatrix<3,3> mmlTextureSpaceMatrix(const mmlVector<5> &va, const mmlVec
 //
 // mmlXRotationMatrix
 //
-inline mmlMatrix<4,4> mmlXRotationMatrix(float xrad)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlXRotationMatrix(const type_t &xrad)
 {
-	const float SIN = sin(xrad);
-	const float COS = cos(xrad);
+	const type_t SIN = sin(xrad);
+	const type_t COS = cos(xrad);
 	return mmlMatrix<4,4>(
-		1.f, 0.f,  0.f, 0.f,
-		0.f, COS, -SIN, 0.f,
-		0.f, SIN,  COS, 0.f,
-		0.f, 0.f,  0.f, 1.f
+		type_t(1), type_t(0),  type_t(0), type_t(0),
+		type_t(0), COS,       -SIN,       type_t(0),
+		type_t(0), SIN,        COS,       type_t(0),
+		type_t(0), type_t(0),  type_t(0), type_t(1)
 		);
 }
 
 //
 // mmlYRotationMatrix
 //
-inline mmlMatrix<4,4> mmlYRotationMatrix(float yrad)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlYRotationMatrix(const type_t &yrad)
 {
-	const float SIN = sin(yrad);
-	const float COS = cos(yrad);
-	return mmlMatrix<4,4>(
-		 COS, 0.f, SIN,	0.f,
-		 0.f, 1.f, 0.f, 0.f,
-		-SIN, 0.f, COS,	0.f,
-		 0.f, 0.f, 0.f, 1.f
+	const type_t SIN = sin(yrad);
+	const type_t COS = cos(yrad);
+	return mmlMatrix<4,4,type_t>(
+		 COS,       type_t(0), SIN,       type_t(0),
+		 type_t(0), type_t(1), type_t(0), type_t(0),
+		-SIN,       type_t(0), COS,       type_t(0),
+		 type_t(0), type_t(0), type_t(0), type_t(1)
 		);
 }
 
 //
 // mmlZRotationMatrix
 //
-inline mmlMatrix<4,4> mmlZRotationMatrix(float zrad)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlZRotationMatrix(const type_t &zrad)
 {
-	const float SIN = sin(zrad);
-	const float COS = cos(zrad);
-	return mmlMatrix<4,4>(
-		COS, -SIN, 0.f, 0.f,
-		SIN,  COS, 0.f, 0.f,
-		0.f,  0.f, 1.f, 0.f,
-		0.f,  0.f, 0.f, 1.f
+	const type_t SIN = sin(zrad);
+	const type_t COS = cos(zrad);
+	return mmlMatrix<4,4,type_t>(
+		COS,      -SIN,       type_t(0), type_t(0),
+		SIN,       COS,       type_t(0), type_t(0),
+		type_t(0), type_t(0), type_t(1), type_t(0),
+		type_t(0), type_t(0), type_t(0), type_t(1)
 		);
 }
 
-inline mmlMatrix<2,2> mml2DRotationMatrix(float rad)
+template < typename type_t >
+inline mmlMatrix<2,2,type_t> mml2DRotationMatrix(const type_t &rad)
 {
-	const float SIN = sin(rad);
-	const float COS = cos(rad);
-	mmlMatrix<2,2> m;
+	const type_t SIN = sin(rad);
+	const type_t COS = cos(rad);
+	mmlMatrix<2,2,type_t> m;
 	m[0][0] = COS; m[0][1] = -SIN;
 	m[1][0] = SIN; m[1][1] = COS;
 	return m;
@@ -534,20 +542,21 @@ inline mmlMatrix<2,2> mml2DRotationMatrix(float rad)
 //
 // mmlEulerRotationMatrix
 //
-inline mmlMatrix<4,4> mmlEulerRotationMatrix(float head, float pitch, float roll)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlEulerRotationMatrix(const type_t &head, const type_t &pitch, const type_t &roll)
 {
-	const float
+	const type_t
 		SINH = sin(head),
 		SINP = sin(pitch),
 		SINR = sin(roll),
 		COSH = cos(head),
 		COSP = cos(pitch),
 		COSR = cos(roll);
-	return mmlMatrix<4,4>(
-		(COSR*COSH) -(SINR*SINP*SINH), -SINR*COSP, (COSR*SINH) +(SINR*SINP*COSH), 0.f,
-		(SINR*COSH) +(COSR*SINP*SINH),  COSR*COSP, (SINR*SINH) -(COSR*SINP*COSH), 0.f,
-		-COSP*SINH,                     SINP,      COSP*COSH,                     0.f,
-		0.f,                            0.f,       0.f,                           1.f
+	return mmlMatrix<4,4,type_t>(
+		(COSR*COSH) -(SINR*SINP*SINH), -SINR*COSP, (COSR*SINH) +(SINR*SINP*COSH), type_t(0),
+		(SINR*COSH) +(COSR*SINP*SINH),  COSR*COSP, (SINR*SINH) -(COSR*SINP*COSH), type_t(0),
+		-COSP*SINH,                     SINP,      COSP*COSH,                     type_t(0),
+		type_t(0),                      type_t(0), type_t(0),                     type_t(1)
 		);
 }
 
@@ -556,51 +565,54 @@ inline mmlMatrix<4,4> mmlEulerRotationMatrix(float head, float pitch, float roll
 /*inline mmlMatrix<4,4> mmlInfPerspectiveMatrix(float fovh, float fovv, float near, float far)
 {
 	return mmlMatrix<4,4>(
-		1.f/tan(fovh/2.f), 0.f, 0.f, 0.f,
-		0.f, 1.f/tan(fovv/2.f), 0.f, 0.f,
-		0.f, 0.f, far/(far-near), 1.f,
-		0.f, 0.f, (-far*near)/(far-near), 0.f
+		type_t(1)/tan(fovh/2.f), type_t(0), type_t(0), type_t(0),
+		type_t(0), type_t(1)/tan(fovv/2.f), type_t(0), type_t(0),
+		type_t(0), type_t(0), far/(far-near), type_t(1),
+		type_t(0), type_t(0), (-far*near)/(far-near), type_t(0)
 		);
 }*/
 
-inline mmlMatrix<4,4> mmlAxisRotationMatrix4(const mmlVector<3> &p_axis, float p_rot)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlAxisRotationMatrix4(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
 {
-	const float x = p_axis[0];
-	const float y = p_axis[1];
-	const float z = p_axis[2];
-	const float c = cosf(p_rot);
-	const float s = sinf(p_rot);
+	const type_t x = p_axis[0];
+	const type_t y = p_axis[1];
+	const type_t z = p_axis[2];
+	const type_t c = cosf(p_rot);
+	const type_t s = sinf(p_rot);
 
-	return mmlMatrix<4,4>(
-		(x * x) * (1.0f - c) + c,       (x * y) * (1.0f - c) + (z * s), (x * z) * (1.0f - c) - (y * s), 0.f,
-		(y * x) * (1.0f - c) - (z * s), (y * y) * (1.0f - c) + c,       (y * z) * (1.0f - c) + (x * s), 0.f,
-		(z * x) * (1.0f - c) + (y * s), (z * y) * (1.0f - c) - (x * s), (z * z) * (1.0f - c) + c,       0.f,
-		0.f,                            0.f,                            0.f,                            1.f
+	return mmlMatrix<4,4,type_t>(
+		(x * x) * (type_t(1) - c) + c,       (x * y) * (type_t(1) - c) + (z * s), (x * z) * (type_t(1) - c) - (y * s), type_t(0),
+		(y * x) * (type_t(1) - c) - (z * s), (y * y) * (type_t(1) - c) + c,       (y * z) * (type_t(1) - c) + (x * s), type_t(0),
+		(z * x) * (type_t(1) - c) + (y * s), (z * y) * (type_t(1) - c) - (x * s), (z * z) * (type_t(1) - c) + c,       type_t(0),
+		type_t(0),                           type_t(0),                           type_t(0),                           type_t(1)
 	);
 }
 
-inline mmlMatrix<3,3> mmlAxisRotationMatrix3(const mmlVector<3> &p_axis, float p_rot)
+template < typename type_t >
+inline mmlMatrix<3,3> mmlAxisRotationMatrix3(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
 {
-	const float x = p_axis[0];
-	const float y = p_axis[1];
-	const float z = p_axis[2];
-	const float c = cosf(p_rot);
-	const float s = sinf(p_rot);
+	const type_t x = p_axis[0];
+	const type_t y = p_axis[1];
+	const type_t z = p_axis[2];
+	const type_t c = cos(p_rot);
+	const type_t s = sin(p_rot);
 
-	return mmlMatrix<3,3>(
-		(x * x) * (1.0f - c) + c,       (x * y) * (1.0f - c) + (z * s), (x * z) * (1.0f - c) - (y * s),
-		(y * x) * (1.0f - c) - (z * s), (y * y) * (1.0f - c) + c,       (y * z) * (1.0f - c) + (x * s),
-		(z * x) * (1.0f - c) + (y * s), (z * y) * (1.0f - c) - (x * s), (z * z) * (1.0f - c) + c
+	return mmlMatrix<3,3,type_t>(
+		(x * x) * (type_t(1) - c) + c,       (x * y) * (type_t(1) - c) + (z * s), (x * z) * (type_t(1) - c) - (y * s),
+		(y * x) * (type_t(1) - c) - (z * s), (y * y) * (type_t(1) - c) + c,       (y * z) * (type_t(1) - c) + (x * s),
+		(z * x) * (type_t(1) - c) + (y * s), (z * y) * (type_t(1) - c) - (x * s), (z * z) * (type_t(1) - c) + c
 	);
 }
 
-inline mmlMatrix<4,4> mmlViewMatrix(const mmlVector<3> &p_xAxis, const mmlVector<3> &p_yAxis, const mmlVector<3> &p_zAxis, const mmlVector<3> &p_viewPos)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlViewMatrix(const mmlVector<3,type_t> &p_xAxis, const mmlVector<3,type_t> &p_yAxis, const mmlVector<3,type_t> &p_zAxis, const mmlVector<3,type_t> &p_viewPos)
 {
-	return mmlMatrix<4,4>(
-		 p_xAxis[0],                  p_yAxis[0],                  p_zAxis[0],                 0.f,
-		 p_xAxis[1],                  p_yAxis[1],                  p_zAxis[1],                 0.f,
-		 p_xAxis[2],                  p_yAxis[2],                  p_zAxis[2],                 0.f,
-		-mmlDot(p_xAxis, p_viewPos), -mmlDot(p_yAxis, p_viewPos), -mmlDot(p_zAxis, p_viewPos), 1.f
+	return mmlMatrix<4,4,type_t>(
+		 p_xAxis[0],                  p_yAxis[0],                  p_zAxis[0],                 type_t(0),
+		 p_xAxis[1],                  p_yAxis[1],                  p_zAxis[1],                 type_t(0),
+		 p_xAxis[2],                  p_yAxis[2],                  p_zAxis[2],                 type_t(0),
+		-mmlDot(p_xAxis, p_viewPos), -mmlDot(p_yAxis, p_viewPos), -mmlDot(p_zAxis, p_viewPos), type_t(1)
 	);
 }
 
@@ -613,23 +625,25 @@ inline mmlMatrix<4,4> mmlViewMatrix(const mmlVector<3> &p_up, const mmlVector<3>
 }
 
 // Do not use this for perspective transform matrices
-inline mmlMatrix<4,4> mmlToOpenGLTransform3D(const mmlMatrix<4,4> &p_transform)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlToOpenGLTransform3D(const mmlMatrix<4,4,type_t> &p_transform)
 {
-	return mmlMatrix<4,4>(
-		p_transform[0][0], p_transform[0][1], p_transform[0][2], 0.0f,
-		p_transform[1][0], p_transform[1][1], p_transform[1][2], 0.0f,
-		p_transform[2][0], p_transform[2][1], p_transform[2][2], 0.0f,
-		p_transform[0][3], p_transform[1][3], p_transform[2][3], 1.0f
+	return mmlMatrix<4,4,type_t>(
+		p_transform[0][0], p_transform[0][1], p_transform[0][2], type_t(0),
+		p_transform[1][0], p_transform[1][1], p_transform[1][2], type_t(0),
+		p_transform[2][0], p_transform[2][1], p_transform[2][2], type_t(0),
+		p_transform[0][3], p_transform[1][3], p_transform[2][3], type_t(1)
 	);
 }
 
-inline mmlMatrix<4,4> mmlToOpenGLTransform2D(const mmlMatrix<3,3> &p_transform)
+template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlToOpenGLTransform2D(const mmlMatrix<3,3,type_t> &p_transform)
 {
-	return mmlMatrix<4,4>(
-		p_transform[0][0], p_transform[0][1], 0.0f, 0.0f,
-		p_transform[1][0], p_transform[1][1], 0.0f, 0.0f,
-		0.0f,              0.0f,              1.0f, 0.0f,
-		p_transform[0][2], p_transform[1][2], 0.0f, 1.0f
+	return mmlMatrix<4,4,type_t>(
+		p_transform[0][0], p_transform[0][1], type_t(0), type_t(0),
+		p_transform[1][0], p_transform[1][1], type_t(0), type_t(0),
+		type_t(0),         type_t(0),         type_t(1), type_t(0),
+		p_transform[0][2], p_transform[1][2], type_t(0), type_t(1)
 	);
 }
 

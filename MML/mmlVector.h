@@ -212,7 +212,7 @@ public:
 	void FixDenormals( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			if (fabs(e[i]) < 1e-30f) { e[i] = 0.f; }
+			if (mmlAbs(e[i]) < 1e-30f) { e[i] = type_t(0); }
 		}
 	}
 	void Swap(int i, int j)
@@ -224,7 +224,7 @@ public:
 	void Abs( void )
 	{
 		for (int j = 0; j < n; ++j) {
-			e[j] = fabs(e[j]);
+			e[j] = mmlAbs(e[j]);
 		}
 	}
 	template < int m >
