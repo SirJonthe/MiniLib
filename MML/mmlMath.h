@@ -49,6 +49,22 @@ template < typename T > inline T mmlMin(const T &pA, const T &pB, const T &pC)  
 template < typename T > inline T mmlMax(const T &pA, const T &pB, const T &pC)        { return mmlMax(mmlMax(pA,pB),pC); }
 template < typename T > inline T mmlClamp(const T &min, const T &value, const T &max) { return mmlMax(mmlMin(value, max), min); }
 template < typename T > inline T mmlAbs(const T &x)                                   { return mmlMax(x, -x); }
+template < typename T > inline T mmlWrap(T value, const T &max) {
+	if (value > max)    { value = value % (max + 1); }
+	else if (value < 0) { value = (max + 1) - (-value % max); }
+	return value;
+}
+inline double mmlWrap(double value, const double &max) {
+	if (value > max)      { value = fmod(value, max); }
+	else if (value < 0.0) { value = max - (fmod(-value, max)); }
+	return value;
+}
+inline float mmlWrap(float value, const float &max) {
+	if (value > max)       { value = fmod(value, max); }
+	else if (value < 0.0f) { value = max - (fmod(-value, max)); }
+	return value;
+}
+template < typename T > inline T mmlWrap(const T &min, const T & value, const T &max) { return mmlWrap(value - min, max - min) + min; }
 
 #define mmlAtLeast mmlMax
 #define mmlAtMost  mmlMin
