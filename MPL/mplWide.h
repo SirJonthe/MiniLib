@@ -277,6 +277,8 @@ namespace mpl {
 		wide_int &operator&=(const wide_bool &r) { i = _mm_and_si128(i, r.u); return *this; }
 		wide_int &operator<<=(int r) { i = _mm_slli_epi32(i, r); return *this; }
 		wide_int &operator>>=(int r) { i = _mm_srai_epi32(i, r); return *this; }
+//		wide_int &operator/=(const wide_int &r) {}
+//		wide_int &operator%=(const wide_int &r) { *this = *this - (*this / r) * r; return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return _mm_add_epi32(i, r.i); }
 		wide_int operator-(const wide_int &r)  const { return _mm_sub_epi32(i, r.i); }
@@ -287,6 +289,8 @@ namespace mpl {
 		wide_int operator&(const wide_bool &r) const { return _mm_and_si128(i, r.u); }
 		wide_int operator<<(int r) const { return _mm_slli_epi32(i, r); }
 		wide_int operator>>(int r) const { return _mm_srai_epi32(i, r); }
+//		wide_int &operator/(const wide_int &r) { wide_int o = *this; return o /= r; }
+//		wide_int &operator%(const wide_int &r) { return *this - (*this / r) * r; }
 
 		wide_bool operator==(const wide_int &r) const { return _mm_cmpeq_epi32(i, r.i); }
 		wide_bool operator!=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
@@ -607,6 +611,8 @@ namespace mpl {
 		wide_int &operator&=(const wide_bool &r) { i = vandq_s32(i, *(const int32x4_t*)(&r.u)); return *this; }
 		wide_int &operator<<=(int r) { i = vshlq_n_s32(i, r); return *this; }
 		wide_int &operator>>=(int r) { i = vshlq_n_s32(i, -r); return *this; }
+//		wide_int &operator/=(const wide_int &r) {}
+//		wide_int &operator%=(const wide_int &r) { *this = *this - (*this / r) * r; return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return vaddq_s32(i, r.i); }
 		wide_int operator-(const wide_int &r)  const { return vsubq_s32(i, r.i); }
@@ -617,6 +623,8 @@ namespace mpl {
 		wide_int operator&(const wide_bool &r) const { return vandq_s32(i, *(const int32x4_t*)(&r.u)); }
 		wide_int operator<<(int r) const { return vshlq_n_s32(i, r); }
 		wide_int operator>>(int r) const { return vshlq_n_s32(i, -r); }
+//		wide_int &operator/(const wide_int &r) { wide_int o = *this; return o /= r; }
+//		wide_int &operator%(const wide_int &r) { return *this - (*this / r) * r; }
 
 		wide_bool operator==(const wide_int &r) const { return vceqq_s32(i, r.i); }
 		wide_bool operator!=(const wide_int &r) const { return vmvnq_u32(vceqq_s32(i, r.i)); }
@@ -911,6 +919,8 @@ namespace mpl {
 		wide_int &operator&=(const wide_bool &r) { i &= r.u; return *this; }
 		wide_int &operator<<=(int r) { i <<= r; return *this; }
 		wide_int &operator>>=(int r) { i >>= r; return *this; }
+//		wide_int &operator/=(const wide_int &r) {}
+//		wide_int &operator%=(const wide_int &r) { *this = *this - (*this / r) * r; return *this; }
 
 		wide_int operator+(const wide_int &r)  const { return i + r.i; }
 		wide_int operator-(const wide_int &r)  const { return i - r.i; }
@@ -921,6 +931,8 @@ namespace mpl {
 		wide_int operator&(const wide_bool &r) const { return i & r.u; }
 		wide_int operator<<(int r) const { return i << r; }
 		wide_int operator>>(int r) const { return i >> r; }
+//		wide_int &operator/(const wide_int &r) { wide_int o = *this; return o /= r; }
+//		wide_int &operator%(const wide_int &r) { return *this - (*this / r) * r; }
 
 		wide_bool operator==(const wide_int &r) const { wide_bool o; o.u = (i == r.i) ? MPL_TRUE_BITS : MPL_FALSE_BITS; return o; }
 		wide_bool operator!=(const wide_int &r) const { wide_bool o; o.u = (i != r.i) ? MPL_TRUE_BITS : MPL_FALSE_BITS; return o; }
