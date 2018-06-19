@@ -29,7 +29,7 @@ public:
 	// default
 	//
 	mmlVector( void ) {
-		//for (int i = 0; i < n; ++i) { e[i] = type_t(0); }
+		//for (int i = 0; i < n; ++i) { e[i] = type_t(0.0); }
 		// do nothing, let initialize to garbage
 	}
 	//
@@ -60,7 +60,7 @@ public:
 		} else {
 			int j = 0;
 			for (; j < m; ++j) { e[j] = v[j]; }
-			for (; j < n; ++j) { e[j] = type_t(0); }
+			for (; j < n; ++j) { e[j] = type_t(0.0); }
 		}
 	}
 	//
@@ -135,7 +135,7 @@ public:
 	}
 	mmlVector<n,type_t> &operator/=(const type_t &r)
 	{
-		return *this *= (type_t(1) / r);
+		return *this *= (type_t(1.0) / r);
 	}
 	mmlVector<n,type_t> &operator/=(const mmlVector<n,type_t> &r)
 	{
@@ -184,35 +184,35 @@ public:
 	void Zero( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			e[i] = type_t(0);
+			e[i] = type_t(0.0);
 		}
 	}
 	type_t Len( void ) const
 	{
-		type_t l = type_t(0);
+		type_t l = type_t(0.0);
 		for (int j = 0; j < n; ++j) { l += e[j] * e[j]; }
 		return mmlSqrt(l);
 	}
 	void Normalize( void )
 	{
-		const type_t invlen = type_t(1) / Len();
+		const type_t invlen = type_t(1.0) / Len();
 		for (int j = 0; j < n; ++j) {
 			e[j] *= invlen;
 		}
 	}
-	bool IsNormalized(const type_t &p_tolerance = type_t(0)) const
+	bool IsNormalized(const type_t &p_tolerance = type_t(0.0)) const
 	{
-		type_t unit = type_t(0);
+		type_t unit = type_t(0.0);
 		for (int i = 0; i < n; ++i) {
 			unit += e[i] * e[i];
 		}
-		unit -= type_t(1);
+		unit -= type_t(1.0);
 		return (unit <= p_tolerance && unit >= -p_tolerance);
 	}
 	void FixDenormals( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			if (mmlAbs(e[i]) < 1e-30f) { e[i] = type_t(0); }
+			if (mmlAbs(e[i]) < 1e-30f) { e[i] = type_t(0.0); }
 		}
 	}
 	void Swap(int i, int j)
@@ -263,7 +263,7 @@ template < int n, typename type_t > inline mmlVector<n,type_t> operator-(mmlVect
 template < int n, typename type_t >
 inline type_t mmlDot(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
-	type_t d = type_t(0);
+	type_t d = type_t(0.0);
 	for (int j = 0; j < n; ++j) { d += u[j] * v[j]; }
 	return d;
 }
@@ -325,7 +325,7 @@ inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3,type_t> &x, const mmlVect
 template < int n, typename type_t >
 mmlVector<n> mmlSlerp(const mmlVector<n,type_t> &u, mmlVector<n,type_t> v, const type_t &d)
 {
-	type_t dot = mmlClamp(type_t(-1), mmlDot(u, v), type_t(1)); // clamp to remove floating point imprecision issues
+	type_t dot = mmlClamp(type_t(-1.0), mmlDot(u, v), type_t(1.0)); // clamp to remove floating point imprecision issues
 	type_t theta = acos(dot) * d;
 	v = v - u * dot;
 	v.Normalize();
@@ -392,7 +392,7 @@ inline mmlVector<n> mmlMax(const mmlVector<n> &x, mmlVector<n> y)
 template < int n, typename type_t  >
 inline mmlVector<n,type_t> mmlReflect(const mmlVector<n,type_t> &incident, const mmlVector<n,type_t> &surfaceNormal)
 {
-	return incident - surfaceNormal * type_t(2) * mmlDot(incident, surfaceNormal);
+	return incident - surfaceNormal * type_t(2.0) * mmlDot(incident, surfaceNormal);
 }
 
 //
@@ -403,11 +403,11 @@ inline bool mmlRefract(const mmlVector<n,type_t> &incident, const mmlVector<n,ty
 {
 	const type_t rel = incidentRefractionIndex / surfaceRefractionIndex;
 	const type_t cos = mmlDot(surfaceNormal, incident);
-	const type_t sin = rel * rel * (type_t(1) - cos * cos);
-	if (sin > type_t(1)) {
+	const type_t sin = rel * rel * (type_t(1.0) - cos * cos);
+	if (sin > type_t(1.0)) {
 		return false;
 	}
-	outRefraction = rel * incident - (rel + sqrt(type_t(1) - sin)) * surfaceNormal;
+	outRefraction = rel * incident - (rel + sqrt(type_t(1.0) - sin)) * surfaceNormal;
 	return true;
 }
 
