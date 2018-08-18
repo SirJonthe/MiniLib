@@ -77,7 +77,7 @@ public:
 	//
 	// initializer
 	//
-	mmlMatrix(const typename mml::va_cast<type_t>::va_t &e00, ...) {
+	mmlMatrix(const typename mml::va_cast<type_t>::va_t e00, ...) {
 		va_list vl;
 		va_start(vl, e00);
 		e[0][0] = type_t(e00);
@@ -107,7 +107,7 @@ public:
 	}
 	static const mmlMatrix<rows, columns,type_t> &Cast(const void *ptr)
 	{
-		return *(mmlMatrix<rows, columns,type_t>*)ptr;
+		return *(const mmlMatrix<rows, columns,type_t>*)ptr;
 	}
 	//
 	// Stack
@@ -399,9 +399,9 @@ template < typename type_t >
 inline mmlVector<3,type_t> operator*(const mmlVector<3,type_t> &v, const mmlMatrix<4,4,type_t> &m)
 {
 	return mmlVector<3,type_t>(
-		mmlDot(v, *(mmlVector<3,type_t>*)(&m[0])) + m[0][3],
-		mmlDot(v, *(mmlVector<3,type_t>*)(&m[1])) + m[1][3],
-		mmlDot(v, *(mmlVector<3,type_t>*)(&m[2])) + m[2][3]
+		mmlDot(v, *(const mmlVector<3,type_t>*)(&m[0])) + m[0][3],
+		mmlDot(v, *(const mmlVector<3,type_t>*)(&m[1])) + m[1][3],
+		mmlDot(v, *(const mmlVector<3,type_t>*)(&m[2])) + m[2][3]
 		);
 }
 template < typename type_t >
@@ -644,7 +644,7 @@ inline mmlMatrix<4,4,type_t> mmlToOpenGLTransform2D(const mmlMatrix<3,3,type_t> 
 	return mmlMatrix<4,4,type_t>(
 		p_transform[0][0], p_transform[0][1], type_t(0.0), type_t(0.0),
 		p_transform[1][0], p_transform[1][1], type_t(0.0), type_t(0.0),
-		type_t(0.0),         type_t(0.0),         type_t(1.0), type_t(0.0),
+		type_t(0.0),       type_t(0.0),       type_t(1.0), type_t(0.0),
 		p_transform[0][2], p_transform[1][2], type_t(0.0), type_t(1.0)
 	);
 }
