@@ -73,6 +73,8 @@ public:
 //	void FillCircle(int cx, int cy, int radius, mglColor32 color);
 	void FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, mglColor32 color);
 	void DrawChar(char ch, int x, int y, mglColor32 color, int scale = 1);
+
+	static void Blit(mglImage &dst, int dx1, int dy1, int dx2, int dy2, const mglImage &src, int sx1, int sy1, int sx2, int sy2);
 };
 
 #endif // MGL_IMAGE_H_INCLUDED

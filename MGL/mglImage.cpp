@@ -496,3 +496,66 @@ void mglImage::DrawChar(char ch, int x, int y, mglColor32 color, int scale)
 		scale
 	);
 }
+
+void mglImage::Blit(mglImage &dst, int dx1, int dy1, int dx2, int dy2, const mglImage &src, int sx1, int sy1, int sx2, int sy2)
+{
+	// clip srcRect against max borders
+	sx1 = mmlMax(sx1, 0);
+	sy1 = mmlMax(sy1, 0);
+	sx2 = mmlMin(sx2, src.m_width);
+	sy2 = mmlMin(sy2, src.m_height);
+
+	float u1 = (float)sx1 / (float)(src.m_width - 1);
+	float v1 = (float)sy1 / (float)(src.m_height - 1);
+	float u2 = (float)sx2 / (float)(src.m_width - 1);
+	float v2 = (float)sy2 / (float)(src.m_height - 1);
+	float du = (u2 - u1) / (float)(dx2 - dx1);
+	float dv = (v2 - v1) / (float)(dy2 - dy1);
+
+	// enable a negative writable area on dst (flips blit direction)
+	if (dx2 < dx1) {
+		mmlSwap(dx1, dx2);
+		mmlSwap(u1, u2);
+		if (dx1 < 0) { // make read offset for src + clip against min borders
+			u1 = u1 - du * dx1;
+			dx1 = 0;
+		}
+	} else if (dx1 < 0) { // make read offset for src + clip against min borders
+		u1 = u1 + du * -dx1;
+		dx1 = 0;
+	}
+	if (dy2 < dy1) {
+		mmlSwap(dy1, dy2);
+		mmlSwap(v1, v2);
+		if (dy1 < 0) { // make read offset for src + clip against min borders
+			v1 = v1 - dv * dy1;
+			dy1 = 0;
+		}
+	} else if (dy1 < 0) { // make read offset for src + clip against min borders
+		v1 = v1 + dv * -dy1;
+		dy1 = 0;
+	}
+
+	// clip dstRect agains max borders
+	dx2 = mmlMin(dx2, dst.m_width);
+	dy2 = mmlMin(dy2, dst.m_height);
+
+	// determine writable area
+	const int MAXY = dy2 - dy1;
+	const int MAXX = dx2 - dx1;
+	if (MAXX < 0 || MAXY < 0) { return; } // readable area is negative (probably because src is offscreen)
+
+	mglPixel32       *dpix = dst.GetPixelXY(0, dy1);
+	const mglPixel32 *spix = src.GetPixelXY(sx1, sy1);
+
+	// draw scanlines
+	float v = v1;
+	for (int y = 0; y < MAXY; ++y, dpix += dst.m_width){
+		float u = u1;
+		for (int x = 0; x < MAXX; ++x){
+			dpix[x + dx1] = pBlend(dpix[x + dx1], pSample(src, u, v));
+			u += du;
+		}
+		v += dv;
+	}
+}

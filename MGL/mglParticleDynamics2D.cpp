@@ -17,7 +17,6 @@ void mglParticleDynamics2D::SetBounds(int b, float *x) const
 {
 	// Add other edge modes
 	// EdgeMode_Free
-	// EdgeMode_Wrap
 
 	// EdgeMode_Confined:
 	if (m_edge_mode == EdgeMode_Confined) {
@@ -35,7 +34,9 @@ void mglParticleDynamics2D::SetBounds(int b, float *x) const
 		x[XY(0,m_height+1)]         = 0.5f * (x[XY(1,m_height+1)]       + x[XY(0  ,m_height)]);
 		x[XY(m_width+1,0)]          = 0.5f * (x[XY(m_width,0  )]        + x[XY(m_width+1,1)]);
 		x[XY(m_width+1,m_height+1)] = 0.5f * (x[XY(m_width,m_height+1)] + x[XY(m_width+1,m_height)]);
-	} else if (m_edge_mode == EdgeMode_Wrap) {
+	}
+	// EdgeMode_Wrap:
+	else if (m_edge_mode == EdgeMode_Wrap) {
 		for (int i = 1; i <= m_width; ++i) {
 			x[XY(i, 0)] = x[XY(i, m_height)];
 			x[XY(i, m_height+1)] = x[XY(i, 1)];

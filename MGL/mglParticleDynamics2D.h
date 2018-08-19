@@ -9,9 +9,9 @@ class mglParticleDynamics2D
 public:
 	enum EdgeMode
 	{
-		EdgeMode_Free,     // fluid is allowed to flow outside of buffer edges
-		EdgeMode_Confined, // fluid behaves like it is inside a box (bounded by buffer edges)
-		EdgeMode_Wrap      // fluid that goes outside of an edge reenters at opposite edge
+		EdgeMode_Free,     // particles is allowed to flow outside of buffer edges
+		EdgeMode_Confined, // particles behaves like it is inside a box (bounded by buffer edges)
+		EdgeMode_Wrap      // particles that goes outside of an edge reenters at opposite edge
 	};
 
 private:
