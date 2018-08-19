@@ -4,6 +4,13 @@
 // Good resource:
 // https://github.com/alikins/sortpal.js/blob/master/sortpal.js
 
+#include "../MTL/mtlBits.h"
+
+struct mglColor32
+{
+	mtlByte r, g, b, a;
+};
+
 #define mglColorName(color_space) mglColor##color_space
 #define mglColorDef3(color_space, x, y, z) \
 	float x, y, z; \
