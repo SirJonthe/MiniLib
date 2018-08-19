@@ -5,8 +5,8 @@
 //  Copyright (c) 2016 Jonathan Karlsson. All rights reserved.
 //
 
-#ifndef MML_FIXED_H_INCLUDED__
-#define MML_FIXED_H_INCLUDED__
+#ifndef MML_FIXED_H_INCLUDED
+#define MML_FIXED_H_INCLUDED
 
 #include "mmlInt.h"
 

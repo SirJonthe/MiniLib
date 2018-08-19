@@ -17,6 +17,7 @@ protected:
 	virtual void *GetVirtualObjectPointer(mtlTypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
 
 public:
+	virtual ~mtlBase( void ) {}
 	mtlBase(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
 
 	static mtlTypeID GetClassType( void ) { return 0; }

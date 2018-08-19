@@ -3,8 +3,8 @@
 // Author retains the right to use code for commercial purposes.
 // Author retains his moral rights under the applicable copyright laws.
 
-#ifndef MML_VECTOR_H_INCLUDED__
-#define MML_VECTOR_H_INCLUDED__
+#ifndef MML_VECTOR_H_INCLUDED
+#define MML_VECTOR_H_INCLUDED
 
 #include <stdarg.h>
 #include <cmath>
