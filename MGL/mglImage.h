@@ -9,10 +9,7 @@
 // linear access
 // custom byte order
 // SIMD SoA for fast pixel manipulation?
-// mglImage loads TGA (not mglTexture which only loads PQZ)
-// mglImage can convert to PQZ (since this is a very expensive operation, minutes)
-	// lossy compression
-	// decide how to handle non 2^n images
+// mglImage loads TGA
 class mglImage : public mtlAssetInterface
 {
 private:
@@ -66,4 +63,4 @@ public:
 	const mtlByte *GetAlphaXY(int x, int y) const { return (mtlByte*)(m_pixels + x + y * m_width) + m_order.index.a; }
 };
 
-#endif // MGL_IMAGE_H_INCLUDED__
+#endif // MGL_IMAGE_H_INCLUDED

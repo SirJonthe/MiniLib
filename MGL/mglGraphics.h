@@ -1,110 +1,24 @@
 #ifndef MGL_GRAPHICS_H_INCLUDED
 #define MGL_GRAPHICS_H_INCLUDED
 
+#include "mglImage.h"
 #include "../MML/mmlVector.h"
-#include "../MTL/mtlBits.h"
-//#include "../MTL/mtlType.h"
-#include "../MTL/mtlArray.h"
 #include "../MGL/mglPixel.h"
 
 void mglDrawPixel(int x, int y, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
-void mglDrawLine(mmlVector<2> p1, mmlVector<2> p2, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
-void mglDrawCircle(mmlVector<2> mid, float rad, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
-void mglDrawCircleQuadrant(mmlVector<2> mid, float rad, unsigned int quadrant_mask, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglDrawLine(int x1, int y1, int x2, int y2, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglDrawCircle(int cx, int cy, float rad, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglDrawCircleQuadrant(int cx, int cy, int rad, unsigned int quadrant_mask, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
 
-void mglFillBox(mmlVector<2> p1, mmlVector<2> p2, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
-//void mglFillCircle(mmlVector<2> mid, float rad, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
-void mglFillTriangle(mmlVector<2> p1, mmlVector<2> p2, mmlVector<2> p3, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglFillBox(int x1, int y1, int x2, int y2, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglFillCircle(int cx, int cy, int rad, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
+void mglFillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, mtlByte r, mtlByte g, mtlByte b, mtlByte *pixels, int bpp, int width, int height, mglByteOrder32 byte_order = mglVideoByteOrder());
 
-/*struct mglColor32
-{
-	mtlByte r, g, b, a;
-};
+#define mglFont_CharWidthPx  6
+#define mglFont_CharHeightPx 6
+#define mglFont_FirstChar    '!'
+#define mglFont_LastChar     '~'
 
-struct mglPixelSurface
-{
-	mtlByte        *pixels;
-	int             bytes_per_pixel;
-	int             width;
-	int             height;
-	mglByteOrder32  byte_order;
-};
+void mglDrawChar(char ch, mtlByte *dst, int dst_bytes_per_pixel, mglByteOrder32 dst_order, int dst_w, int dst_h, int x, int y, mtlByte r, mtlByte g, mtlByte b, int scale = 1);
 
-class mglBox;
-class mglCircle;
-
-class mglPrimitive
-{
-public:
-	virtual ~mglPrimitive( void ) {}
-
-	virtual void Draw(mglColor32 color, mglPixelSurface surface) const = 0;
-	virtual void Fill(mglColor32 color, mglPixelSurface surface) const = 0;
-
-	virtual mglBox    GetBoundingBox( void )    const = 0;
-	virtual mglCircle GetBoundingCircle( void ) const = 0;
-
-	virtual bool IsInside(mmlVector<2> xy)  const = 0;
-	bool         IsInside(float x, float y) const { return IsInside(mmlVector<2>(x, y)); }
-};
-
-class mglLine : mtlInherit<mglPrimitive, mglLine>
-{
-private:
-	mmlVector<2> a, b;
-
-public:
-	void Draw(mglColor32 color, mglPixelSurface surface) const;
-	void Fill(mglColor32 color, mglPixelSurface surface) const;
-
-	mglBox    GetBoundingBox( void ) const;
-	mglCircle GetBoundingCircle( void ) const;
-
-	bool IsInside(mmlVector<2> xy) const;
-};
-
-class mglBox : mtlInherit<mglPrimitive, mglBox>
-{
-private:
-	mmlVector<2> a, b;
-
-public:
-	void Draw(mglColor32 color, mglPixelSurface surface) const;
-	void Fill(mglColor32 color, mglPixelSurface surface) const;
-
-	mglBox    GetBoundingBox( void ) const;
-	mglCircle GetBoundingCircle( void ) const;
-
-	bool IsInside(mmlVector<2> xy) const;
-
-	mglBox Clipped(mglBox box);
-};
-
-class mglCircle : mtlInherit<mglPrimitive, mglCircle>
-{
-private:
-	mmlVector<2> mid;
-	float        rad;
-};
-
-//class mglEllipsoid : mtlInherit<mglPrimitive, mglEllipsoid> {};
-
-class mglPolygon : mtlInherit<mglPrimitive, mglPolygon>
-{
-private:
-	mtlArray< mmlVector<2> > vert;
-
-public:
-	mglPolygon Clipped(mmlVector<2> plane_normal, mmlVector<2> plane_point) const;
-};
-
-class mglTriangle : mtlInherit<mglPrimitive, mglTriangle>
-{
-private:
-	mmlVector<2> a, b, c;
-
-public:
-	mglPolygon AsPolygon( void ) const;
-};*/
-
-#endif // MGL_GRAPHICS_H_INCLUDED__
+#endif // MGL_GRAPHICS_H_INCLUDED

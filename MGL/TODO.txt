@@ -2,16 +2,9 @@ Ray plane intersections (with normal deformation)
 BSP trees
 Portals and PVS (http://www.gdcvault.com/play/1014234/Excerpt-Quake-Postmortem-Optimizing-Level)
 
-On daya layout
+On data layout
 * If MGL is general purpose, with the possibility of using as a foundation for a hardware accelerated engine, then swizzling textures as cache optimization for the CPU doesn't make sense.
 * Maybe use an indexing function that orders and fetches data in different ways?
-
-* Noise functions:
- - Perlin noise
- - Ridged Perlin noise
- - Mid-point displacement
- - Diamond-Square
- - Voronoi
 
 ==MGL repurpose==
 

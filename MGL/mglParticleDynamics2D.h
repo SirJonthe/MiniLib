@@ -15,18 +15,18 @@ public:
 	};
 
 private:
-	mtlArray< float > m_dens; // I can implement this as a templated vector
-	mtlArray< float > m_u;
-	mtlArray< float > m_v;
-	mtlArray< float > m_dens_prev;
-	mtlArray< float > m_u_prev;
-	mtlArray< float > m_v_prev;
-	int               m_total_size;
-	int               m_width;
-	int               m_height;
-	float             m_diffusion;
-	float             m_viscosity;
-	EdgeMode          m_edge_mode;
+	mtlArray<float> m_dens; // I can implement this as a templated vector
+	mtlArray<float> m_u;
+	mtlArray<float> m_v;
+	mtlArray<float> m_dens_prev;
+	mtlArray<float> m_u_prev;
+	mtlArray<float> m_v_prev;
+	int             m_total_size;
+	int             m_width;
+	int             m_height;
+	float           m_diffusion;
+	float           m_viscosity;
+	EdgeMode        m_edge_mode;
 
 private:
 	void AddSource(float *x, float *s, float delta_time) const;
@@ -51,7 +51,7 @@ public:
 
 	void Update(float delta_time = 0.1f);
 
-	int GetWidth( void ) const { return m_width; }
+	int GetWidth( void ) const  { return m_width; }
 	int GetHeight( void ) const { return m_height; }
 
 	void SetForce(int x, int y, float vel_x, float vel_y);
@@ -66,17 +66,17 @@ public:
 	void AddVortex(int x, int y, int scale, int quadrant_count, int orientation, float force);
 	void AddDensity(int x, int y, float dens);
 
-	float GetDensity(int x, int y) const;
+	float        GetDensity(int x, int y) const;
 	mmlVector<2> GetVelocity(int x, int y) const;
 
 	float GetViscosity( void ) const { return m_viscosity; }
-	void SetViscosity(float visc) { m_viscosity = visc; }
+	void  SetViscosity(float visc)   { m_viscosity = visc; }
 
 	float GetDiffusion( void ) const { return m_diffusion; }
-	void SetDiffusion(float diff) { m_diffusion = diff; }
+	void  SetDiffusion(float diff)   { m_diffusion = diff; }
 
-	EdgeMode GetEdgeMode( void ) const { return m_edge_mode; }
-	void SetEdgeMode(EdgeMode edge_mode) { m_edge_mode = edge_mode; }
+	EdgeMode GetEdgeMode( void ) const       { return m_edge_mode; }
+	void     SetEdgeMode(EdgeMode edge_mode) { m_edge_mode = edge_mode; }
 };
 
 #endif
