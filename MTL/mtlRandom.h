@@ -1,5 +1,5 @@
-#ifndef MTL_RANDOM_H_INCLUDED__
-#define MTL_RANDOM_H_INCLUDED__
+#ifndef MTL_RANDOM_H_INCLUDED
+#define MTL_RANDOM_H_INCLUDED
 
 // Based on minimal PCG32 algorithm implementation by M.E. O'Neill (pcg-random.org)
 // Licenced under Apache Licence 2.0

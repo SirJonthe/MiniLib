@@ -1,5 +1,5 @@
-#ifndef MTL_STRINGMAP_INCLUDED__
-#define MTL_STRINGMAP_INCLUDED__
+#ifndef MTL_STRINGMAP_INCLUDED
+#define MTL_STRINGMAP_INCLUDED
 
 #include "mtlString.h"
 #include "mtlBinaryTree.h"

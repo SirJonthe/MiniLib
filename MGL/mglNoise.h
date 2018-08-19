@@ -1,5 +1,5 @@
-#ifndef MGL_NOISE_H_INCLUDED__
-#define MGL_NOISE_H_INCLUDED__
+#ifndef MGL_NOISE_H_INCLUDED
+#define MGL_NOISE_H_INCLUDED
 
 #include "mglIndex.h"
 #include "../MTL/mtlPointer.h"
@@ -112,4 +112,4 @@ public:
 	void          Noise(unsigned char *input, int bpp, int w, int h) const;
 };
 
-#endif // MGL_NOISE_H_INCLUDED__
+#endif // MGL_NOISE_H_INCLUDED

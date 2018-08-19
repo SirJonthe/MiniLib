@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 Jonathan Karlsson. All rights reserved.
 //
 
-#ifndef MTL_MATHPARSER_H_INCLUDED__
-#define MTL_MATHPARSER_H_INCLUDED__
+#ifndef MTL_MATHPARSER_H_INCLUDED
+#define MTL_MATHPARSER_H_INCLUDED
 
 #include "mtlString.h"
 #include "mtlStringMap.h"

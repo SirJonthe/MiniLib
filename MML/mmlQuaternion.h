@@ -3,8 +3,8 @@
 // Author retains the right to use code for commercial purposes.
 // Author retains his moral rights under the applicable copyright laws.
 
-#ifndef MML_QUATERNION_H_INCLUDED__
-#define MML_QUATERNION_H_INCLUDED__
+#ifndef MML_QUATERNION_H_INCLUDED
+#define MML_QUATERNION_H_INCLUDED
 
 #include <cmath>
 #include "mmlMatrix.h"

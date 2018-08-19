@@ -1,5 +1,5 @@
-#ifndef MTL_ASSET_H_INCLUDED__
-#define MTL_ASSET_H_INCLUDED__
+#ifndef MTL_ASSET_H_INCLUDED
+#define MTL_ASSET_H_INCLUDED
 
 #include "mtlBinaryTree.h"
 #include "mtlList.h"

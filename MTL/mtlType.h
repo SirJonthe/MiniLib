@@ -1,5 +1,5 @@
-#ifndef MTL_TYPE_H_INCLUDED__
-#define MTL_TYPE_H_INCLUDED__
+#ifndef MTL_TYPE_H_INCLUDED
+#define MTL_TYPE_H_INCLUDED
 
 // http://stackoverflow.com/questions/18731075/c-fast-dynamic-type-subtype-check
 

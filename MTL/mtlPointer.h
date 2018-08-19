@@ -1,5 +1,5 @@
-#ifndef MTL_POINTER_H_INCLUDED__
-#define MTL_POINTER_H_INCLUDED__
+#ifndef MTL_POINTER_H_INCLUDED
+#define MTL_POINTER_H_INCLUDED
 
 #include "mtlList.h"
 

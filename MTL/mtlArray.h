@@ -1,5 +1,5 @@
-#ifndef MTL_ARRAY_H_INCLUDED__
-#define MTL_ARRAY_H_INCLUDED__
+#ifndef MTL_ARRAY_H_INCLUDED
+#define MTL_ARRAY_H_INCLUDED
 
 #include "mtlMemory.h"
 

@@ -1,5 +1,5 @@
-#ifndef MGL_MODEL_H_INCLUDED__
-#define MGL_MODEL_H_INCLUDED__
+#ifndef MGL_MODEL_H_INCLUDED
+#define MGL_MODEL_H_INCLUDED
 
 #include "../MTL/mtlString.h"
 #include "../MTL/mtlArray.h"

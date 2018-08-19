@@ -1,5 +1,5 @@
-#ifndef MTL_PARSER_H_INCLUDED__
-#define MTL_PARSER_H_INCLUDED__
+#ifndef MTL_PARSER_H_INCLUDED
+#define MTL_PARSER_H_INCLUDED
 
 #include "mtlString.h"
 #include "mtlList.h"

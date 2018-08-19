@@ -1,5 +1,5 @@
-#ifndef MGL_PIXEL_H_INCLUDED__
-#define MGL_PIXEL_H_INCLUDED__
+#ifndef MGL_PIXEL_H_INCLUDED
+#define MGL_PIXEL_H_INCLUDED
 
 #include "../MTL/mtlBits.h"
 

@@ -1,5 +1,5 @@
-#ifndef MGL_FRAMEBUFFER_H_INCLUDED__
-#define MGL_FRAMEBUFFER_H_INCLUDED__
+#ifndef MGL_FRAMEBUFFER_H_INCLUDED
+#define MGL_FRAMEBUFFER_H_INCLUDED
 
 #include "../MTL/mtlMemory.h"
 
@@ -16,7 +16,7 @@ private:
 	mglFramebuffer &operator=(const mglFramebuffer&) { return *this; }
 
 public:
-					mglFramebuffer( void ) : m_pixels(NULL), m_width(0), m_height(0) {}
+				  mglFramebuffer( void ) : m_pixels(NULL), m_width(0), m_height(0) {}
 	virtual      ~mglFramebuffer( void ) { delete [] m_pixels; }
 	virtual void  Create(int p_width, int p_height);
 	virtual void  Free( void );

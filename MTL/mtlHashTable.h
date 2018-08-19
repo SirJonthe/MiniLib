@@ -1,5 +1,5 @@
-#ifndef MTL_HASHTABLE_H_INCLUDED__
-#define MTL_HASHTABLE_H_INCLUDED__
+#ifndef MTL_HASHTABLE_H_INCLUDED
+#define MTL_HASHTABLE_H_INCLUDED
 
 #include "mtlList.h"
 #include "mtlArray.h"

@@ -1,5 +1,5 @@
-#ifndef MTL_MEMORY_H_INCLUDED__
-#define MTL_MEMORY_H_INCLUDED__
+#ifndef MTL_MEMORY_H_INCLUDED
+#define MTL_MEMORY_H_INCLUDED
 
 #include <cstring>
 

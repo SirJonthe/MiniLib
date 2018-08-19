@@ -1,5 +1,5 @@
-#ifndef MTL_BINARY_TREE_H_INCLUDED__
-#define MTL_BINARY_TREE_H_INCLUDED__
+#ifndef MTL_BINARY_TREE_H_INCLUDED
+#define MTL_BINARY_TREE_H_INCLUDED
 
 #include <cstdlib>
 #include "mtlList.h"

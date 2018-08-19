@@ -1,5 +1,5 @@
-#ifndef MGL_TRANSFORM_H_INCLUDED__
-#define MGL_TRANSFORM_H_INCLUDED__
+#ifndef MGL_TRANSFORM_H_INCLUDED
+#define MGL_TRANSFORM_H_INCLUDED
 
 #include "../MML/mmlQuaternion.h"
 #include "../MML/mmlVector.h"

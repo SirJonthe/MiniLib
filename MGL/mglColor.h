@@ -1,5 +1,5 @@
-#ifndef MGL_COLOR_H_INCLUDED__
-#define MGL_COLOR_H_INCLUDED__
+#ifndef MGL_COLOR_H_INCLUDED
+#define MGL_COLOR_H_INCLUDED
 
 // Good resource:
 // https://github.com/alikins/sortpal.js/blob/master/sortpal.js
@@ -61,4 +61,4 @@ public:
 #undef mglColorDef3
 #undef mglColorDef4
 
-#endif // MGL_COLOR_H_INCLUDED__
+#endif // MGL_COLOR_H_INCLUDED

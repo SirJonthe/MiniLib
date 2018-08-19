@@ -1,5 +1,5 @@
-#ifndef MGL_PIXMAP_H_INCLUDED__
-#define MGL_PIXMAP_H_INCLUDED__
+#ifndef MGL_PIXMAP_H_INCLUDED
+#define MGL_PIXMAP_H_INCLUDED
 
 #include "../MTL/mtlBits.h"
 #include "../MML/mmlVector.h"

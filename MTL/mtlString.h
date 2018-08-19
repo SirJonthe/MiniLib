@@ -1,5 +1,5 @@
-#ifndef MTL_STRING_H_INCLUDED__
-#define MTL_STRING_H_INCLUDED__
+#ifndef MTL_STRING_H_INCLUDED
+#define MTL_STRING_H_INCLUDED
 
 #include <cstddef>
 #include "mtlList.h"

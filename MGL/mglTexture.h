@@ -1,5 +1,5 @@
-#ifndef MGL_TEXTURE_H_INCLUDED__
-#define MGL_TEXTURE_H_INCLUDED__
+#ifndef MGL_TEXTURE_H_INCLUDED
+#define MGL_TEXTURE_H_INCLUDED
 
 #include "../MTL/mtlAsset.h"
 #include "../MTL/mtlBits.h"
@@ -11,6 +11,7 @@
 // compression (YUV)
 	// requires decompression to RGBA by multiplying YUV color by 3x3 matrix
 // dithering to remove vector quantization artifacts?
+// add mip mapping
 class mglTexture : public mtlAssetInterface
 {
 private:

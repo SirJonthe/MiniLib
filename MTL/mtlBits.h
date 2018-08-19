@@ -1,5 +1,5 @@
-#ifndef MTL_BITS_H_INCLUDED__
-#define MTL_BITS_H_INCLUDED__
+#ifndef MTL_BITS_H_INCLUDED
+#define MTL_BITS_H_INCLUDED
 
 #include <climits>
 

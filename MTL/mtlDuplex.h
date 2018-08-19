@@ -28,8 +28,8 @@ NOTE: Not thread safe!
 Copyright (c) Jonathan Karlsson, 2013
 */
 
-#ifndef MTL_DUPLEX_H_INCLUDED__
-#define MTL_DUPLEX_H_INCLUDED__
+#ifndef MTL_DUPLEX_H_INCLUDED
+#define MTL_DUPLEX_H_INCLUDED
 
 template < typename self_t, typename other_t >
 class mtlDuplex

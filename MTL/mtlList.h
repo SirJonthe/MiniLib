@@ -1,5 +1,5 @@
-#ifndef MTL_LIST_H_INCLUDED__
-#define MTL_LIST_H_INCLUDED__
+#ifndef MTL_LIST_H_INCLUDED
+#define MTL_LIST_H_INCLUDED
 
 #include <cstddef>
 

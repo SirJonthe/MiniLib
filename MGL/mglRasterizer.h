@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef MGL_RASTERIZER_H_INCLUDED__
-#define MGL_RASTERIZER_H_INCLUDED__
+#ifndef MGL_RASTERIZER_H_INCLUDED
+#define MGL_RASTERIZER_H_INCLUDED
 
 //#include "../MTL/mtlArray.h"
 #include "../MML/mmlVector.h"

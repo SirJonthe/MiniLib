@@ -1,5 +1,5 @@
-#ifndef MGL_PLANE_H_INCLUDED__
-#define MGL_PLANE_H_INCLUDED__
+#ifndef MGL_PLANE_H_INCLUDED
+#define MGL_PLANE_H_INCLUDED
 
 #include "../MML/mmlVector.h"
 
