@@ -11,19 +11,19 @@ private:
 	unsigned long long m_inc;
 
 public:
-					mtlRandom( void );
-	explicit		mtlRandom(unsigned long long seed, unsigned long long inc = 1);
+	             mtlRandom( void );
+	explicit     mtlRandom(unsigned long long seed, unsigned long long inc = 1);
 
-	void			SetSeed(unsigned long long seed, unsigned long long inc = 1);
+	void         SetSeed(unsigned long long seed, unsigned long long inc = 1);
 
-	unsigned int	GetUint( void );
-	unsigned int	GetUint(unsigned int min, unsigned int max);
+	unsigned int GetUint( void );
+	unsigned int GetUint(unsigned int min, unsigned int max);
 
-	int				GetInt( void );
-	int				GetInt(int min, int max);
+	int          GetInt( void );
+	int          GetInt(int min, int max);
 
-	float			GetFloat( void );
-	float			GetFloat(float min, float max);
+	float        GetFloat( void );
+	float        GetFloat(float min, float max);
 };
 
-#endif // MTL_RANDOM_H_INCLUDED__
+#endif // MTL_RANDOM_H_INCLUDED

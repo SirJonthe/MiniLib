@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef MTL_PATH_H_INCLUDED__
-#define MTL_PATH_H_INCLUDED__
+#ifndef MTL_PATH_H_INCLUDED
+#define MTL_PATH_H_INCLUDED
 
 #include "mtlString.h"
 #include "mtlList.h"

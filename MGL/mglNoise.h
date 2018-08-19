@@ -29,33 +29,11 @@ public:
 
 private:
 	float m_steps;
-};
-
-class mtlRandomizer
-{
-public:
-	mtlRandomizer(unsigned int z = 0, unsigned int w = 0);
-	void			SetSeeds(unsigned int z, unsigned int w);
-	template < typename dist_t >
-	void			SetDistribution( void ) { m_dist.New<dist_t>(); }
-	float			GetDistribution(float x) { return m_dist->Evaluate(x); }
-	unsigned int	GetRandomUint( void );
-	unsigned int	GetRandomUint(unsigned int min, unsigned int max);
-	int				GetRandomInt( void );
-	int				GetRandomInt(int min, int max);
-	float			GetRandomFloat( void );
-	float			GetRandomFloat(float min, float max);
-
-private:
-	mtlShared<mtlDistribution>	m_dist;
-	unsigned int				m_rseed_z;
-	unsigned int				m_rseed_w;
 };*/
 
 class mglNoiseGenerator
 {
 private:
-	//mtlRandomizer	m_rand;
 	mtlRandom    m_rand;
 	unsigned int m_seed;
 	float        m_scale;

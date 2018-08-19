@@ -1,5 +1,5 @@
-#ifndef MGL_TEXT_H_INCLUDED__
-#define MGL_TEXT_H_INCLUDED__
+#ifndef MGL_TEXT_H_INCLUDED
+#define MGL_TEXT_H_INCLUDED
 
 #include "../MTL/mtlBits.h"
 #include "../MTL/mtlString.h"

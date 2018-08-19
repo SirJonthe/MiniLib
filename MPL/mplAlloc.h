@@ -1,5 +1,5 @@
-#ifndef MPL_ALLOC_H_INCLUDED__
-#define MPL_ALLOC_H_INCLUDED__
+#ifndef MPL_ALLOC_H_INCLUDED
+#define MPL_ALLOC_H_INCLUDED
 
 #include "mplCommon.h"
 

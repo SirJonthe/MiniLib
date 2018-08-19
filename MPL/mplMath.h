@@ -1,5 +1,5 @@
-#ifndef MPL_MATH_H_INCLUDED__
-#define MPL_MATH_H_INCLUDED__
+#ifndef MPL_MATH_H_INCLUDED
+#define MPL_MATH_H_INCLUDED
 
 #include "mplWide.h"
 

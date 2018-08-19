@@ -1,5 +1,5 @@
-#ifndef MML_INT_H_INCLUDED__
-#define MML_INT_H_INCLUDED__
+#ifndef MML_INT_H_INCLUDED
+#define MML_INT_H_INCLUDED
 
 #include <limits>
 #include <climits>

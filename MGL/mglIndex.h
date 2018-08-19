@@ -1,5 +1,5 @@
-#ifndef MGL_INDEX_H_INCLUDED__
-#define MGL_INDEX_H_INCLUDED__
+#ifndef MGL_INDEX_H_INCLUDED
+#define MGL_INDEX_H_INCLUDED
 
 template < int n, typename type_t = unsigned short >
 struct mglIndex

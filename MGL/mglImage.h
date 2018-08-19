@@ -1,5 +1,5 @@
-#ifndef MGL_IMAGE_H_INCLUDED__
-#define MGL_IMAGE_H_INCLUDED__
+#ifndef MGL_IMAGE_H_INCLUDED
+#define MGL_IMAGE_H_INCLUDED
 
 #include "mglPixel.h"
 #include "../MTL/mtlAsset.h"

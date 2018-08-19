@@ -1,5 +1,5 @@
-#ifndef MGL_GRAPHICS_H_INCLUDED__
-#define MGL_GRAPHICS_H_INCLUDED__
+#ifndef MGL_GRAPHICS_H_INCLUDED
+#define MGL_GRAPHICS_H_INCLUDED
 
 #include "../MML/mmlVector.h"
 #include "../MTL/mtlBits.h"

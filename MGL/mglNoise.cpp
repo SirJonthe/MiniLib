@@ -2,54 +2,6 @@
 #include "mglNoise.h"
 #include "../MML/mmlVector.h"
 
-/*mtlRandomizer::mtlRandomizer(unsigned int z, unsigned int w) : m_dist()
-{
-	SetSeeds(z, w);
-	SetDistribution<mtlLinearDistribution>();
-}
-
-void mtlRandomizer::SetSeeds(unsigned int z, unsigned int w)
-{
-	// must be non-zero
-	m_rseed_z = z == 0 ? 0xfeedface : z;
-	m_rseed_w = w == 0 ? 0xdeadbeef : w;
-}
-
-unsigned int mtlRandomizer::GetRandomUint( void )
-{
-	m_rseed_z = 36969 * (m_rseed_z & 65535) + (m_rseed_z >> 16);
-	m_rseed_w = 18000 * (m_rseed_w & 65535) + (m_rseed_w >> 16);
-	return (m_rseed_z << 16) + m_rseed_w;
-}
-
-unsigned int mtlRandomizer::GetRandomUint(unsigned int min, unsigned int max)
-{
-	unsigned int r = GetRandomUint();
-	return (r % (max-min)) + min;
-}
-
-int mtlRandomizer::GetRandomInt( void )
-{
-	return (int)GetRandomUint();
-}
-
-int mtlRandomizer::GetRandomInt(int min, int max)
-{
-	int r = GetRandomInt();
-	return abs(r % (max-min)) + min;
-}
-
-float mtlRandomizer::GetRandomFloat( void )
-{
-	return float((GetRandomUint() + 1) * 2.328306435454494e-10);
-}
-
-float mtlRandomizer::GetRandomFloat(float min, float max)
-{
-	float r = GetRandomFloat();
-	return (r * (max-min)) + min;
-}*/
-
 mglNoiseGenerator::mglNoiseGenerator( void ) : m_rand(), m_seed(0), m_scale(1.0f), m_offset(0.0f, 0.0f, 0.0f)
 {}
 
