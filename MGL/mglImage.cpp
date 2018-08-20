@@ -553,7 +553,8 @@ void mglImage::Blit(mglImage &dst, int dx1, int dy1, int dx2, int dy2, const mgl
 	for (int y = 0; y < MAXY; ++y, dpix += dst.m_width){
 		float u = u1;
 		for (int x = 0; x < MAXX; ++x){
-			dpix[x + dx1] = pBlend(dpix[x + dx1], pSample(src, u, v));
+//			dpix[x + dx1] = pBlend(dpix[x + dx1], pSample(src, u, v));
+			dpix[x + dx1] = spix[(unsigned int)((v * src.m_height) * src.m_width + (u * src.m_width))]; // TODO: MAKE SURE THIS DOES NOT OVERFLOW!
 			u += du;
 		}
 		v += dv;
