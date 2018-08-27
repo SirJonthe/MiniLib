@@ -4,6 +4,81 @@
 #include "../MML/mmlMath.h"
 #include "../MTL/mtlArray.h"
 
+mglTexture::MipMap::MipMap( void ) :
+	pixels(NULL), width(0), height(0), width_mask(0), height_mask(0), width_shift(0), height_shift(0), level(0), format()
+{
+	format.bytes_per_pixel = 0;
+	format.byte_order = mglTexture::GetByteOrder();
+	format.color = mglPixelFormat::Color_Truecolor;
+}
+
+mglTexture::MipMap::~MipMap( void )
+{
+	delete [] pixels;
+}
+
+void mglTexture::MipMap::Swizzle( void )
+{
+	const int area = width * height * format.bytes_per_pixel;
+	if (area <= 0) { return; }
+
+	mtlByte *dst = new mtlByte[area];
+	const mtlByte *src = pixels;
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			const int z_index = mtlEncodeMorton2(x, y) * format.bytes_per_pixel;
+			for (int i = 0; i < format.bytes_per_pixel; ++i) {
+				dst[z_index + i] = *src;
+				++src;
+			}
+		}
+	}
+
+	delete [] pixels;
+	pixels = dst;
+}
+
+void mglTexture::MipMap::CreateFrom(const mglTexture::MipMap &m)
+{
+	delete [] pixels;
+
+	width        = m.width >> 1;
+	height       = m.height >> 1;
+	width_mask   = m.width_mask >> 1;
+	height_mask  = m.height_mask >> 1;
+	width_shift  = m.width_shift  - 1;
+	height_shift = m.height_shift - 1;
+	format       = m.format;
+	pixels       = new mtlByte[width * height * format.bytes_per_pixel];
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			int px = x << 1;
+			int py = y << 1;
+			mglPixel32 c00 = m.GetPixelXY(px, py),   c01 = m.GetPixelXY(px+1, py);
+			mglPixel32 c10 = m.GetPixelXY(px, py+1), c11 = m.GetPixelXY(px+1, py+1);
+			mtlByte *dst_p = pixels + GetPixelIndex(x, y);
+			dst_p[0] = (c00.bytes[0] + c01.bytes[0] + c10.bytes[0] + c11.bytes[0]) >> 2;
+			dst_p[1] = (c00.bytes[1] + c01.bytes[1] + c10.bytes[1] + c11.bytes[1]) >> 2;
+			dst_p[2] = (c00.bytes[2] + c01.bytes[2] + c10.bytes[2] + c11.bytes[2]) >> 2;
+			dst_p[3] = (c00.bytes[3] + c01.bytes[3] + c10.bytes[3] + c11.bytes[3]) >> 2;
+		}
+	}
+	//Compress();
+	Swizzle();
+}
+
+int mglTexture::MipMap::GetPixelIndex(int x, int y) const
+{
+	return mtlEncodeMorton2((x >> level) & width_mask, (y >> level) & height_mask) * format.bytes_per_pixel;
+}
+
+mglPixel32 mglTexture::MipMap::GetPixelXY(int x, int y) const
+{
+	return *(mglPixel32*)(pixels + GetPixelIndex(x, y));
+}
+
 enum TGA_RelevantHeaderField
 {
 	COLOR_MAP_TYPE = 1,
@@ -120,13 +195,13 @@ bool mglTexture::LoadTGA(const mtlPath &p_filename)
 
 	const int NUM_PIXELS = GetArea();
 	const int NUM_BYTES = NUM_PIXELS * bpp;
-	mtlByte *dst = m_pixels;
+	mtlByte *dst = m_main->pixels;
 
 	// DEBUG
 	mtlString tmp;
-	tmp.FromInt(m_width);
+	tmp.FromInt(m_main->width);
 	m_format_str.Append(tmp).Append("x");
-	tmp.FromInt(m_height);
+	tmp.FromInt(m_main->height);
 	m_format_str.Append(tmp).Append("x");
 	tmp.FromInt(bpp);
 	m_format_str.Append(tmp);
@@ -205,35 +280,31 @@ bool mglTexture::LoadTGA(const mtlPath &p_filename)
 		unsigned short origin_y = *(unsigned short*)(header+ORIGIN_Y);
 
 		if (origin_x != 0) {
-			for (int y = 0; y < m_height; ++y) {
+			for (int y = 0; y < m_main->height; ++y) {
 				int x_right = 0;
-				int x_left  = m_width - 1 - m_format.bytes_per_pixel;
-				for (int x = 0; x < (m_width >> 1); ++x) {
-					for (int b = 0; b < m_format.bytes_per_pixel; ++b) {
-						mtlByte tmp               = m_pixels[y + x_right + b];
-						m_pixels[y + x_right + b] = m_pixels[y + x_left + b];
-						m_pixels[y + x_left + b]  = tmp;
+				int x_left  = m_main->width - 1 - m_main->format.bytes_per_pixel;
+				for (int x = 0; x < (m_main->width >> 1); ++x) {
+					for (int b = 0; b < m_main->format.bytes_per_pixel; ++b) {
+						mmlSwap(m_main->pixels[y + x_right + b], m_main->pixels[y + x_left + b]);
 					}
-					x_right += m_format.bytes_per_pixel;
-					x_left  -= m_format.bytes_per_pixel;
+					x_right += m_main->format.bytes_per_pixel;
+					x_left  -= m_main->format.bytes_per_pixel;
 				}
-				y += m_width * m_format.bytes_per_pixel;
+				y += m_main->width * m_main->format.bytes_per_pixel;
 			}
 		}
 
 		if (origin_y != 0) {
 			int y_top    = 0;
-			int y_bottom = (m_height - 1) * m_format.bytes_per_pixel;
-			for (int y = 0; y < (m_height >> 1); ++y) {
-				for (int x = 0; x < m_width * m_format.bytes_per_pixel; x += m_format.bytes_per_pixel) {
-					for (int b = 0; b < m_format.bytes_per_pixel; ++b) {
-						mtlByte tmp                = m_pixels[y_top + x + b];
-						m_pixels[y_top + x + b]    = m_pixels[y_bottom + x + b];
-						m_pixels[y_bottom + x + b] = tmp;
+			int y_bottom = (m_main->height - 1) * m_main->format.bytes_per_pixel;
+			for (int y = 0; y < (m_main->height >> 1); ++y) {
+				for (int x = 0; x < m_main->width * m_main->format.bytes_per_pixel; x += m_main->format.bytes_per_pixel) {
+					for (int b = 0; b < m_main->format.bytes_per_pixel; ++b) {
+						mmlSwap(m_main->pixels[y_top + x + b], m_main->pixels[y_bottom + x + b]);
 					}
 				}
-				y_top    += m_width * m_format.bytes_per_pixel;
-				y_bottom -= m_width * m_format.bytes_per_pixel;
+				y_top    += m_main->width * m_main->format.bytes_per_pixel;
+				y_bottom -= m_main->width * m_main->format.bytes_per_pixel;
 			}
 		}
 
@@ -244,132 +315,25 @@ bool mglTexture::LoadTGA(const mtlPath &p_filename)
 	return true;
 }
 
-void mglTexture::Swizzle_Z( void )
+mglTexture::mglTexture( void ) : m_main(NULL)
 {
-	const int area = GetArea() * m_format.bytes_per_pixel;
-	if (area <= 0) { return; }
-
-	mtlByte *dst = new mtlByte[area];
-	const mtlByte *src = m_pixels;
-
-	for (int y = 0; y < m_height; ++y) {
-		for (int x = 0; x < m_width; ++x) {
-			const int z_index = mtlEncodeMorton2(x, y) * m_format.bytes_per_pixel;
-			for (int i = 0; i < m_format.bytes_per_pixel; ++i) {
-				dst[z_index + i] = *src;
-				++src;
-			}
-		}
-	}
-
-	delete [] m_pixels;
-	m_pixels = dst;
+	m_mips.Create(1);
+	m_main = &m_mips[0];
 }
 
-// Super duper slow?
-void mglTexture::Compress_VQ(const mtlByte *pixels, int total_size)
+mglTexture::mglTexture(int p_width, int p_height) : m_main(NULL)
 {
-	if (total_size <= 1) { return; }
-
-	// allocate node?
-
-	//unsigned long long r = 0, g = 0, b = 0, a = 0;
-
-	//for (int i = 0; i < total_size; i += m_format.bytes_per_pixel) {
-	//	mglPixel32 p = DecodePixel(pixels+i);
-	//	r += p.bytes[0];
-	//	g += p.bytes[1];
-	//	b += p.bytes[2];
-	//	a += p.bytes[3];
-	//}
-	//mglPixel32 center;
-	//center.bytes[0] = r / total_size;
-	//center.bytes[1] = g / total_size;
-	//center.bytes[2] = b / total_size;
-	//center.bytes[3] = a / total_size;
-
-	// Compress_VQ(pixels, total_size >> 1, node);
-	// Compress_VQ(pixels + (total_size >> 1), total_size >> 1, node);
-}
-
-mglPixel32 mglTexture::DecodePixel(const mtlByte *in) const
-{
-	mglPixel32 out;
-	switch (m_format.color) {
-	case mglPixelFormat::Color_Truecolor:
-		switch (m_format.bytes_per_pixel) {
-		case 2:
-			// RRRRRGGG GGBBBBBA
-			out.bytes[0] = in[0] & 0xf8;
-			out.bytes[1] = ((in[0] & 0x07) << 5) | ((in[1] & 0xc0) >> 6);
-			out.bytes[2] = (in[1] & 0x3e) << 2;
-			out.bytes[3] = (in[1] & 1) * 0xff;
-			break;
-		case 3:
-			out.bytes[0] = in[0];
-			out.bytes[1] = in[1];
-			out.bytes[2] = in[2];
-			out.bytes[3] = 0xff;
-			break;
-		case 4:
-			out.bytes[0] = in[0];
-			out.bytes[1] = in[1];
-			out.bytes[2] = in[2];
-			out.bytes[3] = in[3];
-			break;
-		default: break;
-		}
-		break;
-	case mglPixelFormat::Color_Grayscale:
-		switch (m_format.bytes_per_pixel) {
-		case 1:
-			out.bytes[0] = in[0];
-			out.bytes[1] = in[0];
-			out.bytes[2] = in[0];
-			out.bytes[3] = 0xff;
-			break;
-		case 2:
-			out.bytes[0] = in[0];
-			out.bytes[1] = in[0];
-			out.bytes[2] = in[0];
-			out.bytes[3] = in[1];
-			break;
-		default: break;
-		}
-		break;
-	default: break;
-	}
-	return out;
-}
-
-mglTexture::mglTexture( void ) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
-{
-	m_format.bytes_per_pixel = 4;
-	m_format.color           = mglPixelFormat::Color_Truecolor;
-}
-
-mglTexture::mglTexture(int p_width, int p_height) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
-{
-	m_format.bytes_per_pixel = 4;
-	m_format.color           = mglPixelFormat::Color_Truecolor;
 	Create(p_width, p_height);
 }
 
-mglTexture::mglTexture(int p_width, int p_height, mglPixelFormat format) : m_pixels(NULL), m_width(0), m_height(0), m_width_mask(0), m_height_mask(0), m_width_shift(0), m_height_shift(0)
+mglTexture::mglTexture(int p_width, int p_height, mglPixelFormat format) : m_main(NULL)
 {
-	m_format.bytes_per_pixel = 4;
-	m_format.color           = mglPixelFormat::Color_Truecolor;
-	m_format.byte_order      = mglVideoByteOrder();
 	Create(p_width, p_height, format);
 }
 
 bool mglTexture::Create(int width, int height)
 {
-	mglPixelFormat format;
-	format.bytes_per_pixel = 4;
-	format.color           = mglPixelFormat::Color_Truecolor;
-	format.byte_order      = mglVideoByteOrder();
-	return Create(width, height, format);
+	return Create(width, height, m_main->format);
 }
 
 bool mglTexture::Create(int width, int height, mglPixelFormat format)
@@ -377,16 +341,23 @@ bool mglTexture::Create(int width, int height, mglPixelFormat format)
 	Free();
 	if ((format.color == mglPixelFormat::Color_Grayscale && (format.bytes_per_pixel == 1 || format.bytes_per_pixel == 2)) || (format.color == mglPixelFormat::Color_Truecolor && (format.bytes_per_pixel == 2 || format.bytes_per_pixel == 3 || format.bytes_per_pixel == 4))) {
 		if (VerifyDimension(width) && VerifyDimension(height)) {
-			m_width        = width;
-			m_height       = height;
-			m_width_mask   = m_width - 1;
-			m_height_mask  = m_height - 1;
-			m_width_shift  = 0;
-			m_height_shift = 0;
-			m_format       = format;
-			m_pixels       = new mtlByte[m_width*m_height*m_format.bytes_per_pixel];
-			for (int i = m_width;  i != 1; i >>= 1) { ++m_width_shift; }
-			for (int i = m_height; i != 1; i >>= 1) { ++m_height_shift; }
+			int width_shift = 0;
+			int height_shift = 0;
+			for (int i = width;  i != 1; i >>= 1) { ++width_shift; }
+			for (int i = height; i != 1; i >>= 1) { ++height_shift; }
+
+			m_mips.Create(mmlMax(1, mmlMin(width_shift, height_shift)));
+			m_main = &m_mips[0];
+
+			m_main->pixels       = new mtlByte[width * height * format.bytes_per_pixel];
+			m_main->width        = width;
+			m_main->height       = height;
+			m_main->width_mask   = width - 1;
+			m_main->height_mask  = height - 1;
+			m_main->width_shift  = width_shift;
+			m_main->height_shift = height_shift;
+			m_main->format       = format;
+
 			return true;
 		} else {
 			SetError("Invalid dimensions");
@@ -394,18 +365,16 @@ bool mglTexture::Create(int width, int height, mglPixelFormat format)
 	} else {
 		SetError("Invalid pixel format");
 	}
+	m_mips.Create(1);
+	m_main = &m_mips[0];
 	return false;
 }
 
 bool mglTexture::Load(const mtlPath &p_filename)
 {
 	bool ret_val = false;
-	bool native_load = false;
 	if (p_filename.GetFileExtension().Compare("tga")) { // targa
 		ret_val = LoadTGA(p_filename);
-	} else if (p_filename.GetFileExtension().Compare(".pqz")) { // packed quantized z-order
-		ret_val = LoadPQZ(p_filename);
-		native_load = true;
 	} else {
 		mtlString error;
 		error.Copy("Cannot load format: ");
@@ -414,11 +383,8 @@ bool mglTexture::Load(const mtlPath &p_filename)
 	}
 
 	if (ret_val) {
-		if (!native_load) {
-			Swizzle_Z();
-			Pack_SOA();
-			Compress_VQ(m_pixels, GetArea() * m_format.bytes_per_pixel);
-		}
+		m_main->Swizzle();
+		UpdateMipMaps();
 	} else {
 		mtlString error;
 		error.Copy(GetError());
@@ -428,19 +394,19 @@ bool mglTexture::Load(const mtlPath &p_filename)
 	return ret_val;
 }
 
+void mglTexture::UpdateMipMaps( void )
+{
+	for (int i = 1; i < m_mips.GetSize(); ++i) {
+		m_mips[i].CreateFrom(m_mips[i - 1]);
+	}
+}
+
 void mglTexture::Free( void )
 {
-	delete [] m_pixels;
-	m_pixels                 = NULL;
-	m_width                  = 0;
-	m_height                 = 0;
-	m_width_mask             = 0;
-	m_height_mask            = 0;
-	m_width_shift            = 0;
-	m_height_shift           = 0;
-	m_format.bytes_per_pixel = 0;
-	SetError("");
+	m_mips.Create(1);
+	m_main = &m_mips[0];
 	m_format_str.Copy("");
+	SetError("");
 }
 
 mglByteOrder32 mglTexture::GetByteOrder( void )

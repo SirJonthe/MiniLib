@@ -1,6 +1,7 @@
 #ifndef MGL_PIXEL_H_INCLUDED
 #define MGL_PIXEL_H_INCLUDED
 
+#include "mglColor.h"
 #include "../MTL/mtlBits.h"
 
 // I can use MML:s mml_fixed_uniform<unsigned char> instead
@@ -10,7 +11,7 @@
 
 union mglPixel32
 {
-	unsigned int color;
+	unsigned int code;
 	mtlByte      bytes[sizeof(unsigned int)];
 };
 
@@ -44,7 +45,7 @@ inline mglByteOrder32 mglVideoByteOrder( void )
 	return standard_order;
 }
 
-inline mglPixel32 mglRGBA(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrder32 fmt = mglVideoByteOrder())
+inline mglPixel32 mglEncodePixel(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrder32 fmt = mglVideoByteOrder())
 {
 	mglPixel32 out;
 	out.bytes[fmt.index.r] = r;
@@ -54,14 +55,18 @@ inline mglPixel32 mglRGBA(mtlByte r, mtlByte g, mtlByte b, mtlByte a, mglByteOrd
 	return out;
 }
 
-inline mglPixel32 mglRGB(mtlByte r, mtlByte g, mtlByte b, mglByteOrder32 fmt = mglVideoByteOrder())
+inline mglPixel32 mglEncodePixel(mglColor32 color, mglByteOrder32 fmt = mglVideoByteOrder())
 {
+	return mglEncodePixel(color.rgba.r, color.rgba.g, color.rgba.b, color.rgba.a, fmt);
+}
 
-	mglPixel32 out;
-	out.bytes[fmt.index.r] = r;
-	out.bytes[fmt.index.g] = g;
-	out.bytes[fmt.index.b] = b;
-	out.bytes[fmt.index.a] = 0xff;
+inline mglColor32 mglDecodePixel(mglPixel32 pixel, mglByteOrder32 fmt = mglVideoByteOrder())
+{
+	mglColor32 out;
+	out.rgba.r = pixel.bytes[fmt.index.r];
+	out.rgba.g = pixel.bytes[fmt.index.g];
+	out.rgba.b = pixel.bytes[fmt.index.b];
+	out.rgba.a = pixel.bytes[fmt.index.a];
 	return out;
 }
 

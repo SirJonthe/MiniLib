@@ -3,35 +3,43 @@
 
 #include "../MTL/mtlAsset.h"
 #include "../MTL/mtlBits.h"
+#include "../MTL/mtlArray.h"
 #include "mglPixel.h"
+#include "mglColor.h"
 
-// SIMD (RGBA SoA)
-	// Unsure how this will benefit random access (Mostly benefits pixel manipulation)
-// compression (vector quantization)
-// compression (YUV)
-	// requires decompression to RGBA by multiplying YUV color by 3x3 matrix
-// dithering to remove vector quantization artifacts?
-// add mip mapping
+// always ordered RGBA, although compression may vary
+// real-time compression
+
+// A more up to date version exists in render_fun
+
 class mglTexture : public mtlAssetInterface
 {
 private:
-	struct CodeNode // don't know if this is correct
+	struct MipMap
 	{
-		mglPixel32 codes[0xff];
-		CodeNode *left;
-		CodeNode *right;
+		mtlByte       *pixels;
+		int            width;
+		int            height;
+		int            width_mask;
+		int            height_mask;
+		int            width_shift;
+		int            height_shift;
+		int            level;
+		mglPixelFormat format;
+
+		MipMap( void );
+		~MipMap( void );
+
+		void       Swizzle( void );
+		void       CreateFrom(const MipMap &m);
+		int        GetPixelIndex(int x, int y) const;
+		mglPixel32 GetPixelXY(int x, int y)    const;
 	};
 
 private:
-	mtlByte        *m_pixels;
-	int             m_width;
-	int             m_height;
-	int             m_width_mask;
-	int             m_height_mask;
-	int             m_width_shift;
-	int             m_height_shift;
-	mglPixelFormat  m_format;
-	mtlString       m_format_str;
+	mtlArray<MipMap>  m_mips;
+	MipMap           *m_main;
+	mtlString         m_format_str;
 
 private:
 	mglTexture(const mglTexture &) {}
@@ -40,25 +48,20 @@ private:
 	bool       VerifyDimension(int dimension) const;
 	void       UnpackTGAPixel(mtlByte *out, const unsigned char *pixel_data, int bpp, int type) const;
 	bool       LoadTGA(const mtlPath &p_filename);
-	bool       LoadPQZ(const mtlPath &p_filename) { return false; } // [P]acked [Q]uantized [Z]-order image
-	void       Swizzle_Z( void );
-	void       Pack_SOA( void ) {} // stores in SoA
-	void       Compress_VQ(const mtlByte *pixels, int total_size); // uses Vector Quantization to compress (super duper slow???)
-	mglPixel32 DecodePixel(const mtlByte *in) const; // retrieves a pixel (reverses bit depth, morton order, compression, SIMD)
-	//void       EncodePixel(mglPixel32 in, mtlByte *out); // set the color of a pixel
 
 public:
 	mglTexture( void );
 	mglTexture(int width, int height);
 	mglTexture(int width, int height, mglPixelFormat format);
-	~mglTexture( void ) { delete [] m_pixels; }
 
-	int GetWidth( void )  const { return m_width; }
-	int GetHeight( void ) const { return m_height; }
-	int GetArea( void )   const { return m_width << m_height_shift; }
+	int GetWidth( void )  const { return m_main->width; }
+	int GetHeight( void ) const { return m_main->height; }
+	int GetArea( void )   const { return m_main->width << m_main->height_shift; }
 
 	bool Create(int width, int height);
 	bool Create(int width, int height, mglPixelFormat format);
+
+	void UpdateMipMaps( void );
 
 	//bool CreateFrom(const mglImage &image); // create texture from image (note that we would have to handle dimensions that are not supported)
 
@@ -66,14 +69,14 @@ public:
 
 	void Free( void );
 
-	// take bpp into account when we change to variable bit depth
-	mglPixel32 GetPixelXY(int x, int y)     const { return DecodePixel(m_pixels + mtlEncodeMorton2(x & m_width_mask, y & m_height_mask) * m_format.bytes_per_pixel); }
-	mglPixel32 GetPixelXY(float x, float y) const { return GetPixelXY(int(x), int(y)); }
-	mglPixel32 GetPixelUV(float u, float v) const { return GetPixelXY(u * m_width, v * m_height); }
+	mglPixel32 GetPixelXY(int x, int y, int mip = 0)     const { return m_mips[mip].GetPixelXY(x, y); }
+	mglPixel32 GetPixelXY(float x, float y, int mip = 0) const { return GetPixelXY(int(x), int(y), mip); }
+	mglPixel32 GetPixelUV(float u, float v, int mip = 0) const { return GetPixelXY(u * m_main->width, v * m_main->height, mip); }
 
-	mglPixelFormat        GetPixelFormat( void )   const { return m_format; }
-	int                   GetBytesPerPixel( void ) const { return m_format.bytes_per_pixel; }
-	mglPixelFormat::Color GetColorMode( void )     const { return m_format.color; }
+	mglColor32 GetColorXY(int x, int y, int mip = 0)     const { return mglDecodePixel(GetPixelXY(x, y, mip), m_mips[mip].format.byte_order); }
+	mglColor32 GetColorXY(float x, float y, int mip = 0) const { return mglDecodePixel(GetPixelXY(x, y, mip), m_mips[mip].format.byte_order); }
+	mglColor32 GetColorUV(float u, float v, int mip = 0) const { return mglDecodePixel(GetPixelUV(u, v, mip), m_mips[mip].format.byte_order); }
+
 	static mglByteOrder32 GetByteOrder( void );
 
 	const char *Debug_GetFormatString( void ) const { return m_format_str.GetChars(); }

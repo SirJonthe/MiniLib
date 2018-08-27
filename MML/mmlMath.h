@@ -84,41 +84,41 @@ inline type_t mmlSqrt(const type_t &x)
 	return type_t(sqrt((double)x));
 }
 
-inline float mmlFastInvSqrt(float pX)
-{
-	union bits32
-	{
-		int		i;
-		float	f;
-	};
-	volatile bits32 b;
-	b.f = pX;
-	b.i = 0x5f375a86 - (b.i >> 1);
-	return b.f * (1.5f - 0.5f * pX * b.f * b.f);
-}
-inline float mmlFastSqrt(float pX) { return pX*mmlFastInvSqrt(pX); }
-inline int mmlX86RoundCast(double x)
-{
-	union bits64
-	{
-		long long	i;
-		double		f;
-	};
-	volatile bits64 b;
-	b.f = x + 6755399441055744.0;
-	return (int)b.i;
-}
-inline int mmlX86TruncCast(double x)
-{
-	union bits64
-	{
-		long long	i;
-		double		f;
-	};
-	volatile bits64 b;
-	b.f = x + 6755399441055743.5;
-	return (int)b.i;
-}
+//inline float mmlFastInvSqrt(float pX)
+//{
+//	union bits32
+//	{
+//		int		i;
+//		float	f;
+//	};
+//	volatile bits32 b;
+//	b.f = pX;
+//	b.i = 0x5f375a86 - (b.i >> 1);
+//	return b.f * (1.5f - 0.5f * pX * b.f * b.f);
+//}
+//inline float mmlFastSqrt(float pX) { return pX*mmlFastInvSqrt(pX); }
+//inline int mmlX86RoundCast(double x)
+//{
+//	union bits64
+//	{
+//		long long	i;
+//		double		f;
+//	};
+//	volatile bits64 b;
+//	b.f = x + 6755399441055744.0;
+//	return (int)b.i;
+//}
+//inline int mmlX86TruncCast(double x)
+//{
+//	union bits64
+//	{
+//		long long	i;
+//		double		f;
+//	};
+//	volatile bits64 b;
+//	b.f = x + 6755399441055743.5;
+//	return (int)b.i;
+//}
 
 inline bool mmlIsNAN(float x)
 {
@@ -156,7 +156,7 @@ inline type_t mmlSin(type_t x)
 	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
 
 	// Wrap input to valid range -pi ... pi
-	// NOTE: Wrapping needs to be a function (mmlWrap) in order to make MPL work
+	// NOTE: Wrapping needs to be a branchless function (mmlWrap) in order to make MPL work
 	if (x < -mmlPI) {
 		do {
 			x += (mmlPI * type_t(2));

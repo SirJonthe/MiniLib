@@ -6,9 +6,12 @@
 
 #include "../MTL/mtlBits.h"
 
-struct mglColor32
+union mglColor32
 {
-	mtlByte r, g, b, a;
+	struct {
+		mtlByte r, g, b, a;
+	} rgba;
+	unsigned int code;
 };
 
 #define mglColorName(color_space) mglColor##color_space

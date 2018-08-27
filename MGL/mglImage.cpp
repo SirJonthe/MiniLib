@@ -1,5 +1,5 @@
 #include "mglImage.h"
-#include "mglRay.h"
+#include "mglCollision.h"
 
 #include "../MML/mmlMath.h"
 #include "../MML/mmlFixed.h"
@@ -78,7 +78,7 @@ void mglImage::Create(int p_width, int p_height, mglColor32 color)
 {
 	Create(p_width, p_height);
 	const int area = GetArea();
-	mglPixel32 pixel = mglRGBA(color.r, color.g, color.b, color.a, m_order);
+	mglPixel32 pixel = mglEncodePixel(color.rgba.r, color.rgba.g, color.rgba.b, color.rgba.a, m_order);
 	for (int i = 0; i < area; ++i) {
 		m_pixels[i] = pixel;
 	}
@@ -117,23 +117,19 @@ void mglImage::Free( void )
 mglColor32 mglImage::GetColorXY(int x, int y) const
 {
 	const mglPixel32 *pixel = GetPixelXY(x, y);
-	mglColor32 color = {
+	mglColor32 color = { {
 		pixel->bytes[m_order.index.r],
 		pixel->bytes[m_order.index.g],
 		pixel->bytes[m_order.index.b],
 		pixel->bytes[m_order.index.a]
-	};
+	} };
 	return color;
 }
 
 void mglImage::DrawPixel(int x, int y, mglColor32 color)
 {
 	if (x > -1 && x < m_width && y > -1 && y < m_height) {
-		mglPixel32 *pixel = GetPixelXY(x, y);
-		pixel->bytes[m_order.index.r] = color.r;
-		pixel->bytes[m_order.index.g] = color.g;
-		pixel->bytes[m_order.index.b] = color.b;
-		pixel->bytes[m_order.index.a] = color.a;
+		*GetPixelXY(x, y) = mglEncodePixel(color, m_order);
 	}
 }
 
@@ -258,7 +254,7 @@ void mglImage::FillBox(int x1, int y1, int x2, int y2, mglColor32 color)
 	x2 = mmlMin(x2, m_width);
 	y2 = mmlMin(y2, m_height);
 
-	mglPixel32  pixel_color = mglRGBA(color.r, color.g, color.b, color.a, m_order);
+	mglPixel32  pixel_color = mglEncodePixel(color.rgba.r, color.rgba.g, color.rgba.b, color.rgba.a, m_order);
 	mglPixel32 *pixels = GetPixelXY(x1, y1);
 	const int   yn = y2 - y1;
 
@@ -298,7 +294,7 @@ void mglImage::FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, mglC
 	const int ey1 = mmlMin(y2, m_height);
 	const int ey2 = mmlMin(y3, m_height);
 
-	mglPixel32  pixel_color = mglRGBA(color.r, color.g, color.b, color.a, m_order);
+	mglPixel32  pixel_color = mglEncodePixel(color.rgba.r, color.rgba.g, color.rgba.b, color.rgba.a, m_order);
 	mglPixel32 *pixels = m_pixels;
 
 	if (sy1 > 0) {
@@ -492,7 +488,7 @@ void mglImage::DrawChar(char ch, int x, int y, mglColor32 color, int scale)
 		font_char_px_width, font_char_px_height,
 		(mtlByte*)m_pixels, 4, m_order, m_width, m_height,
 		x, y,
-		color.r, color.g, color.b,
+		color.rgba.r, color.rgba.g, color.rgba.b,
 		scale
 	);
 }

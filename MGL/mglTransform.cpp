@@ -3,26 +3,10 @@
 void mglAxis::RotateByAxisAngle(const mmlVector<3> &p_axis, float p_angle)
 {
 	const mmlQuaternion q(p_axis, p_angle);
-	right	= q * right;
-	up		= q * up;
-	forward	= q * forward;
+	m_rot[0] = q * m_rot[0];
+	m_rot[1] = q * m_rot[1];
+	m_rot[2] = q * m_rot[2];
 }
-
-void mglAxis::SetIdentity( void )
-{
-	right	= mmlVector<3>(1.0f, 0.0f, 0.0f);
-	up		= mmlVector<3>(0.0f, 1.0f, 0.0f);
-	forward	= mmlVector<3>(0.0f, 0.0f, 1.0f);
-}
-
-mmlMatrix<3,3> mglAxis::GetRotationMatrix( void ) const
-{
-	return mmlMatrix<3,3>(
-		right[0],   right[1],   right[2],
-		up[0],      up[1],      up[2],
-		forward[0], forward[1], forward[2]
-	);
-};
 
 const mglAxis mglTransform::globalAxis = mglAxis();
 
