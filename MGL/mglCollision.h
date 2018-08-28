@@ -16,25 +16,26 @@ struct mglRayCollision3D
 
 namespace mglCollision
 {
+	mmlVector<3> ClosestPointOnPlane3D(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 
 	bool AABBPoint3D(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point);
 	bool AABBAABB3D(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max);
 	bool AABBPlane3D(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist);
 
 	bool SpherePoint3D(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point);
-	bool SphereSphere3D(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float p_radius);
+	bool SphereSphere3D(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float b_radius);
+	bool SpherePlane3D(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist);
 
 	// ray - AABB (UNFINISHED)
-	// ray - poly
 
-	// poly - AABB
-	// poly - plane
-	// poly - poly
+//	bool PolyAABB3D(const mmlVector<3> *poly_vert, int poly_vert_count, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max);
+//	bool PolySphere3D(const mmlVector<3> *poly_vert, int poly_vert_count, const mmlVector<3> &cir_pos, float cir_radius);
+//	bool PolyPoly3D(const mmlVector<3> *a_poly_vert, int a_poly_vert_count, const mmlVector<3> *b_poly_vert, int b_poly_vert_count);
 
 	bool RayAABB3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out);
 	bool RaySphere3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D &out);
 	bool RayPlane3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollision3D &out);
-
+//	bool RayPoly3D(const mmlVector<3> &ray_origin, const mmlVector<3> ray_dir, const mmlVector<3> *poly_vert, int poly_vert_count);
 }
 
 // generizise this for 2/3 dimensions

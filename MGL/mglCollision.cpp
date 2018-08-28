@@ -1,5 +1,13 @@
 #include "mglCollision.h"
 
+mmlVector<3> mglCollision::ClosestPointOnPlane3D(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
+{
+	float dist = mmlDot(plane_normal, point) - plane_dist;
+	// if plane_normal is not normalized
+	// dist = dist / mmlDot(plane_normal, plane_normal);
+	return point - plane_normal * dist;
+}
+
 bool mglCollision::AABBPoint3D(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point)
 {
 	return
@@ -33,24 +41,59 @@ bool mglCollision::SphereSphere3D(const mmlVector<3> &a_pos, float a_radius, con
 	return mmlAbs(b_pos - a_pos).Len() <= (a_radius + b_radius);
 }
 
+bool mglCollision::SpherePlane3D(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist)
+{
+	mmlVector<3> closest = mglCollision::ClosestPointOnPlane3D(cir_pos, plane_normal, plane_dist);
+	return mmlDist(closest, cir_pos) <= cir_radius;
+}
+
 bool mglCollision::RayAABB3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out)
 {
+	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::IdentityMatrix(); // these are three normals on the AABB (the other three are the negative normals)
+
 	// TODO; Pay more attention to WHICH values are used for tmin and tmax as they will be needed for determining entry/exit normals
-	mmlVector<3> t0 = (aabb_min - ray_origin) / ray_dir;
-	mmlVector<3> t1 = (aabb_max - ray_origin) / ray_dir;
+	mmlVector<3> t0 = (aabb_min - ray_origin) / ray_dir; // one of the 3 sides connected to the min point (all normals are -1)
+	mmlVector<3> t1 = (aabb_max - ray_origin) / ray_dir; // one of the 3 sides connected to the max point (all normals are +1)
 	mmlVector<3> min = mmlMin(t0, t1);
 	mmlVector<3> max = mmlMax(t0, t1);
 	float tmin = mmlMax(min[0], min[1], min[2]);
 	float tmax = mmlMin(max[0], max[1], max[2]);
 	if (tmax < 0.0f || tmin > tmax) { return false; }
 
+	// determine which normal in the Normals matrix to use for entry and exit normal
+	// HACK; I am not proud of iterating through all possible values to find the index
+	int nmin = 0;
+	for (int i = 0; i < 3; ++i) {
+		if (tmin == t0[i]) {
+			nmin = i + 3;
+			break;
+		} else if (tmin == t1[i]) {
+			nmin = i;
+			break;
+		}
+	}
+	int nmax = 0;
+	for (int i = 0; i < 3; ++i) {
+		if (tmax == t0[i]) {
+			nmax = i + 3;
+			break;
+		} else if (tmax == t1[i]) {
+			nmax = i;
+			break;
+		}
+	}
+
 	if (tmin < 0.0f) {
 		// ray inside box, only one intersection point
-		out.exit_point = out.entry_point = ray_origin + ray_dir * tmax;
+		out.exit_point   = out.entry_point = ray_origin + ray_dir * tmax;
+		out.exit_normal  = Normals[nmax % 3] * (nmax < 3 ? -1.0f : 1.0f);
+		out.entry_normal = -out.exit_normal;
 	} else {
 		// two intersection points
 		out.entry_point  = ray_origin + ray_dir * tmin;
-		out.entry_normal = ray_origin + ray_dir * tmax;
+		out.exit_point   = ray_origin + ray_dir * tmax;
+		out.entry_normal = Normals[nmin % 3] * (nmin < 3 ? -1.0f : 1.0f);
+		out.exit_normal  = Normals[nmax % 3] * (nmax < 3 ? -1.0f : 1.0f);
 	}
 
 	return true;
