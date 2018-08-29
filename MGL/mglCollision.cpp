@@ -1,6 +1,6 @@
 #include "mglCollision.h"
 
-mmlVector<3> mglCollision::ClosestPointOnPlane3D(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
+mmlVector<3> mglCollision::ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
 {
 	float dist = mmlDot(plane_normal, point) - plane_dist;
 	// if plane_normal is not normalized
@@ -8,7 +8,18 @@ mmlVector<3> mglCollision::ClosestPointOnPlane3D(const mmlVector<3> &point, cons
 	return point - plane_normal * dist;
 }
 
-bool mglCollision::AABBPoint3D(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point)
+bool mglCollision::PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c)
+{
+	mmlVector<3> a = tri_a - point;
+	mmlVector<3> b = tri_b - point;
+	mmlVector<3> c = tri_c - point;
+	mmlVector<3> u = mmlCross(b, c);
+	mmlVector<3> v = mmlCross(c, a);
+	mmlVector<3> w = mmlCross(a, b);
+	return mmlDot(u, v) >= 0.0f && mmlDot(u, w) >= 0.0f;
+}
+
+bool mglCollision::AABB_Point(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point)
 {
 	return
 		(point[0] >= aabb_min[0] && point[0] <= aabb_max[0]) &&
@@ -16,13 +27,13 @@ bool mglCollision::AABBPoint3D(const mmlVector<3> &aabb_min, const mmlVector<3> 
 		(point[2] >= aabb_min[2] && point[2] <= aabb_max[2]);
 }
 
-bool mglCollision::AABBAABB3D(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max)
+bool mglCollision::AABB_AABB(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max)
 {
 	const mmlVector<3> overlap = mmlMin(a_max, b_max) - mmlMax(a_min, b_min);
 	return (overlap[0] * overlap[1] * overlap[2]) > 0.0f;
 }
 
-bool mglCollision::AABBPlane3D(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist)
+bool mglCollision::AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist)
 {
 	mmlVector<3> center = (aabb_max + aabb_min) * 0.5f;
 	mmlVector<3> extents = aabb_max - center;
@@ -31,23 +42,23 @@ bool mglCollision::AABBPlane3D(const mmlVector<3> &aabb_min, const mmlVector<3> 
 	return mmlAbs(aabb_center_plane_dist) <= projection_interval_radius;
 }
 
-bool mglCollision::SpherePoint3D(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point)
+bool mglCollision::Sphere_Point(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point)
 {
 	return (point - cir_pos).Len() <= cir_radius;
 }
 
-bool mglCollision::SphereSphere3D(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float b_radius)
+bool mglCollision::Sphere_Sphere(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float b_radius)
 {
 	return mmlAbs(b_pos - a_pos).Len() <= (a_radius + b_radius);
 }
 
-bool mglCollision::SpherePlane3D(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist)
+bool mglCollision::Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist)
 {
-	mmlVector<3> closest = mglCollision::ClosestPointOnPlane3D(cir_pos, plane_normal, plane_dist);
+	mmlVector<3> closest = mglCollision::ClosestPointOnPlane(cir_pos, plane_normal, plane_dist);
 	return mmlDist(closest, cir_pos) <= cir_radius;
 }
 
-bool mglCollision::RayAABB3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out)
+bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out)
 {
 	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::IdentityMatrix(); // these are three normals on the AABB (the other three are the negative normals)
 
@@ -99,7 +110,7 @@ bool mglCollision::RayAABB3D(const mmlVector<3> &ray_origin, const mmlVector<3> 
 	return true;
 }
 
-bool mglCollision::RaySphere3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D &out)
+bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D &out)
 {
 	mmlVector<3> l = cir_pos - ray_origin;
 	float tca = mmlDot(l, ray_dir);
@@ -128,7 +139,7 @@ bool mglCollision::RaySphere3D(const mmlVector<3> &ray_origin, const mmlVector<3
 	return true;
 }
 
-bool mglCollision::RayPlane3D(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollision3D &out)
+bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollision3D &out)
 {
 	float nd = mmlDot(ray_dir, plane_normal);
 	if (nd >= 0.0f) { return false; }
@@ -142,6 +153,14 @@ bool mglCollision::RayPlane3D(const mmlVector<3> &ray_origin, const mmlVector<3>
 	out.exit_normal  = -plane_normal;
 
 	return true;
+}
+
+bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollision3D &out)
+{
+	mmlVector<3> poly_normal = mmlSurfaceNormal(tri_a, tri_b, tri_c);
+	float plane_dist = -mmlDot(tri_a, poly_normal);
+	if (!mglCollision::Ray_Plane(ray_origin, ray_dir, poly_normal, plane_dist, out)) { return false; } // if true, out contains all info we need from the collision
+	return PointInTri(out.entry_point, tri_a, tri_b, tri_c);
 }
 
 void mglRayMarcher3D::SetInitialState(const mmlVector<3> &p_ray_origin, const mmlVector<3> &p_ray_dir)
