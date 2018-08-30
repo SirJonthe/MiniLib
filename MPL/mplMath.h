@@ -18,4 +18,24 @@ inline mpl::wide_int mmlRound(const mpl::wide_float &x) { return mpl::wide_int(x
 inline mpl::wide_int mmlFloor(const mpl::wide_float &x) { return mpl::wide_int(x + (1<<15)) - (1<<15); }
 inline mpl::wide_int mmlCeil(const mpl::wide_float &x)  { return mpl::wide_int(1<<15) - mpl::wide_int(mpl::wide_float(1<<15) - x); }
 
+inline mpl::wide_bool mmlIsPow2(const mpl::wide_int &x) { return (x != 0) && ( (x & (x - 1)) == 0 ); }
+
+//inline mpl::wide_bool mmlIsNAN(const mpl::wide_float &x)
+//{
+//	volatile mpl::wide_float tmp = x;
+//	return tmp != x;
+//}
+
+//inline mpl::wide_bool mmlIsInf(const mpl::wide_float &x)
+//{
+//	volatile mpl::wide_float tmp = x;
+//	return (tmp == x) && ((tmp - x) != 0.0f) && (x > 0.0f);
+//}
+
+//inline mpl::wide_bool mmlIsNegInf(const mpl::wide_float &x)
+//{
+//	volatile mpl::wide_float tmp = x;
+//	return (tmp == x) && ((tmp - x) != 0.0f) && (x < 0.0f);
+//}
+
 #endif // MPL_MATH_H_INCLUDED__
