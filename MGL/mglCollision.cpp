@@ -62,49 +62,49 @@ bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &
 {
 	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::IdentityMatrix(); // these are three normals on the AABB (the other three are the negative normals)
 
-	// TODO; Pay more attention to WHICH values are used for tmin and tmax as they will be needed for determining entry/exit normals
 	mmlVector<3> t0 = (aabb_min - ray_origin) / ray_dir; // one of the 3 sides connected to the min point (all normals are -1)
 	mmlVector<3> t1 = (aabb_max - ray_origin) / ray_dir; // one of the 3 sides connected to the max point (all normals are +1)
-	mmlVector<3> min = mmlMin(t0, t1);
-	mmlVector<3> max = mmlMax(t0, t1);
+	mmlVector<3> min;
+	mmlVector<3> max;
+	for (int i = 0; i < 3; ++i) {
+		if (t0[i] < t1[i]) {
+			min[i] = t0[i];
+			max[i] = t1[i];
+		} else {
+			min[i] = t1[i];
+			max[i] = t0[i];
+		}
+	}
 	float tmin = mmlMax(min[0], min[1], min[2]);
 	float tmax = mmlMin(max[0], max[1], max[2]);
+
 	if (tmax < 0.0f || tmin > tmax) { return false; }
 
-	// determine which normal in the Normals matrix to use for entry and exit normal
-	// HACK; I am not proud of iterating through all possible values to find the index
-	int nmin = 0;
+	int min_normal_index[3];
+	int max_normal_index[3];
 	for (int i = 0; i < 3; ++i) {
-		if (tmin == t0[i]) {
-			nmin = i + 3;
-			break;
-		} else if (tmin == t1[i]) {
-			nmin = i;
-			break;
+		if (t0[i] < t1[i]) {
+			min_normal_index[i] = i + 3;
+			max_normal_index[i] = i;
+		} else {
+			min_normal_index[i] = i;
+			max_normal_index[i] = i + 3;
 		}
 	}
-	int nmax = 0;
-	for (int i = 0; i < 3; ++i) {
-		if (tmax == t0[i]) {
-			nmax = i + 3;
-			break;
-		} else if (tmax == t1[i]) {
-			nmax = i;
-			break;
-		}
-	}
+	int tmin_normal_index = (min[0] > min[1]) ? (min[0] > min[2] ? min_normal_index[0] : min_normal_index[2]) : (min[1] > min[2] ? min_normal_index[1] : min_normal_index[2]);
+	int tmax_normal_index = (max[0] < max[1]) ? (max[0] < max[2] ? max_normal_index[0] : max_normal_index[2]) : (max[1] < max[2] ? max_normal_index[1] : max_normal_index[2]);
 
 	if (tmin < 0.0f) {
 		// ray inside box, only one intersection point
 		out.exit_point   = out.entry_point = ray_origin + ray_dir * tmax;
-		out.exit_normal  = Normals[nmax % 3] * (nmax < 3 ? -1.0f : 1.0f);
+		out.exit_normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
 		out.entry_normal = -out.exit_normal;
 	} else {
 		// two intersection points
 		out.entry_point  = ray_origin + ray_dir * tmin;
 		out.exit_point   = ray_origin + ray_dir * tmax;
-		out.entry_normal = Normals[nmin % 3] * (nmin < 3 ? -1.0f : 1.0f);
-		out.exit_normal  = Normals[nmax % 3] * (nmax < 3 ? -1.0f : 1.0f);
+		out.entry_normal = Normals[tmin_normal_index % 3] * (tmin_normal_index < 3 ? -1.0f : 1.0f);
+		out.exit_normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
 	}
 
 	return true;

@@ -16,6 +16,12 @@ struct mglRayCollision3D
 
 namespace mglCollision
 {
+	struct AABB   { mmlVector<3> min, max; };
+	struct Sphere { mmlVector<3> center; float radius; };
+	struct Plane  { mmlVector<3> normal; float distance; };
+	struct Tri    { mmlVector<3> a, b, c; };
+	struct Ray    { mmlVector<3> origin, direction; };
+
 	mmlVector<3> ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	bool PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c);
 
@@ -26,8 +32,6 @@ namespace mglCollision
 	bool Sphere_Point(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point);
 	bool Sphere_Sphere(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float b_radius);
 	bool Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist);
-
-	// ray - AABB (HACKED TOGETHER!!!)
 
 //	bool Tri_AABB(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max);
 //	bool Tri_Sphere(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, const mmlVector<3> &cir_pos, float cir_radius);

@@ -141,13 +141,12 @@ void mglImage::DrawLine(int x1, int y1, int x2, int y2, mglColor32 color)
 	}
 	mmlVector<2> p1 = mmlVector<2>((float)x1, (float)y1);
 	mmlVector<2> p2 = mmlVector<2>((float)x2, (float)y2);
-	mglRay2D ray;
-	ray.origin = p1;
+	mmlVector<2> ray_origin = p1;
 	const float len = mmlDist(p1, p2);
-	ray.direction = (p2 - p1) / len;
+	mmlVector<2> ray_direction = (p2 - p1) / len;
 
-	mglDifferentialAnalyzer2D dda;
-	dda.SetInitialState(ray);
+	mglRayMarcher2D dda;
+	dda.SetInitialState(ray_origin, ray_direction);
 
 	float dist = dda.GetImpactDistance();
 	while (dist < len) {
@@ -369,8 +368,8 @@ void mglImage::FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, mglC
 #define font_char_first    '!'
 #define font_char_last     '~'
 
-#define font_small_char_count_width   4
-#define font_small_char_count_height  24
+#define font_small_char_count_width  4
+#define font_small_char_count_height 24
 
 // XBM data format
 #define font_small_width  24
