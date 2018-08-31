@@ -54,10 +54,10 @@ public:
 	bool operator !=(unit_range r) const { return x != r.x; }
 };
 
-template <> class unit_range<mml::s8>  {};
-template <> class unit_range<mml::s16> {};
-template <> class unit_range<mml::s32> {};
-template <> class unit_range<mml::s64> {};
+template <> class unit_range<mml::sint8>  {};
+template <> class unit_range<mml::sint16> {};
+template <> class unit_range<mml::sint32> {};
+template <> class unit_range<mml::sint64> {};
 
 template < typename base_t, typename int_t > int_t  operator*(unit_range<base_t> x, int_t y)
 {
@@ -68,12 +68,12 @@ template < typename base_t, typename int_t > int_t  operator*(unit_range<base_t>
 
 template < typename base_t, typename int_t > int_t operator*(int_t y, unit_range<base_t> x) { return x * y; }
 
-template < typename base_t, mml::u32 prec >
+template < typename base_t, mml::uint32 prec >
 class fixed
 {
-	template < typename t, mml::u32 p> friend class fixed;
-	template < typename unit_t, typename fixed_t, mml::u32 n > friend fixed<fixed_t, n> operator*(unit_range<unit_t> x, fixed<fixed_t, n> y);
-	template < typename unit_t, typename fixed_t, mml::u32 n > friend fixed<fixed_t, n> operator*(fixed<fixed_t, n> y, unit_range<unit_t> x);
+	template < typename t, mml::uint32 p> friend class fixed;
+	template < typename unit_t, typename fixed_t, mml::uint32 n > friend fixed<fixed_t, n> operator*(unit_range<unit_t> x, fixed<fixed_t, n> y);
+	template < typename unit_t, typename fixed_t, mml::uint32 n > friend fixed<fixed_t, n> operator*(fixed<fixed_t, n> y, unit_range<unit_t> x);
 
 private:
 	base_t x;
@@ -82,7 +82,7 @@ public:
 	fixed( void ) : x() {}
 	template < typename type_t >
 	fixed(type_t a) : x((base_t)(a * (1 << prec))) {}
-	template < typename t, mml::u32 p >
+	template < typename t, mml::uint32 p >
 	fixed(const fixed<t, p> &r) : x(prec < p ? (base_t)mmlSignedRShift(r.x, (p - prec)) : (base_t)(r.x * (1 << (prec - p)))) {}
 	template < typename t >
 	fixed(const fixed<t,prec> &r) : x((base_t)r.x) {}
@@ -96,7 +96,7 @@ public:
 
 	template < typename type_t >
 	fixed &operator=(type_t r) { x = r * (1 << prec); return *this; }
-	template < typename t, mml::u32 p >
+	template < typename t, mml::uint32 p >
 	fixed &operator=(fixed<t,p> r) { x = prec < p ? (base_t)mmlSignedRShift(r.x, (p - prec)) : (base_t)(r.x * (1 << (prec - p))); return *this; }
 	template < typename t >
 	fixed &operator=(fixed<t,prec> r) { x = (base_t)r.x; return *this; }
@@ -115,16 +115,16 @@ public:
 	bool operator !=(fixed r) const { return x != r.x; }
 };
 
-template < typename base_t, mml::u32 prec >
+template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator+(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l += r; }
-template < typename base_t, mml::u32 prec >
+template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator-(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l -= r; }
-template < typename base_t, mml::u32 prec >
+template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator*(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l *= r; }
-template < typename base_t, mml::u32 prec >
+template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator/(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l /= r; }
 
-template < typename unit_t, typename fixed_t, mml::u32 n >
+template < typename unit_t, typename fixed_t, mml::uint32 n >
 fixed<fixed_t, n> operator*(unit_range<unit_t> x, fixed<fixed_t, n> y)
 {
 	fixed<fixed_t, n> o;
@@ -132,7 +132,7 @@ fixed<fixed_t, n> operator*(unit_range<unit_t> x, fixed<fixed_t, n> y)
 	return o;
 }
 
-template < typename unit_t, typename fixed_t, mml::u32 n >
+template < typename unit_t, typename fixed_t, mml::uint32 n >
 fixed<fixed_t, n> operator*(fixed<fixed_t, n> y, unit_range<unit_t> x)
 {
 	fixed<fixed_t, n> o;

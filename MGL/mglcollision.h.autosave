@@ -1,0 +1,19 @@
+#ifndef MGL_COLLISION_H_INCLUDED
+#define MGL_COLLISION_H_INCLUDED
+
+#include "../MML/mmlVector.h"
+
+struct CollisionInfo
+{};
+
+struct mglAABB3D
+{
+	mmlVector<3> min, max;
+};
+
+struct mglAABB2D
+{
+	mmlVector<2> min, max;
+};
+
+#endif // MGL_COLLISION_H_INCLUDED

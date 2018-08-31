@@ -77,8 +77,10 @@ namespace mpl {
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(_mm_set1_ps(val)) {}
+		wide_float(bool val) : f(_mm_set1_ps(val ? 1.0f : -1.0f)) {}
 		explicit wide_float(const float *in) : f(_mm_loadu_ps(in)) {}
 		inline explicit wide_float(const wide_int &r);
+		inline explicit wide_float(const wide_bool &r);
 
 		wide_float operator-( void ) const { return wide_float(0.0f) - *this; }
 
@@ -159,10 +161,12 @@ namespace mpl {
 		wide_fixed(const wide_fixed<n> &r) : i(r.i) {}
 		wide_fixed(int val) : i(_mm_slli_epi32(_mm_set1_epi32(val), n)) {}
 		wide_fixed(float val) : i(_mm_cvttps_epi32(_mm_mul_ps(_mm_set1_ps(val), _mm_set1_ps(1 << n)))) {}
+		wide_fixed(bool val) : i(_mm_slli_epi32(_mm_set1_epi32(val ? 1 : 0), n)) {}
 		explicit wide_fixed(const int *in) : i(_mm_slli_epi32(_mm_loadu_si128((__m128i*)in), n)) {}
 		explicit wide_fixed(const float *in) : i(_mm_cvttps_epi32(_mm_mul_ps(_mm_loadu_ps(in), _mm_set1_ps(1 << n)))) {}
 		inline explicit wide_fixed(const wide_int &r);
 		inline explicit wide_fixed(const wide_float &r);
+		inline explicit wide_fixed(const wide_bool &r);
 
 		wide_fixed<n> operator-( void ) const { return wide_fixed<n>(0) - *this; }
 
@@ -256,10 +260,12 @@ namespace mpl {
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(_mm_set1_epi32(val)) {}
+		wide_int(bool val) : i(_mm_set1_epi32(val ? 1 : 0)) {}
 		explicit wide_int(const int *in) : i(_mm_loadu_si128((__m128i*)in)) {}
 		template < int n >
 		inline explicit wide_int(const wide_fixed<n> &f);
 		inline explicit wide_int(const wide_float &r);
+		inline explicit wide_int(const wide_bool &r);
 
 		wide_int operator-( void ) const { return wide_int(0) - *this; }
 
@@ -341,15 +347,19 @@ namespace mpl {
 	;
 
 	wide_float::wide_float(const wide_int &r) : f(_mm_cvtepi32_ps(r.i)) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(_mm_slli_epi32(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i(_mm_cvttps_epi32(_mm_mul_ps(r.f, _mm_set1_ps(1 << n)))) {}
+	template < int n >
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
 
 	wide_int::wide_int(const wide_float &r)   : i(_mm_cvttps_epi32(r.f)) {}
 	template < int n >
-	wide_int::wide_int(const wide_fixed<n> &f) : i(_mm_srai_epi32(f.i, n)) {}
+	wide_int::wide_int(const wide_fixed<n> &r) : i(_mm_srai_epi32(r.i, n)) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
 
 #elif MPL_SIMD == MPL_SIMD_AVX256
 
@@ -436,8 +446,10 @@ namespace mpl {
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(vdupq_n_f32(val)) {}
+		wide_float(bool val) : f(vdupq_n_f32(val ? 1.0f : 0.0f)) {}
 		explicit wide_float(const float *in) : f(vld1q_f32(in)) {}
 		inline explicit wide_float(const wide_int &r);
+		inline explicit wide_float(const wide_bool &r)
 
 		wide_float operator-( void ) const { return wide_float(0.0f) - *this; }
 
@@ -529,6 +541,7 @@ namespace mpl {
 		wide_fixed(const wide_fixed<n> &r) : i(r.i) {}
 		wide_fixed(int val) : i(vshlq_n_s32(vdupq_n_s32(val), n)) {}
 		wide_fixed(float val) : i() {}
+		wide_fixed(bool val) : i(vshlq_n_s32(vdupq_n_s32(val ? 1 : 0), n)) {}
 		explicit wide_fixed(const int *in) : i(vld1q_s32(in)) {}
 		//explicit wide_fixed(const float *in) : i(vld1q_s32(in)) {  } // convert to int, arithmetic shift left by n
 		inline explicit wide_fixed(const wide_int &r);
@@ -592,10 +605,12 @@ namespace mpl {
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(vdupq_n_s32(val)) {}
+		wide_int(bool val) : i(vdupq_n_s32(val ? 1 : 0)) {}
 		explicit wide_int(const int *in) : i(vld1q_s32(in)) {}
 		inline explicit wide_int(const wide_float &r);
 		template < int n >
 		inline explicit wide_int(const wide_fixed<n> &r);
+		inline explicit wide_int(const wide_bool &r);
 
 		// For implementing integer division on systems without hardware support (eg. ARM)
 		// https://github.com/gcc-mirror/gcc/blob/master/libgcc/config/epiphany/divsi3.S
@@ -649,15 +664,19 @@ namespace mpl {
 	} __attribute__((aligned(MPL_BYTE_ALIGN)));
 
 	wide_float::wide_float(const wide_int &r) : f(vcvtq_f32_s32(r.i)) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(vshlq_n_s32(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i(vcvtq_s32_f32(vmulq_n_f32(r.f, 1 << n))) {}
+	template < int n >
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
 
 	wide_int::wide_int(const wide_float &r) : i(vcvtq_s32_f32(r.f)) {}
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(vshrq_n_s32(r.i, n)) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
 
 #elif MPL_SIMD == MPL_SIMD_ALTIVEC
 
@@ -752,8 +771,10 @@ namespace mpl {
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(val) {}
+		wide_float(bool val) : f(val ? 1.0f : 0.0f) {}
 		explicit wide_float(const float *in) : f(*in) {}
 		inline explicit wide_float(const wide_int &i);
+		inline explicit wide_float(const wide_bool &r);
 
 		wide_float operator-( void ) const { return -f; }
 
@@ -847,10 +868,12 @@ namespace mpl {
 		wide_fixed(const wide_fixed<n> &f) : i(f.i) {}
 		wide_fixed(int val) : i(signed_lshift(val, n)) {}
 		wide_fixed(float val) : i(val * (1<<n)) {}
+		wide_fixed(bool val) : i(int(val ? 1 : 0) * (1<<n)) {}
 		explicit wide_fixed(const int *in) : i(signed_lshift(*in, n)) {}
 		explicit wide_fixed(const float *in) : i(*in * (1<<n)) {}
 		inline explicit wide_fixed(const wide_int &r);
 		inline explicit wide_fixed(const wide_float &r);
+		inline explicit wide_fixed(const wide_bool &r);
 
 		wide_fixed<n> operator-( void ) const { wide_fixed<n> o; o.i = -i; return o; }
 
@@ -903,10 +926,12 @@ namespace mpl {
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(val) {}
+		wide_int(bool val) : i(val ? 1 : 0) {}
 		explicit wide_int(const int *in) : i(*in) {}
 		inline explicit wide_int(const wide_float &f);
 		template < int n >
 		inline explicit wide_int(const wide_fixed<n> &f);
+		inline explicit wide_int(const wide_bool &r);
 
 		wide_int operator-( void ) const { return -i; }
 
@@ -951,15 +976,19 @@ namespace mpl {
 	};
 
 	wide_float::wide_float(const wide_int &r) : f((float)r.i) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(wide_fixed<n>::signed_lshift(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i((int)(r.f * (1<<n))) {}
+	template < int n >
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
 
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(wide_fixed<n>::signed_rshift(r.i, n)) {}
 	wide_int::wide_int(const wide_float &r) : i((int)r.f) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
 
 #endif
 

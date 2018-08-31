@@ -1,0 +1,23 @@
+#ifndef MGL_COLLISION_H_INCLUDED
+#define MGL_COLLISION_H_INCLUDED
+
+#include "../MML/mmlVector.h"
+
+// AABB - AABB
+// ray - sphere
+// ray - circle
+// 
+
+struct mglAABB3D
+{
+	mmlVector<3> min, max;
+};
+
+struct mglAABB2D
+{
+	mmlVector<2> min, max;
+};
+
+struct 
+
+#endif // MGL_COLLISION_H_INCLUDED
