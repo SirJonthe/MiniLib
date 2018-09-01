@@ -7,63 +7,33 @@
 #define MML_MATH_H_INCLUDED
 
 #include <cmath>
-
-#define mmlPI 3.14159265f
-
-#define mmlDEG_MIN 0.0f
-#define mmlDEG_MAX 360.0f
-#define mmlDEG_QUAD (mmlDEG_MAX / 4.0f)
-
-#define mmlRAD_MIN 0.0f
-#define mmlRAD_MAX (mmlPI * 2.0f)
-#define mmlRAD_QUAD (mmlRAD_MAX / 4.0f)
-
-/* general mathematical functions
- ========================================*/
-// inline float     mmlDegToRad(float pDeg)         { return pDeg *((mmlRAD_QUAD*2.0f)/(mmlDEG_QUAD*2.0f)); }
-// inline float     mmlRadToDeg(float pRad)         { return pRad *((mmlDEG_QUAD*2.0f)/(mmlRAD_QUAD*2.0f)); }
-
-template < typename real_t > inline real_t mmlDegToRad(const real_t &deg) { return deg * real_t(mmlRAD_QUAD / mmlDEG_QUAD); }
-template < typename real_t > inline real_t mmlRadToDeg(const real_t &rad) { return rad * real_t(mmlDEG_QUAD / mmlRAD_QUAD); }
+#include "mmlInt.h"
 
 template < typename int_t > inline bool mmlIsPow2(const int_t &x) { return (x != 0) && !(x & (x - 1)); }
 
-inline int       mmlRound(float x)  { return int(x + 0.5f); }
-inline long long mmlRound(double x) { return (long long)(x + 0.5); }
-inline int       mmlFloor(float x)  { return int(x + float(1<<15)) - (1<<15); }
-inline long long mmlFloor(double x) { return (long long)(x + double(1<<31)) - (1<<31); }
-inline int       mmlCeil(float x)   { return (1<<15) - int(float(1<<15) - x); }
-inline long long mmlCeil(double x)  { return (1<<31) - (long long)(double(1<<31) - x); }
+inline mml::sint32 mmlRound(float x)  { return mml::sint32(x + 0.5f); }
+inline mml::sint64 mmlRound(double x) { return mml::sint64(x + 0.5); }
+inline mml::sint32 mmlFloor(float x)  { return mml::sint32(x + float(1<<15)) - (1<<15); }
+inline mml::sint64 mmlFloor(double x) { return mml::sint64(x + double(1<<31)) - (1<<31); }
+inline mml::sint32 mmlCeil(float x)   { return (1<<15) - mml::sint32(float(1<<15) - x); }
+inline mml::sint64 mmlCeil(double x)  { return (1<<31) - mml::sint64(double(1<<31) - x); }
 
-template < typename num_t > inline num_t mmlMin(const num_t &pA, const num_t &pB)                         { return (pA < pB) ? (pA) : (pB); }
-template < typename num_t > inline num_t mmlMax(const num_t &pA, const num_t &pB)                         { return (pA > pB) ? (pA) : (pB); }
-template < typename num_t > inline num_t mmlMin(const num_t &pA, const num_t &pB, const num_t &pC)        { return mmlMin(mmlMin(pA, pB), pC); }
-template < typename num_t > inline num_t mmlMax(const num_t &pA, const num_t &pB, const num_t &pC)        { return mmlMax(mmlMax(pA, pB), pC); }
-template < typename num_t > inline num_t mmlClamp(const num_t &min, const num_t &value, const num_t &max) { return mmlMax(mmlMin(value, max), min); }
-template < typename num_t > inline num_t mmlClamp(const num_t &value)                                     { return mmlClamp(num_t(0), value, num_t(1)); }
-template < typename num_t > inline num_t mmlAbs(const num_t &x)                                           { return mmlMax(x, -x); }
-//template < typename T > inline T mmlWrap(T value, const T &max) {
-//	if (value > max)    { value = value % (max + 1); }
-//	else if (value < 0) { value = (max + 1) - (-value % max); }
-//	return value;
-//}
-//inline double mmlWrap(double value, const double &max) {
-//	if (value > max)      { value = mmlFmod(value, max); }
-//	else if (value < 0.0) { value = max - (mmlFmod(-value, max)); }
-//	return value;
-//}
-//inline float mmlWrap(float value, const float &max) {
-//	if (value > max)       { value = mmlFmod(value, max); }
-//	else if (value < 0.0f) { value = max - (mmlFmod(-value, max)); }
-//	return value;
-//}
-template < typename real_t > inline real_t mmlWrap(const real_t &value, const real_t &max)
-{
-	real_t ratio = value / max;
-	return max * (ratio - mmlFloor(ratio));
-}
-template < typename real_t > inline real_t mmlWrap(const real_t &min, const real_t & value, const real_t &max) { return mmlWrap(value - min, max - min) + min; }
+//template < typename real_t > inline real_t mmlFract(const real_t &x) {  }
+//template < typename real_t > inline real_t mmlFloor(const real_t &x) { return x - mmlFract(x); }
+//template < typename real_t > inline real_t mmlCeil(const real_t &x)  { return x + (real_t(1) - mmlFract(x)); } // NOPE!!
+//template < typename real_t > inline real_t mmlRound(const real_t &x) { return mmlFloor(x + real_t(0.5)); }
+//template < typename real_t > inline real_t mmlTrunc(const real_t &x) { return ; }
+
+template < typename num_t >  inline num_t  mmlMin(const num_t &pA, const num_t &pB)                            { return (pA < pB) ? (pA) : (pB); }
+template < typename num_t >  inline num_t  mmlMax(const num_t &pA, const num_t &pB)                            { return (pA > pB) ? (pA) : (pB); }
+template < typename num_t >  inline num_t  mmlMin(const num_t &pA, const num_t &pB, const num_t &pC)           { return mmlMin(mmlMin(pA, pB), pC); }
+template < typename num_t >  inline num_t  mmlMax(const num_t &pA, const num_t &pB, const num_t &pC)           { return mmlMax(mmlMax(pA, pB), pC); }
+template < typename num_t >  inline num_t  mmlClamp(const num_t &min, const num_t &value, const num_t &max)    { return mmlMax(mmlMin(value, max), min); }
+template < typename num_t >  inline num_t  mmlClamp(const num_t &value)                                        { return mmlClamp(num_t(0), value, num_t(1)); }
+template < typename num_t >  inline num_t  mmlAbs(const num_t &x)                                              { return mmlMax(x, -x); }
 template < typename real_t > inline real_t mmlWrap(const real_t &value)                                        { return value - mmlFloor(value); }
+template < typename real_t > inline real_t mmlWrap(const real_t &value, const real_t &max)                     { real_t ratio = value / max; return max * mmlWrap(ratio); }
+template < typename real_t > inline real_t mmlWrap(const real_t &min, const real_t & value, const real_t &max) { return mmlWrap(value - min, max - min) + min; }
 template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)                                       { num_t temp = pA; pA = pB; pB = temp; }
 
 #define mmlAtLeast mmlMax
@@ -118,40 +88,25 @@ template < typename num_t >  inline num_t  mmlSign(const num_t &x)              
 //	return (int)b.i;
 //}
 
-inline bool mmlIsNAN(float x)
+template < typename float_t >
+inline bool mmlIsNAN(const float_t &x)
 {
-	volatile float tmp = x;
+	volatile float_t tmp = x;
 	return tmp != x;
 }
 
-inline bool mmlIsNAN(double x)
+template < typename float_t >
+inline bool mmlIsInf(const float_t &x)
 {
-	volatile double tmp = x;
-	return tmp != x;
+	volatile float_t tmp = x;
+	return (tmp == x) && ((tmp - x) != float_t(0)) && (x > float_t(0));
 }
 
-inline bool mmlIsInf(float x)
+template < typename float_t >
+inline bool mmlIsNegInf(const float_t &x)
 {
-	volatile float tmp = x;
-	return (tmp == x) && ((tmp - x) != 0.0f) && (x > 0.0f);
-}
-
-inline bool mmlIsInf(double x)
-{
-	volatile double tmp = x;
-	return (tmp == x) && ((tmp - x) != 0.0) && (x > 0.0);
-}
-
-inline bool mmlIsNegInf(float x)
-{
-	volatile float tmp = x;
-	return (tmp == x) && ((tmp - x) != 0.0f) && (x < 0.0f);
-}
-
-inline bool mmlIsNegInf(double x)
-{
-	volatile double tmp = x;
-	return (tmp == x) && ((tmp - x) != 0.0) && (x < 0.0);
+	volatile float_t tmp = x;
+	return (tmp == x) && ((tmp - x) != float_t(0)) && (x < float_t(0));
 }
 
 template < int n, typename real_t >
@@ -165,6 +120,19 @@ inline real_t mmlPi( void )
 	}
 	return pi;
 }
+
+#define mmlPI 3.14159265f
+
+#define mmlDEG_MIN 0.0f
+#define mmlDEG_MAX 360.0f
+#define mmlDEG_QUAD (mmlDEG_MAX / 4.0f)
+
+#define mmlRAD_MIN 0.0f
+#define mmlRAD_MAX (mmlPI * 2.0f)
+#define mmlRAD_QUAD (mmlRAD_MAX / 4.0f)
+
+template < typename real_t > inline real_t mmlDegToRad(const real_t &deg) { return deg * real_t(mmlRAD_QUAD / mmlDEG_QUAD); }
+template < typename real_t > inline real_t mmlRadToDeg(const real_t &rad) { return rad * real_t(mmlDEG_QUAD / mmlRAD_QUAD); }
 
 template < typename real_t >
 inline real_t mmlSin(real_t x)
@@ -181,8 +149,6 @@ inline real_t mmlSin(real_t x)
 //			x -= (mmlPI * real_t(2));
 //		} while (x >  mmlPI);
 //	}
-	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
-
 	// Compute sine
 	// 1.27323954 = 4 / PI
 	// 0.405284735 = 1.27323954 / PI
@@ -192,12 +158,17 @@ inline real_t mmlSin(real_t x)
 //	real_t sin = sin1 < real_t(0) ?
 //		real_t(0.225) * (sin1 * -sin1 - sin1) + sin1 :
 //		real_t(0.225) * (sin1 *  sin1 - sin1) + sin1;
+//	return sin;
 
+	// Wrap input to valid range -pi ... pi
+	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
+	// Compute sine
+	// 1.27323954 = 4 / PI
+	// 0.405284735 = 1.27323954 / PI
 	const real_t magic_val1 = real_t(4) / real_t(mmlPI);
 	const real_t magic_val2 = magic_val1 / real_t(mmlPI);
-	real_t sin1 = real_t(1.27323954) * x + -mmlSign(x) * real_t(0.405284735) * x * x;
-	real_t sin  = real_t(0.225) * (sin1 * mmlAbs(sin1) - sin1) + sin1;
-
+	const real_t sin1 = magic_val1 * x + -mmlSign(x) * magic_val2 * x * x;
+	const real_t sin  = real_t(0.225) * (sin1 * mmlAbs(sin1) - sin1) + sin1;
 	return sin;
 }
 
