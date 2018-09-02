@@ -6,12 +6,15 @@
 #include "../MML/mmlVector.h"
 #include "mglTransform.h"
 
+struct mglRayCollisionPoint3D
+{
+	mmlVector<3> point, normal;
+	float        distance;
+};
+
 struct mglRayCollision3D
 {
-	mmlVector<3> entry_point;
-	mmlVector<3> exit_point;
-	mmlVector<3> entry_normal;
-	mmlVector<3> exit_normal;
+	mglRayCollisionPoint3D entry, exit;
 };
 
 namespace mglCollision
@@ -37,10 +40,10 @@ namespace mglCollision
 //	bool Tri_Sphere(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, const mmlVector<3> &cir_pos, float cir_radius);
 //	bool Tri_Tri(const mmlVector<3> &a_a, const mmlVector<3> &a_b, const mmlVector<3> &a_c, const mmlVector<3> &b_a, const mmlVector<3> &b_b, const mmlVector<3> &b_c);
 
-	bool Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out);
-	bool Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D &out);
-	bool Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollision3D &out);
-	bool Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollision3D &out);
+	bool Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D *out = NULL);
+	bool Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D *out = NULL);
+	bool Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollisionPoint3D *out = NULL);
+	bool Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollisionPoint3D *out = NULL);
 }
 
 // generizise this for 2/3 dimensions

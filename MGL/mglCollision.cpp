@@ -58,7 +58,7 @@ bool mglCollision::Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, c
 	return mmlDist(closest, cir_pos) <= cir_radius;
 }
 
-bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D &out)
+bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D *out)
 {
 	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::IdentityMatrix(); // these are three normals on the AABB (the other three are the negative normals)
 
@@ -94,23 +94,29 @@ bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &
 	int tmin_normal_index = (min[0] > min[1]) ? (min[0] > min[2] ? min_normal_index[0] : min_normal_index[2]) : (min[1] > min[2] ? min_normal_index[1] : min_normal_index[2]);
 	int tmax_normal_index = (max[0] < max[1]) ? (max[0] < max[2] ? max_normal_index[0] : max_normal_index[2]) : (max[1] < max[2] ? max_normal_index[1] : max_normal_index[2]);
 
-	if (tmin < 0.0f) {
-		// ray inside box, only one intersection point
-		out.exit_point   = out.entry_point = ray_origin + ray_dir * tmax;
-		out.exit_normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
-		out.entry_normal = -out.exit_normal;
-	} else {
-		// two intersection points
-		out.entry_point  = ray_origin + ray_dir * tmin;
-		out.exit_point   = ray_origin + ray_dir * tmax;
-		out.entry_normal = Normals[tmin_normal_index % 3] * (tmin_normal_index < 3 ? -1.0f : 1.0f);
-		out.exit_normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
+	if (out != NULL) {
+		if (tmin < 0.0f) {
+			// ray inside box, only one intersection point
+			out->exit.point   = out->entry.point = ray_origin + ray_dir * tmax;
+			out->exit.normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
+			out->entry.normal = -out->exit.normal;
+			out->exit.distance = out->entry.distance = tmax;
+		} else {
+			// two intersection points
+			out->entry.point    = ray_origin + ray_dir * tmin;
+			out->entry.normal   = Normals[tmin_normal_index % 3] * (tmin_normal_index < 3 ? -1.0f : 1.0f);
+			out->entry.distance = tmin;
+
+			out->exit.point    = ray_origin + ray_dir * tmax;
+			out->exit.normal   = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
+			out->exit.distance = tmax;
+		}
 	}
 
 	return true;
 }
 
-bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D &out)
+bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &cir_pos, float cir_radius, mglRayCollision3D *out)
 {
 	mmlVector<3> l = cir_pos - ray_origin;
 	float tca = mmlDot(l, ray_dir);
@@ -125,21 +131,27 @@ bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3>
 	if (t[0] > t[1]) { mmlSwap(t[0], t[1]); }
 
 	if (t[0] < 0.0f) {
-		if (t[1] < 0.0f) { return false; }
-		out.exit_point   = out.entry_point = ray_origin + ray_dir * t[1];
-		out.exit_normal  = mmlNormalize(out.exit_normal - cir_pos);
-		out.entry_normal = -out.exit_normal;
-	} else {
-		out.entry_point  = ray_origin + ray_dir * t[0];
-		out.exit_point   = ray_origin + ray_dir * t[1];
-		out.entry_normal = mmlNormalize(out.entry_point - cir_pos);
-		out.exit_normal  = mmlNormalize(out.exit_point - cir_pos);
+		if (t[1] < 0.0f) {
+			return false;
+		} else if (out != NULL) {
+			out->exit.point   = out->entry.point = ray_origin + ray_dir * t[1];
+			out->exit.normal  = mmlNormalize(out->exit.normal - cir_pos);
+			out->entry.normal = -out->exit.normal;
+			out->exit.distance = out->entry.distance = t[1];
+		}
+	} else if (out != NULL) {
+		out->entry.point    = ray_origin + ray_dir * t[0];
+		out->entry.normal   = mmlNormalize(out->entry.point - cir_pos);
+		out->entry.distance = t[0];
+		out->exit.point     = ray_origin + ray_dir * t[1];
+		out->exit.normal    = mmlNormalize(out->exit.point - cir_pos);
+		out->exit.distance  = t[1];
 	}
 
 	return true;
 }
 
-bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollision3D &out)
+bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollisionPoint3D *out)
 {
 	float nd = mmlDot(ray_dir, plane_normal);
 	if (nd >= 0.0f) { return false; }
@@ -148,19 +160,23 @@ bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> 
 	float t = (plane_dist - pd) / nd;
 	if (t <= 0.0f) { return false; }
 
-	out.entry_point  = out.exit_point = ray_origin + ray_dir * t;
-	out.entry_normal = plane_normal;
-	out.exit_normal  = -plane_normal;
+	if (out != NULL) {
+		out->point    = ray_origin + ray_dir * t;
+		out->normal   = plane_normal;
+		out->distance = t;
+	}
 
 	return true;
 }
 
-bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollision3D &out)
+bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollisionPoint3D *out)
 {
 	mmlVector<3> poly_normal = mmlSurfaceNormal(tri_a, tri_b, tri_c);
 	float plane_dist = -mmlDot(tri_a, poly_normal);
+	mglRayCollisionPoint3D tmp;
+	if (out == NULL) { out = &tmp; }
 	if (!mglCollision::Ray_Plane(ray_origin, ray_dir, poly_normal, plane_dist, out)) { return false; } // if true, out contains all info we need from the collision
-	return PointInTri(out.entry_point, tri_a, tri_b, tri_c);
+	return PointInTri(out->point, tri_a, tri_b, tri_c);
 }
 
 void mglRayMarcher3D::SetInitialState(const mmlVector<3> &p_ray_origin, const mmlVector<3> &p_ray_dir)
