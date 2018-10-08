@@ -34,6 +34,7 @@ template < typename num_t >  inline num_t  mmlAbs(const num_t &x)               
 template < typename real_t > inline real_t mmlWrap(const real_t &value)                                        { return value - mmlFloor(value); }
 template < typename real_t > inline real_t mmlWrap(const real_t &value, const real_t &max)                     { real_t ratio = value / max; return max * mmlWrap(ratio); }
 template < typename real_t > inline real_t mmlWrap(const real_t &min, const real_t & value, const real_t &max) { return mmlWrap(value - min, max - min) + min; }
+template < typename int_t >  inline type_t mmlIWrap(const type_t &min, const type_t &x, const type_t &max)         { type_t span = max - min; return min + (x + mmlAbs(x) * span - min) % span; }
 template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)                                       { num_t temp = pA; pA = pB; pB = temp; }
 
 #define mmlAtLeast mmlMax
