@@ -6,6 +6,8 @@
 #ifndef MML_VECTOR_H_INCLUDED
 #define MML_VECTOR_H_INCLUDED
 
+#define VAT typename mml::va_cast<type_t>::va_t
+
 #include <stdarg.h>
 #include <cmath>
 
@@ -41,12 +43,12 @@ public:
 	//
 	// initializer list
 	//
-	explicit mmlVector(const typename mml::va_cast<type_t>::va_t e0, ...) {
+	explicit mmlVector(const VAT e0, ...) {
 		va_list vl;
 		va_start(vl, e0);
 		e[0] = type_t(e0);
 		for (int j = 1; j < n; ++j) {
-			e[j] = type_t(va_arg(vl, typename mml::va_cast<type_t>::va_t));
+			e[j] = type_t(va_arg(vl, VAT));
 		}
 		va_end(vl);
 	}
@@ -60,7 +62,7 @@ public:
 		} else {
 			int j = 0;
 			for (; j < m; ++j) { e[j] = v[j]; }
-			for (; j < n; ++j) { e[j] = type_t(0.0); }
+			for (; j < n; ++j) { e[j] = type_t(0); }
 		}
 	}
 	//
@@ -145,11 +147,11 @@ public:
 public:
 	static mmlVector<n,type_t> &Cast(void *ptr)
 	{
-		return *(mmlVector<n,type_t>*)ptr;
+		return *reinterpret_cast<mmlVector<n,type_t>*>(ptr);
 	}
 	static const mmlVector<n,type_t> &Cast(const void *ptr)
 	{
-		return *(const mmlVector<n,type_t>*)ptr;
+		return *reinterpret_cast<const mmlVector<n,type_t>*>(ptr);
 	}
 	void Clamp(const mmlVector<n,type_t> &min, const mmlVector<n,type_t> &max)
 	{
@@ -300,10 +302,10 @@ inline mmlVector<3,type_t> mmlCross(const mmlVector<3,type_t> &u, const mmlVecto
 }
 
 //
-// mmlCross2
+// mmlCross
 //
 template < typename type_t >
-inline float mmlCross2(const mmlVector<2,type_t> &v, const mmlVector<2,type_t> &w)
+inline float mmlCross(const mmlVector<2,type_t> &v, const mmlVector<2,type_t> &w)
 {
 	return v[0]*w[1] - v[1]*w[0];
 }
@@ -441,5 +443,7 @@ inline mmlVector<n,type_t> mmlAbs(mmlVector<n,type_t> v)
 	v.Abs();
 	return v;
 }
+
+#undef VAT
 
 #endif

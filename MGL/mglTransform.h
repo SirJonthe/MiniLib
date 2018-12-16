@@ -14,7 +14,7 @@ public:
 	mglAxis( void ) { SetIdentity(); }
 
 	void RotateByAxisAngle(const mmlVector<3> &p_axis, float p_angle);
-	void SetIdentity( void ) { m_rot = mmlMatrix<3,3>::IdentityMatrix(); }
+	void SetIdentity( void ) { m_rot = mmlMatrix<3,3>::Identity(); }
 
 	mmlMatrix<3,3> GetRotationMatrix( void ) const { return m_rot; }
 

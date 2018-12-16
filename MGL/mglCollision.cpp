@@ -60,7 +60,7 @@ bool mglCollision::Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, c
 
 bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D *out)
 {
-	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::IdentityMatrix(); // these are three normals on the AABB (the other three are the negative normals)
+	const mmlMatrix<3,3> Normals = mmlMatrix<3,3>::Identity(); // these are three normals on the AABB (the other three are the negative normals)
 
 	mmlVector<3> t0 = (aabb_min - ray_origin) / ray_dir; // one of the 3 sides connected to the min point (all normals are -1)
 	mmlVector<3> t1 = (aabb_max - ray_origin) / ray_dir; // one of the 3 sides connected to the max point (all normals are +1)
