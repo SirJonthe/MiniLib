@@ -608,7 +608,7 @@ inline mmlMatrix<4,4,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, con
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
 {
-	const VAT x = p_axis[0];
+	/*const VAT x = p_axis[0];
 	const VAT y = p_axis[1];
 	const VAT z = p_axis[2];
 	const VAT c = cos(p_rot);
@@ -618,6 +618,23 @@ inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, con
 		(x * x) * (VAT(1) - c) + c,       (x * y) * (VAT(1) - c) + (z * s), (x * z) * (VAT(1) - c) - (y * s),
 		(y * x) * (VAT(1) - c) - (z * s), (y * y) * (VAT(1) - c) + c,       (y * z) * (VAT(1) - c) + (x * s),
 		(z * x) * (VAT(1) - c) + (y * s), (z * y) * (VAT(1) - c) - (x * s), (z * z) * (VAT(1) - c) + c
+	);*/
+
+	const VAT SIN    = sin(p_rot);
+	const VAT COS    = cos(p_rot);
+	const VAT ICOS   = VAT(1) - COS;
+	const VAT uxSIN  = p_axis[0]*SIN;
+	const VAT uySIN  = p_axis[1]*SIN;
+	const VAT uzSIN  = p_axis[2]*SIN;
+	const VAT uxICOS = p_axis[0]*ICOS;
+	const VAT uyICOS = p_axis[1]*ICOS;
+	const VAT uzuxICOS = p_axis[2]*uxICOS;
+	const VAT uyuxICOS = p_axis[1]*uxICOS;
+	const VAT uzuyICOS = p_axis[2]*uyICOS;
+	return mmlMatrix<3,3>(
+		COS + p_axis[0]*uxICOS, uyuxICOS - uzSIN, uzuxICOS + uySIN,
+		uyuxICOS + uzSIN, COS + p_axis[1]*uyICOS, uzuyICOS - uxSIN,
+		uzuxICOS - uySIN, uzuyICOS + uxSIN, COS + p_axis[2]*p_axis[2]*ICOS
 	);
 }
 
