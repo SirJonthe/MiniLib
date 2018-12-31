@@ -7,6 +7,7 @@
 #define MML_MATH_H_INCLUDED
 
 #include <cmath>
+#include <climits>
 #include "mmlInt.h"
 
 template < typename int_t > inline bool mmlIsPow2(const int_t &x) { return (x != 0) && !(x & (x - 1)); }
@@ -17,6 +18,13 @@ inline mml::sint32 mmlFloor(float x)  { return mml::sint32(x + float(1<<15)) - (
 inline mml::sint64 mmlFloor(double x) { return mml::sint64(x + double(1<<31)) - (1<<31); }
 inline mml::sint32 mmlCeil(float x)   { return (1<<15) - mml::sint32(float(1<<15) - x); }
 inline mml::sint64 mmlCeil(double x)  { return (1<<31) - mml::sint64(double(1<<31) - x); }
+
+template < typename float_t >
+inline bool mmlIsApproxEqual(float_t a, float_t b)
+{
+	const float_t scale = mmlMax(mmlAbs(a), mmlAbs(b));
+	return mmlAbs(a - b) <= (scale * (float_t(2.0) * std::numeric_limits<float_t>::epsilon()));
+}
 
 //template < typename real_t > inline real_t mmlFract(const real_t &x) {  }
 //template < typename real_t > inline real_t mmlFloor(const real_t &x) { return x - mmlFract(x); }
