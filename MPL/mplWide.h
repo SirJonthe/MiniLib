@@ -199,7 +199,7 @@ namespace mpl {
 		wide_bool operator> (const wide_fixed<n> &r) const { return _mm_cmpgt_epi32(i, r.i); }
 		wide_bool operator>=(const wide_fixed<n> &r) const { return _mm_andnot_si128(_mm_cmplt_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
 
-		void to_scalar(int *out) const { _mm_storeu_si128((__m128i*)out, _mm_srai_epi32(i, n)); }
+		void to_scalar(int *out) const { _mm_storeu_si128(reinterpret_cast<__m128i*>(out), _mm_srai_epi32(i, n)); }
 
 		static wide_fixed<n> mov_if_true(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
 		{
@@ -213,7 +213,7 @@ namespace mpl {
 			return rc;
 #else
 			__m128i ret = l.i;
-			_mm_maskmoveu_si128(r.i, cond_mask.u, (char*)(&ret));
+			_mm_maskmoveu_si128(r.i, cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
