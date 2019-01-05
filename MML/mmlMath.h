@@ -19,13 +19,6 @@ inline mml::sint64 mmlFloor(double x) { return mml::sint64(x + double(1<<31)) - 
 inline mml::sint32 mmlCeil(float x)   { return (1<<15) - mml::sint32(float(1<<15) - x); }
 inline mml::sint64 mmlCeil(double x)  { return (1<<31) - mml::sint64(double(1<<31) - x); }
 
-template < typename float_t >
-inline bool mmlIsApproxEqual(float_t a, float_t b)
-{
-	const float_t scale = mmlMax(mmlAbs(a), mmlAbs(b));
-	return mmlAbs(a - b) <= (scale * (float_t(2.0) * std::numeric_limits<float_t>::epsilon()));
-}
-
 //template < typename real_t > inline real_t mmlFract(const real_t &x) {  }
 //template < typename real_t > inline real_t mmlFloor(const real_t &x) { return x - mmlFract(x); }
 //template < typename real_t > inline real_t mmlCeil(const real_t &x)  { return x + (real_t(1) - mmlFract(x)); } // NOPE!!
@@ -48,6 +41,13 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 #define mmlAtLeast mmlMax
 #define mmlAtMost  mmlMin
 #define mmlRepeat  mmlWrap
+
+template < typename float_t >
+inline bool mmlIsApproxEqual(float_t a, float_t b)
+{
+	const float_t scale = mmlMax(mmlAbs(a), mmlAbs(b));
+	return mmlAbs(a - b) <= (scale * (float_t(2.0) * std::numeric_limits<float_t>::epsilon()));
+}
 
 template < typename TA, typename TB > inline TA mmlLerp(const TA &a, const TA &b, const TB &x) { return a + (b - a) * x; }
 template < typename TA, typename TB > inline TA mmlBilerp(const TA &i00, const TA &i10, const TA &i01, const TA &i11, const TB &x, const TB &y) { return mmlLerp(mmlLerp(i00, i10, x), mmlLerp(i01, i11, x), y); }

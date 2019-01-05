@@ -37,8 +37,8 @@ namespace mpl {
 
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
-		wide_bool(bool b) : u(_mm_set1_epi32(b ? MPL_TRUE_BITS : MPL_FALSE_BITS)) {}
-		wide_bool(const bool *b) : u(_mm_setr_epi32(b[0] ? MPL_TRUE_BITS : MPL_FALSE_BITS, b[1] ? MPL_TRUE_BITS : MPL_FALSE_BITS, b[2] ? MPL_TRUE_BITS : MPL_FALSE_BITS, b[3] ? MPL_TRUE_BITS : MPL_FALSE_BITS)) {}
+		wide_bool(bool b) : u(_mm_set1_epi32(b ? int(MPL_TRUE_BITS) : int(MPL_FALSE_BITS))) {}
+		wide_bool(const bool *b) : u(_mm_setr_epi32(b[0] ? int(MPL_TRUE_BITS) : int(MPL_FALSE_BITS), b[1] ? int(MPL_TRUE_BITS) : int(MPL_FALSE_BITS), b[2] ? int(MPL_TRUE_BITS) : int(MPL_FALSE_BITS), b[3] ? int(MPL_TRUE_BITS) : int(MPL_FALSE_BITS))) {}
 
 		wide_bool operator||(const wide_bool &r) const { return _mm_or_si128(u, r.u);  }
 		wide_bool operator&&(const wide_bool &r) const { return _mm_and_si128(u, r.u); }
@@ -46,7 +46,7 @@ namespace mpl {
 		wide_bool operator|(const wide_bool &r) const { return _mm_or_si128(u, r.u);  }
 		wide_bool operator&(const wide_bool &r) const { return _mm_and_si128(u, r.u); }
 
-		wide_bool operator!( void ) const { return _mm_xor_si128(u, _mm_set1_epi32(MPL_TRUE_BITS)); }
+		wide_bool operator!( void ) const { return _mm_xor_si128(u, _mm_set1_epi32(int(MPL_TRUE_BITS))); }
 
 		bool all_fail( void ) const { return _mm_movemask_epi8(u) == 0x0000; }
 		bool all_pass( void ) const { return _mm_movemask_epi8(u) == 0xffff; }
@@ -123,7 +123,7 @@ namespace mpl {
 			return rc;
 #else
 			__m128 ret = l.f;
-			_mm_maskmoveu_si128(*(__m128i*)(&r), cond_mask.u, (char*)(&ret));
+			_mm_maskmoveu_si128(*reinterpret_cast<const __m128i*>(&r), cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
@@ -162,7 +162,7 @@ namespace mpl {
 		wide_fixed(int val) : i(_mm_slli_epi32(_mm_set1_epi32(val), n)) {}
 		wide_fixed(float val) : i(_mm_cvttps_epi32(_mm_mul_ps(_mm_set1_ps(val), _mm_set1_ps(1 << n)))) {}
 		wide_fixed(bool val) : i(_mm_slli_epi32(_mm_set1_epi32(val ? 1 : 0), n)) {}
-		explicit wide_fixed(const int *in) : i(_mm_slli_epi32(_mm_loadu_si128((__m128i*)in), n)) {}
+		explicit wide_fixed(const int *in) : i(_mm_slli_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(in)), n)) {}
 		explicit wide_fixed(const float *in) : i(_mm_cvttps_epi32(_mm_mul_ps(_mm_loadu_ps(in), _mm_set1_ps(1 << n)))) {}
 		inline explicit wide_fixed(const wide_int &r);
 		inline explicit wide_fixed(const wide_float &r);
@@ -261,7 +261,7 @@ namespace mpl {
 		wide_int(const wide_int &r) : i(r.i) {}
 		wide_int(int val) : i(_mm_set1_epi32(val)) {}
 		wide_int(bool val) : i(_mm_set1_epi32(val ? 1 : 0)) {}
-		explicit wide_int(const int *in) : i(_mm_loadu_si128((__m128i*)in)) {}
+		explicit wide_int(const int *in) : i(_mm_loadu_si128(reinterpret_cast<const __m128i*>(in))) {}
 		template < int n >
 		inline explicit wide_int(const wide_fixed<n> &f);
 		inline explicit wide_int(const wide_float &r);
@@ -299,13 +299,13 @@ namespace mpl {
 //		wide_int &operator%(const wide_int &r) { return *this - (*this / r) * r; }
 
 		wide_bool operator==(const wide_int &r) const { return _mm_cmpeq_epi32(i, r.i); }
-		wide_bool operator!=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
+		wide_bool operator!=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpeq_epi32(i, r.i), _mm_set1_epi32(int(MPL_TRUE_BITS))); }
 		wide_bool operator< (const wide_int &r) const { return _mm_cmplt_epi32(i, r.i); }
-		wide_bool operator<=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpgt_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
+		wide_bool operator<=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmpgt_epi32(i, r.i), _mm_set1_epi32(int(MPL_TRUE_BITS))); }
 		wide_bool operator> (const wide_int &r) const { return _mm_cmpgt_epi32(i, r.i); }
-		wide_bool operator>=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmplt_epi32(i, r.i), _mm_set1_epi32(MPL_TRUE_BITS)); }
+		wide_bool operator>=(const wide_int &r) const { return _mm_andnot_si128(_mm_cmplt_epi32(i, r.i), _mm_set1_epi32(int(MPL_TRUE_BITS))); }
 
-		void to_scalar(int *out) const { _mm_storeu_si128((__m128i*)out, i); }
+		void to_scalar(int *out) const { _mm_storeu_si128(reinterpret_cast<__m128i*>(out), i); }
 
 		static wide_int mov_if_true(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
 		{
@@ -319,7 +319,7 @@ namespace mpl {
 			return rc;
 #else
 			__m128i ret = l.i;
-			_mm_maskmoveu_si128(r.i, cond_mask.u, (char*)(&ret));
+			_mm_maskmoveu_si128(r.i, cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
