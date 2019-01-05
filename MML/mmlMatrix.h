@@ -437,7 +437,7 @@ inline mmlMatrix<4,4,type_t> mmlTranslate(const type_t &x, const type_t &y, cons
 template < typename type_t >
 inline mmlMatrix<4,4,type_t> mmlTranslate(const mmlVector<3,type_t> &translation)
 {
-	return mmlTranslation(translation[0], translation[1], translation[2]);
+	return mmlTranslate(translation[0], translation[1], translation[2]);
 }
 
 //
