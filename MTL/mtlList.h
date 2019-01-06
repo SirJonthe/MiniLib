@@ -11,74 +11,73 @@ class mtlItem
 	friend class mtlList<type_t>;
 
 private:
-	type_t			m_item;
-	mtlList<type_t>	*m_parent;
-	mtlItem<type_t>	*m_next;
-	mtlItem<type_t>	*m_prev;
+	type_t           m_item;
+	mtlList<type_t> *m_parent;
+	mtlItem<type_t> *m_next;
+	mtlItem<type_t> *m_prev;
 
 private:
-					mtlItem( void ); // not allowed to create stack instance
-					mtlItem(const mtlItem<type_t>&) {}
-	mtlItem<type_t>	&operator=(const mtlItem<type_t>&) { return *this; }
-					mtlItem(const type_t &p_item, mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
-					mtlItem(mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
+					  mtlItem( void ); // not allowed to create stack instance
+					  mtlItem(const mtlItem<type_t>&) {}
+	mtlItem<type_t>  &operator=(const mtlItem<type_t>&) { return *this; }
+					  mtlItem(const type_t &p_item, mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
+					  mtlItem(mtlList<type_t> *p_parent, mtlItem<type_t> *p_next, mtlItem<type_t> *p_prev);
 
 public:
-	inline explicit					mtlItem(const type_t &p_item);
-	inline const mtlList<type_t>	*GetParent( void ) const;
-	inline mtlList<type_t>			*GetParent( void );
-	inline const mtlItem<type_t>	*GetNext( void ) const;
-	inline mtlItem<type_t>			*GetNext( void );
-	inline const mtlItem<type_t>	*GetPrev( void ) const;
-	inline mtlItem<type_t>			*GetPrev( void );
-	inline mtlItem<type_t>			*Remove( void );
-	inline const type_t				&GetItem( void ) const;
-	inline type_t					&GetItem( void );
-	inline mtlItem<type_t>          *Insert( void );
-	inline mtlItem<type_t>			*Insert(const type_t &p_data);
-	inline mtlItem<type_t>			*Insert(mtlItem<type_t> *p_item);
-	inline mtlItem<type_t>			*Insert(mtlList<type_t> &src);
-	inline mtlItem<type_t>			*Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at);
+	inline explicit               mtlItem(const type_t &p_item);
+	inline const mtlList<type_t> *GetParent( void ) const;
+	inline mtlList<type_t>       *GetParent( void );
+	inline const mtlItem<type_t> *GetNext( void ) const;
+	inline mtlItem<type_t>       *GetNext( void );
+	inline const mtlItem<type_t> *GetPrev( void ) const;
+	inline mtlItem<type_t>       *GetPrev( void );
+	inline mtlItem<type_t>       *Remove( void );
+	inline const type_t          &GetItem( void ) const;
+	inline type_t                &GetItem( void );
+	inline mtlItem<type_t>       *Insert( void );
+	inline mtlItem<type_t>       *Insert(const type_t &p_data);
+	inline mtlItem<type_t>       *Insert(mtlItem<type_t> *p_item);
+	inline mtlItem<type_t>       *Insert(mtlList<type_t> &src);
+	inline mtlItem<type_t>       *Transfer(mtlList<type_t> &dst, mtlItem<type_t> *at);
 };
 
 template < typename type_t >
 class mtlList
 {
 private:
-	mtlItem<type_t>	*m_first;
-	mtlItem<type_t>	*m_last;
-	int				m_size;
-private:
-					mtlList(const mtlList<type_t>&) {}
-	mtlList<type_t>	&operator=(const mtlList<type_t>&) { return *this; }
+	mtlItem<type_t> *m_first;
+	mtlItem<type_t> *m_last;
+	int              m_size;
 
 public:
-	inline							mtlList( void );
-	inline							~mtlList( void );
-	void							AddLast(const type_t &p_value);
-	type_t							&AddLast( void );
-	void							AddFirst(const type_t &p_value);
-	type_t							&AddFirst( void );
-	void							RemoveLast( void );
-	void							RemoveFirst( void );
-	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_at);
-	mtlItem<type_t>					*Insert(const type_t &p_value, mtlItem<type_t> *p_at);
-	mtlItem<type_t>					*Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at);
-	mtlItem<type_t>					*Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_at);
-	mtlItem<type_t>					*InsertSort(const type_t &p_value);
-	mtlItem<type_t>					*InsertSort(mtlItem<type_t> *p_item);
-	mtlItem<type_t>					*Remove(mtlItem<type_t> *p_item);
-	void							Split(mtlItem<type_t> *p_begin, int p_num, mtlList<type_t> &p_out);
-	static void						Swap(mtlItem<type_t> *p_a, mtlItem<type_t> *p_b);
-	void							Promote(mtlItem<type_t> *p_item);
-	void							Demote(mtlItem<type_t> *p_item);
-	void							Copy(const mtlList<type_t> &p_list);
-	void							RemoveAll( void );
-	inline int						GetSize( void ) const;
-	inline mtlItem<type_t>			*GetLast( void );
-	inline const mtlItem<type_t>	*GetLast( void ) const;
-	inline mtlItem<type_t>			*GetFirst( void );
-	inline const mtlItem<type_t>	*GetFirst( void ) const;
+	inline                        mtlList( void );
+								  mtlList(const mtlList<type_t> &p_list);
+	mtlList<type_t>              &operator=(const mtlList<type_t> &p_list);
+	inline                       ~mtlList( void );
+	void                          AddLast(const type_t &p_value);
+	type_t                       &AddLast( void );
+	void                          AddFirst(const type_t &p_value);
+	type_t                       &AddFirst( void );
+	void                          RemoveLast( void );
+	void                          RemoveFirst( void );
+	mtlItem<type_t>              *Insert(mtlItem<type_t> *p_at);
+	mtlItem<type_t>              *Insert(const type_t &p_value, mtlItem<type_t> *p_at);
+	mtlItem<type_t>              *Insert(mtlList<type_t> &p_list, mtlItem<type_t> *p_at);
+	mtlItem<type_t>              *Insert(mtlItem<type_t> *p_item, mtlItem<type_t> *p_at);
+	mtlItem<type_t>              *InsertSort(const type_t &p_value);
+	mtlItem<type_t>              *InsertSort(mtlItem<type_t> *p_item);
+	mtlItem<type_t>              *Remove(mtlItem<type_t> *p_item);
+	void                          Split(mtlItem<type_t> *p_begin, int p_num, mtlList<type_t> &p_out);
+	static void                   Swap(mtlItem<type_t> *p_a, mtlItem<type_t> *p_b);
+	void                          Promote(mtlItem<type_t> *p_item);
+	void                          Demote(mtlItem<type_t> *p_item);
+	void                          Copy(const mtlList<type_t> &p_list);
+	void                          RemoveAll( void );
+	inline int                    GetSize( void ) const;
+	inline mtlItem<type_t>       *GetLast( void );
+	inline const mtlItem<type_t> *GetLast( void ) const;
+	inline mtlItem<type_t>       *GetFirst( void );
+	inline const mtlItem<type_t> *GetFirst( void ) const;
 };
 
 template < typename type_t >
@@ -197,6 +196,22 @@ template < typename type_t >
 mtlList<type_t>::mtlList( void ) :
 m_first(NULL), m_last(NULL), m_size(0)
 {}
+
+template < typename type_t >
+mtlList<type_t>::mtlList(const mtlList<type_t> &p_list) :
+m_first(NULL), m_last(NULL), m_size(0)
+{
+	Copy(p_list);
+}
+
+template < typename type_t >
+mtlList<type_t> &mtlList<type_t>::operator=(const mtlList<type_t> &p_list)
+{
+	if (this != &p_list) {
+		Copy(p_list);
+	}
+	return *this;
+}
 
 template < typename type_t >
 mtlList<type_t>::~mtlList( void )
