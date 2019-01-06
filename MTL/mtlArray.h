@@ -21,8 +21,10 @@ private:
 public:
 	inline            mtlArray( void );
 	inline explicit   mtlArray(int p_size);
-					  mtlArray(const mtlArray<type_t> &a);
-	mtlArray<type_t> &operator=(const mtlArray<type_t> &a);
+					  mtlArray(const mtlArray<type_t> &p_array);
+					  mtlArray(const mtlArray<type_t> &p_array, int p_begin, int p_end = -1);
+					  mtlArray(const type_t *p_array, int p_size);
+	mtlArray<type_t> &operator=(const mtlArray<type_t> &p_array);
 	inline           ~mtlArray( void );
 	void              Copy(const mtlArray<type_t> &p_array);
 	void              Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end = -1);
@@ -90,21 +92,35 @@ int	mtlArray<type_t>::BinarySearch(int p_start, int p_end, const type_t &p_value
 
 template < typename type_t >
 mtlArray<type_t>::mtlArray( void ) :
-m_arr(0), m_size(0), m_pool(0), poolMemory(true)
+m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
 {}
 
 template < typename type_t >
 mtlArray<type_t>::mtlArray(int p_size) :
-m_arr(0), m_size(0), m_pool(0), poolMemory(true)
+m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
 {
 	Create(p_size);
 }
 
 template < typename type_t >
 mtlArray<type_t>::mtlArray(const mtlArray<type_t> &p_arr) :
-m_arr(0), m_size(0), m_pool(0), poolMemory(true)
+m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
 {
 	Copy(p_arr);
+}
+
+template < typename type_t >
+mtlArray<type_t>::mtlArray(const mtlArray<type_t> &p_array, int p_begin, int p_end) :
+m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
+{
+	Copy(p_array, p_begin, p_end);
+}
+
+template < typename type_t >
+mtlArray<type_t>::mtlArray(const type_t *p_array, int p_size) :
+m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
+{
+	Copy(p_array, p_size);
 }
 
 template < typename type_t >
