@@ -1,31 +1,23 @@
 #include "mglPlane.h"
 
-// http://www.terathon.com/code/clipping.html
-#define EPSILON 1.0e-3f
-
 mglClip mglPlane::DetermineSide(float dist) const
 {
-	if (IsBehind(dist)) {
-		return mglBehind;
-	} else if (IsInFront(dist)) {
-		return mglInFront;
-	}
-	return mglCoinciding;
+	return mmlIsApproxEqual(dist, 0.0f) ? mglCoinciding : (dist > 0.0f ? mglInFront : mglBehind);
 }
 
 bool mglPlane::IsBehind(float dist) const
 {
-	return dist < -EPSILON;
+	return !mmlIsApproxEqual(dist, 0.0f) && dist < 0.0f;
 }
 
 bool mglPlane::IsInFront(float dist) const
 {
-	return dist > EPSILON;
+	return !mmlIsApproxEqual(dist, 0.0f) && dist > 0.0f;
 }
 
 bool mglPlane::IsCoinciding(float dist) const
 {
-	return dist >= -EPSILON && dist <= EPSILON;
+	return mmlIsApproxEqual(dist, 0.0f);
 }
 
 mglPlane::mglPlane(const mmlVector<3> &p_position, const mmlVector<3> &p_normal) :
