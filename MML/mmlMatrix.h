@@ -295,16 +295,16 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 //
 // mmlMatrix/mmlMatrix operators
 //
-template < int rows, int columns >
-mmlMatrix<rows,columns> &operator+=(mmlMatrix<rows,columns> &l, const mmlMatrix<rows,columns> &r)
+template < int rows, int columns, typename type_t >
+mmlMatrix<rows,columns,type_t> &operator+=(mmlMatrix<rows,columns,type_t> &l, const mmlMatrix<rows,columns,type_t> &r)
 {
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		l[p_row] += r[p_row];
 	}
 	return l;
 }
-template < int rows, int columns >
-mmlMatrix<rows,columns> &operator-=(mmlMatrix<rows,columns> &l, const mmlMatrix<rows,columns> &r)
+template < int rows, int columns, typename type_t >
+mmlMatrix<rows,columns,type_t> &operator-=(mmlMatrix<rows,columns,type_t> &l, const mmlMatrix<rows,columns,type_t> &r)
 {
 	for (int p_row = 0; p_row < rows; ++p_row) {
 		l[p_row] -= r[p_row];
@@ -316,7 +316,7 @@ mmlMatrix<rows,rows,type_t> &operator*=(mmlMatrix<rows,rows,type_t> &l, mmlMatri
 {
 	r = mmlTransp(r); // transpose right
 	for (int p_row = 0; p_row < rows; ++p_row) {
-		const mmlVector<rows> li = l[p_row]; // current l vector
+		const mmlVector<rows,type_t> li = l[p_row]; // current l vector
 		for (int p_column = 0; p_column < rows; ++p_column) {
 			l[p_row][p_column] = mmlDot(li, r[p_column]);
 		}
@@ -331,10 +331,10 @@ mmlMatrix<rows,columns,type_t> &operator*=(mmlMatrix<rows,columns,type_t> &l, co
 	}
 	return l;
 }
-template < int rows, int columns >
-mmlMatrix<rows,columns> operator+(mmlMatrix<rows,columns> l, const mmlMatrix<rows,columns> &r) { return (l+=r); }
-template < int rows, int columns >
-mmlMatrix<rows,columns> operator-(mmlMatrix<rows,columns> l, const mmlMatrix<rows,columns> &r) { return (l-=r); }
+template < int rows, int columns, typename type_t >
+mmlMatrix<rows,columns,type_t> operator+(mmlMatrix<rows,columns,type_t> l, const mmlMatrix<rows,columns,type_t> &r) { return (l+=r); }
+template < int rows, int columns, typename type_t >
+mmlMatrix<rows,columns,type_t> operator-(mmlMatrix<rows,columns,type_t> l, const mmlMatrix<rows,columns,type_t> &r) { return (l-=r); }
 template < int left_rows, int shared, int right_columns, typename type_t >
 mmlMatrix<left_rows,right_columns,type_t> operator*(const mmlMatrix<left_rows,shared,type_t> &l, const mmlMatrix<shared,right_columns,type_t> &r)
 {
@@ -350,7 +350,7 @@ mmlMatrix<left_rows,right_columns,type_t> operator*(const mmlMatrix<left_rows,sh
 template < int rows, int columns, typename type_t >
 mmlMatrix<rows,columns,type_t> operator*(mmlMatrix<rows,columns,type_t> l, const type_t &r) { return (l*=r); }
 template < int rows, int columns, typename type_t >
-mmlMatrix<rows,columns> operator*(const type_t &l, mmlMatrix<rows,columns,type_t> r) { return (r*=l); }
+mmlMatrix<rows,columns,type_t> operator*(const type_t &l, mmlMatrix<rows,columns,type_t> r) { return (r*=l); }
 
 //
 // mmlVector/mmlMatrix operators
@@ -470,7 +470,7 @@ inline mmlMatrix<3,3,type_t> mmlNormalTransform(const mmlMatrix<4,4,type_t> &mat
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlTextureSpaceMatrix(const mmlVector<5,type_t> &va, const mmlVector<5,type_t> &vb, const mmlVector<5,type_t> &vc)
 {
-	mmlVector<3> t, b, n;
+	mmlVector<3,type_t> t, b, n;
 
 	// tangent
 	const type_t eu21 = vb[3] - va[3];
@@ -578,9 +578,10 @@ inline mmlMatrix<3,3,type_t> mmlEuler(const type_t &head, const type_t &pitch, c
 
 // http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/the-theory-of-stencil-shadow-volumes-r1873
 // Should apparently be used for stencil shadows using z-fail method
-/*inline mmlMatrix<4,4> mmlInfPerspectiveMatrix(float fovh, float fovv, float near, float far)
+/*template < typename type_t >
+inline mmlMatrix<4,4,type_t> mmlInfPerspectiveMatrix(type_t fovh, type_t fovv, type_t near, type_t far)
 {
-	return mmlMatrix<4,4>(
+	return mmlMatrix<4,4,type_t>(
 		type_t(1.0)/tan(fovh/2.f), type_t(0.0), type_t(0.0), type_t(0.0),
 		type_t(0.0), type_t(1.0)/tan(fovv/2.f), type_t(0.0), type_t(0.0),
 		type_t(0.0), type_t(0.0), far/(far-near), type_t(1.0),
@@ -631,7 +632,7 @@ inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, con
 	const VAT uzuxICOS = p_axis[2]*uxICOS;
 	const VAT uyuxICOS = p_axis[1]*uxICOS;
 	const VAT uzuyICOS = p_axis[2]*uyICOS;
-	return mmlMatrix<3,3>(
+	return mmlMatrix<3,3,type_t>(
 		COS + p_axis[0]*uxICOS, uyuxICOS - uzSIN, uzuxICOS + uySIN,
 		uyuxICOS + uzSIN, COS + p_axis[1]*uyICOS, uzuyICOS - uxSIN,
 		uzuxICOS - uySIN, uzuyICOS + uxSIN, COS + p_axis[2]*p_axis[2]*ICOS
