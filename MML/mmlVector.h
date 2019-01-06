@@ -325,7 +325,7 @@ inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3,type_t> &x, const mmlVect
 // mmlSlerp
 //
 template < int n, typename type_t >
-mmlVector<n> mmlSlerp(const mmlVector<n,type_t> &u, mmlVector<n,type_t> v, const type_t &d)
+mmlVector<n,type_t> mmlSlerp(const mmlVector<n,type_t> &u, mmlVector<n,type_t> v, const type_t &d)
 {
 	type_t dot = mmlClamp(type_t(-1.0), mmlDot(u, v), type_t(1.0)); // clamp to remove floating point imprecision issues
 	type_t theta = acos(dot) * d;
@@ -358,7 +358,7 @@ mmlVector<n,type_t> mmlQlerp(const mmlVector<n,type_t> &a, const mmlVector<n,typ
 // mmlNormalize
 //
 template < int n, typename type_t  >
-inline mmlVector<n> mmlNormalize(mmlVector<n,type_t> v)
+inline mmlVector<n,type_t> mmlNormalize(mmlVector<n,type_t> v)
 {
 	v.Normalize();
 	return v;
@@ -368,7 +368,7 @@ inline mmlVector<n> mmlNormalize(mmlVector<n,type_t> v)
 // mmlMin
 //
 template < int n, typename type_t  >
-inline mmlVector<n> mmlMin(const mmlVector<n> &x, mmlVector<n> y)
+inline mmlVector<n,type_t> mmlMin(const mmlVector<n,type_t> &x, mmlVector<n,type_t> y)
 {
 	for (int i = 0; i < n; ++i) {
 		y[i] = mmlMin(x[i], y[i]);
@@ -380,7 +380,7 @@ inline mmlVector<n> mmlMin(const mmlVector<n> &x, mmlVector<n> y)
 // mmlMax
 //
 template < int n, typename type_t  >
-inline mmlVector<n> mmlMax(const mmlVector<n> &x, mmlVector<n> y)
+inline mmlVector<n,type_t> mmlMax(const mmlVector<n,type_t> &x, mmlVector<n,type_t> y)
 {
 	for (int i = 0; i < n; ++i) {
 		y[i] = mmlMax(x[i], y[i]);
