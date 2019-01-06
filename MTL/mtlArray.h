@@ -7,35 +7,38 @@ template < typename type_t >
 class mtlArray
 {
 private:
-	type_t	*m_arr;
-	int		m_size;
-	int		m_pool;
+	type_t *m_arr;
+	int     m_size;
+	int     m_pool;
+
 public:
 	bool poolMemory;
+
 private:
-						mtlArray(const mtlArray<type_t>&) {}
-	mtlArray<type_t>	&operator=(const mtlArray<type_t>&) { return *this; }
-	void				MergeSort(type_t *p_arr, type_t *p_out, int p_size) const;
-	int					BinarySearch(int p_start, int p_end, const type_t &p_value) const;
+	void MergeSort(type_t *p_arr, type_t *p_out, int p_size) const;
+	int  BinarySearch(int p_start, int p_end, const type_t &p_value) const;
+
 public:
-	inline				mtlArray( void );
-	inline explicit		mtlArray(int p_size);
-	inline				~mtlArray( void );
-	void				Copy(const mtlArray<type_t> &p_array);
-	void				Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end = -1);
-	void				Copy(const type_t *p_array, int p_size);
-	void				Create(int p_size);
-	void				Resize(int p_size);
-	void				MergeSort(mtlArray<type_t> &p_out) const;
-	int					BinarySearch(const type_t &p_value) const;
-	inline void			Free( void );
-	inline int			GetSize( void ) const;
-	void				SetCapacity(int p_size);
-	int					GetCapacity( void ) const;
-	void				Add(const type_t &p_value);
-	type_t             &Add( void );
-	inline				operator const type_t *( void ) const;
-	inline				operator type_t *( void );
+	inline            mtlArray( void );
+	inline explicit   mtlArray(int p_size);
+					  mtlArray(const mtlArray<type_t> &a);
+	mtlArray<type_t> &operator=(const mtlArray<type_t> &a);
+	inline           ~mtlArray( void );
+	void              Copy(const mtlArray<type_t> &p_array);
+	void              Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end = -1);
+	void              Copy(const type_t *p_array, int p_size);
+	void              Create(int p_size);
+	void              Resize(int p_size);
+	void              MergeSort(mtlArray<type_t> &p_out) const;
+	int               BinarySearch(const type_t &p_value) const;
+	inline void       Free( void );
+	inline int        GetSize( void ) const;
+	void              SetCapacity(int p_size);
+	int               GetCapacity( void ) const;
+	void              Add(const type_t &p_value);
+	type_t           &Add( void );
+	inline            operator const type_t *( void ) const;
+	inline            operator type_t *( void );
 };
 
 template < typename type_t >
@@ -98,6 +101,22 @@ m_arr(0), m_size(0), m_pool(0), poolMemory(true)
 }
 
 template < typename type_t >
+mtlArray<type_t>::mtlArray(const mtlArray<type_t> &p_arr) :
+m_arr(0), m_size(0), m_pool(0), poolMemory(true)
+{
+	Copy(p_arr);
+}
+
+template < typename type_t >
+mtlArray<type_t> &mtlArray<type_t>::operator=(const mtlArray<type_t> &p_arr)
+{
+	if (this != &p_arr) {
+		Copy(p_arr);
+	}
+	return *this;
+}
+
+template < typename type_t >
 mtlArray<type_t>::~mtlArray( void )
 {
 	delete [] m_arr;
@@ -134,7 +153,7 @@ void mtlArray<type_t>::Create(int p_size)
 	if ((poolMemory && p_size > m_pool) || (p_size != m_size)) {
 		delete [] m_arr;
 		if (p_size > 0) {
-			m_arr = new type_t[(unsigned int)p_size];
+			m_arr = new type_t[static_cast<unsigned int>(p_size)];
 		} else {
 			m_arr = NULL;
 		}
@@ -151,7 +170,7 @@ void mtlArray<type_t>::Resize(int p_size)
 		if (p_size > 0) {
 			const unsigned int minSize = (p_size < m_size) ? p_size : m_size;
 			type_t *data = m_arr;
-			m_arr = new type_t[(unsigned int)p_size];
+			m_arr = new type_t[static_cast<unsigned int>(p_size)];
 			mtlCopy(m_arr, data, minSize);
 			delete [] data;
 		} else if (!poolMemory) {
