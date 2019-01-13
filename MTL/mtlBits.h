@@ -107,13 +107,19 @@ template < typename type_t >
 inline type_t mtlGetBitState(const mtlByte *in_bits, unsigned int i) { return mtlGetBitState(in_bits[i >> 3], i & 7); }
 
 template < typename type_t >
-inline type_t mtlSetBit(unsigned int i, bool state) { return ((type_t(state)) << i); }
+inline type_t mtl1BitMask(unsigned int i) { return ((type_t(1)) << i); }
 
 template < typename type_t >
-inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return in_bits & mtlSetBit<type_t>(i, state); }
+inline type_t mtlSetBit(type_t in_bits, unsigned int i) { return in_bits | mtl1BitMask<type_t>(i); }
 
 template < typename type_t >
-inline void mtlSetBit(mtlByte *in_bits, unsigned int i, bool state) { in_bits[i >> 3] = mtlSetBit(in_bits[i >> 3], i & 7, state); }
+inline void mtlSetBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlSetBit(in_bits[i >> 3], i & 7); }
+
+template < typename type_t >
+inline type_t mtlClearBit(type_t in_bits, unsigned int i) { return in_bits & (~mtl1BitMask<type_t>(i)); }
+
+template < typename type_t >
+inline void mtlClearBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlClearBit(in_bits[i >> 3], i & 7); }
 
 template < typename type_t >
 inline type_t mtlToggleBit(type_t in_bits, unsigned int i) { return in_bits ^ (1 << i); }
