@@ -101,21 +101,21 @@ template < typename type_t >
 inline type_t mtlReadBit(type_t in_bits, unsigned int i) { return in_bits & mtl1BitMask<type_t>(i); }
 
 template < typename type_t >
-inline type_t mtlReadBit(const mtlByte *in_bits, unsigned int i) { return mtlReadBit(in_bits[i >> 3], i & 7); }
+inline type_t mtlReadBit(const mtlByte *in_bits, unsigned int i) { return mtlReadBit(in_bits[i >> 3], i); }
 
 template < typename type_t >
 inline type_t mtlGetBitState(type_t in_bits, unsigned int i) { return mtlReadBit(in_bits, i) != 0 ? -1 : 0; }
 
 template < typename type_t >
-inline type_t mtlGetBitState(const mtlByte *in_bits, unsigned int i) { return mtlGetBitState(in_bits[i >> 3], i & 7); }
+inline type_t mtlGetBitState(const mtlByte *in_bits, unsigned int i) { return mtlGetBitState(in_bits[i >> 3], i); }
 
 template < typename type_t >
 inline type_t mtlSetBit(type_t in_bits, unsigned int i) { return in_bits | mtl1BitMask<type_t>(i); }
-inline void mtlSetBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlSetBit(in_bits[i >> 3], i & 7); }
+inline void mtlSetBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlSetBit(in_bits[i >> 3], i); }
 
 template < typename type_t >
 inline type_t mtlClearBit(type_t in_bits, unsigned int i) { return in_bits & (~mtl1BitMask<type_t>(i)); }
-inline void mtlClearBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlClearBit(in_bits[i >> 3], i & 7); }
+inline void mtlClearBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlClearBit(in_bits[i >> 3], i); }
 
 template < typename type_t >
 inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return state ? mtlSetBit(in_bits, i) : mtlClearBit(in_bits, i); }
@@ -123,6 +123,6 @@ inline void mtlSetBit(mtlByte *in_bits, unsigned int i, bool state) { return sta
 
 template < typename type_t >
 inline type_t mtlToggleBit(type_t in_bits, unsigned int i) { return in_bits ^ mtl1BitMask<type_t>(i); }
-inline void mtlToggleBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlToggleBit(in_bits[i >> 3], i & 7); }
+inline void mtlToggleBit(mtlByte *in_bits, unsigned int i) { in_bits[i >> 3] = mtlToggleBit(in_bits[i >> 3], i); }
 
 #endif
