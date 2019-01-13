@@ -51,7 +51,7 @@ inline unsigned int mtlDecodeMorton2X(unsigned long long code)
 	code = (code | (code >>  2)) & 0x0F0F0F0F;
 	code = (code | (code >>  4)) & 0x00FF00FF;
 	code = (code | (code >>  8)) & 0x0000FFFF;
-	return code;
+	return static_cast<unsigned int>(code);
 }
 
 inline unsigned int mtlDecodeMorton2Y(unsigned long long code)
@@ -61,7 +61,7 @@ inline unsigned int mtlDecodeMorton2Y(unsigned long long code)
 	code = (code | (code >>  2)) & 0x0F0F0F0F;
 	code = (code | (code >>  4)) & 0x00FF00FF;
 	code = (code | (code >>  8)) & 0x0000FFFF;
-	return code;
+	return static_cast<unsigned int>(code);
 }
 
 inline unsigned int mtlDecodeMorton3X(unsigned long long code)
@@ -71,7 +71,7 @@ inline unsigned int mtlDecodeMorton3X(unsigned long long code)
 	code = (code | (code >>  4)) & 0x0300F00F;
 	code = (code | (code >>  8)) & 0xFF0000FF;
 	code = (code | (code >> 16)) & 0x000003FF;
-	return code;
+	return static_cast<unsigned int>(code);
 }
 
 inline unsigned int mtlDecodeMorton3Y(unsigned long long code)
@@ -81,7 +81,7 @@ inline unsigned int mtlDecodeMorton3Y(unsigned long long code)
 	code = (code | (code >>  4)) & 0x0300F00F;
 	code = (code | (code >>  8)) & 0xFF0000FF;
 	code = (code | (code >> 16)) & 0x000003FF;
-	return code;
+	return static_cast<unsigned int>(code);
 }
 
 inline unsigned int mtlDecodeMorton3Z(unsigned long long code)
@@ -91,7 +91,7 @@ inline unsigned int mtlDecodeMorton3Z(unsigned long long code)
 	code = (code | (code >>  4)) & 0x0300F00F;
 	code = (code | (code >>  8)) & 0xFF0000FF;
 	code = (code | (code >> 16)) & 0x000003FF;
-	return code;
+	return static_cast<unsigned int>(code);
 }
 
 template < typename type_t >
@@ -107,7 +107,7 @@ template < typename type_t >
 inline type_t mtlGetBitState(const mtlByte *in_bits, unsigned int i) { return mtlGetBitState(in_bits[i >> 3], i & 7); }
 
 template < typename type_t >
-inline type_t mtlSetBit(unsigned int i, bool state) { return (((type_t)state) << i); }
+inline type_t mtlSetBit(unsigned int i, bool state) { return ((type_t(state)) << i); }
 
 template < typename type_t >
 inline type_t mtlSetBit(type_t in_bits, unsigned int i, bool state) { return in_bits & mtlSetBit<type_t>(i, state); }
