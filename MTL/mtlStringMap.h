@@ -109,15 +109,15 @@ template < typename type_t >
 void mtlStringMap<type_t>::RemoveEntry(const mtlChars &name)
 {
 	mtlNode<HashNode> *hashNode = GetNode(name);
-    const typename HashNode::ListNode *node = hashNode->GetItem()->entries->GetFirst();
+	typename HashNode::ListNode *node = hashNode->GetItem().entries->GetFirst();
 	while (node != NULL) {
-        if (node->GetItem()->name.Compare(name)) {
+		if (node->GetItem().name.Compare(name)) {
 			node->Remove();
 			break;
 		}
 		node = node->GetNext();
 	}
-    if (hashNode->GetItem()->entries->GetSize() == 0) {
+	if (hashNode->GetItem().entries->GetSize() == 0) {
 		hashNode->Remove();
 	}
 }
