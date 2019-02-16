@@ -14,10 +14,10 @@ template < typename int_t > inline bool mmlIsPow2(const int_t &x) { return (x !=
 
 inline mml::sint32 mmlRound(float x)  { return mml::sint32(x + 0.5f); }
 inline mml::sint64 mmlRound(double x) { return mml::sint64(x + 0.5); }
-inline mml::sint32 mmlFloor(float x)  { return mml::sint32(x + float(1<<15)) - (1<<15); }
-inline mml::sint64 mmlFloor(double x) { return mml::sint64(x + double(1<<31)) - (1<<31); }
-inline mml::sint32 mmlCeil(float x)   { return (1<<15) - mml::sint32(float(1<<15) - x); }
-inline mml::sint64 mmlCeil(double x)  { return (1<<31) - mml::sint64(double(1<<31) - x); }
+inline mml::sint32 mmlFloor(float x)  { return mml::sint32(floorf(x)); }
+inline mml::sint64 mmlFloor(double x) { return mml::sint64(floor(x)); }
+inline mml::sint32 mmlCeil(float x)   { return mml::sint32(ceilf(x)); }
+inline mml::sint64 mmlCeil(double x)  { return mml::sint64(ceil(x)); }
 
 //template < typename real_t > inline real_t mmlFract(const real_t &x) {  }
 //template < typename real_t > inline real_t mmlFloor(const real_t &x) { return x - mmlFract(x); }
@@ -146,8 +146,6 @@ template < typename real_t > inline real_t mmlRadToDeg(const real_t &rad) { retu
 template < typename real_t >
 inline real_t mmlSin(real_t x)
 {
-	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
-
 	// Wrap input to valid range -pi ... pi
 //	if (x < -mmlPI) {
 //		do {
@@ -169,11 +167,8 @@ inline real_t mmlSin(real_t x)
 //		real_t(0.225) * (sin1 *  sin1 - sin1) + sin1;
 //	return sin;
 
-	// Wrap input to valid range -pi ... pi
+	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
 	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
-	// Compute sine
-	// 1.27323954 = 4 / PI
-	// 0.405284735 = 1.27323954 / PI
 	const real_t magic_val1 = real_t(4) / real_t(mmlPI);
 	const real_t magic_val2 = magic_val1 / real_t(mmlPI);
 	const real_t sin1 = magic_val1 * x + -mmlSign(x) * magic_val2 * x * x;
