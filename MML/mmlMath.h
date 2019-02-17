@@ -12,12 +12,12 @@
 
 template < typename int_t > inline bool mmlIsPow2(const int_t &x) { return (x != 0) && !(x & (x - 1)); }
 
-inline mml::sint32 mmlRound(float x)  { return mml::sint32(x + 0.5f); }
-inline mml::sint64 mmlRound(double x) { return mml::sint64(x + 0.5); }
 inline mml::sint32 mmlFloor(float x)  { return mml::sint32(floorf(x)); }
 inline mml::sint64 mmlFloor(double x) { return mml::sint64(floor(x)); }
 inline mml::sint32 mmlCeil(float x)   { return mml::sint32(ceilf(x)); }
 inline mml::sint64 mmlCeil(double x)  { return mml::sint64(ceil(x)); }
+inline mml::sint32 mmlRound(float x)  { return mmlFloor(x + 0.5f); }
+inline mml::sint64 mmlRound(double x) { return mmlFloor(x + 0.5); }
 
 //template < typename real_t > inline real_t mmlFract(const real_t &x) {  }
 //template < typename real_t > inline real_t mmlFloor(const real_t &x) { return x - mmlFract(x); }
