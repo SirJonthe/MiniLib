@@ -168,6 +168,7 @@ inline real_t mmlSin(real_t x)
 //	return sin;
 
 	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
+	// based on: http://www.mclimatiano.com/faster-sine-approximation-using-quadratic-curve/
 	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
 	const real_t magic_val1 = real_t(4) / real_t(mmlPI);
 	const real_t magic_val2 = magic_val1 / real_t(mmlPI);
