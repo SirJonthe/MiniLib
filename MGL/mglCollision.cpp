@@ -41,7 +41,7 @@ bool mglCollision::AABB_AABB(const mmlVector<3> &a_min, const mmlVector<3> &a_ma
 
 bool mglCollision::AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist)
 {
-	mmlVector<3> center = (aabb_max + aabb_min) * 0.5f;
+	mmlVector<3> center = mmlLerp(aabb_min, aabb_max, 0.5f);
 	mmlVector<3> extents = aabb_max - center;
 	float projection_interval_radius = mmlDot(extents, mmlAbs(plane_normal)); // extents[0]*mmlAbs(plane_normal[0]) + extents[1]*mmlAbs(plane_normal[1]) + extents[2]*mmlAbs(plane_normal[2])
 	float aabb_center_plane_dist     = mmlDot(plane_normal, center) - plane_dist;
