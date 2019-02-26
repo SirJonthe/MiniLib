@@ -29,8 +29,14 @@ bool mglCollision::AABB_Point(const mmlVector<3> &aabb_min, const mmlVector<3> &
 
 bool mglCollision::AABB_AABB(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max)
 {
-	const mmlVector<3> overlap = mmlMin(a_max, b_max) - mmlMax(a_min, b_min);
-	return (overlap[0] * overlap[1] * overlap[2]) > 0.0f;
+	mmlVector<3> a_center = mmlLerp(a_min, a_max, 0.5f);
+	mmlVector<3> a_half_extents = a_max - a_center;
+	mmlVector<3> b_center = mmlLerp(b_min, b_max, 0.5f);
+	mmlVector<3> b_half_extents = b_max - b_center;
+	for (int i = 0; i < 3; ++i) {
+		if (mmlAbs(a_center[i] - b_center[i]) > (a_half_extents[i] + b_half_extents[i])) { return false; }
+	}
+	return true;
 }
 
 bool mglCollision::AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist)
