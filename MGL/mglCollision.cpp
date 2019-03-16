@@ -185,6 +185,11 @@ bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &r
 	return PointInTri(out->point, tri_a, tri_b, tri_c);
 }
 
+mmlVector<3> mglCollision::CorrectVelocity(const mmlVector<3> &vel, const mmlVector<3> &contact_normal)
+{
+	return vel - ((vel * contact_normal) * contact_normal);
+}
+
 void mglRayMarcher3D::SetInitialState(const mmlVector<3> &p_ray_origin, const mmlVector<3> &p_ray_dir)
 {
 	m_origin = p_ray_origin;
