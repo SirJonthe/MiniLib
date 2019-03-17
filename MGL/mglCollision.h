@@ -52,7 +52,7 @@ namespace mglCollision
 	bool Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollisionPoint3D *out = NULL);
 	bool Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollisionPoint3D *out = NULL);
 
-	mmlVector<3> CorrectVelocity(const mmlVector<3> &vel, const mmlVector<3> &contact_normal);
+	mmlVector<3> ClipVelocityByContactNormal(const mmlVector<3> &vel, const mmlVector<3> &contact_normal);
 }
 
 // generizise this for 2/3 dimensions

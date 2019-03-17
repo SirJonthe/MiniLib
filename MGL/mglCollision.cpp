@@ -217,7 +217,12 @@ bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &r
 	return PointInTri(out->point, tri_a, tri_b, tri_c);
 }
 
-mmlVector<3> mglCollision::CorrectVelocity(const mmlVector<3> &vel, const mmlVector<3> &contact_normal)
+// Used to correct velocity so that A0 + VEL does not result in an A1 that clips geometry.
+// First you need to determine if A0 + uncorrected VEL = uncorrected A1 intersects geometry by casting ray (constructed from A0 -> uncorrected A1) against geometry.
+//	Also determine if ray contact occurs within the span between the points A0 and the uncorrected A1.
+//	If valid contact has occurred the surface/collision normal NORMAL is used to correct VEL by calling VEL = ClipVelocityByContactNormal(VEL, NORMAL).
+//	The corrected VEL is added to A0 to produce a corrected A1 that slides along geometry rather than clips through it.
+mmlVector<3> mglCollision::ClipVelocityByContactNormal(const mmlVector<3> &vel, const mmlVector<3> &contact_normal)
 {
 	return vel - ((vel * contact_normal) * contact_normal);
 }
