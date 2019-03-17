@@ -55,11 +55,11 @@ public:
 	{
 		p_axis.Normalize();
 		p_angle *= 0.5f;
-		const float sinAngle = sin(p_angle);
+		const float sinAngle = mmlSin(p_angle);
 		x = (p_axis[0] * sinAngle);
 		y = (p_axis[1] * sinAngle);
 		z = (p_axis[2] * sinAngle);
-		w = cos(p_angle);
+		w = mmlCos(p_angle);
 	}
 	void GetAxisAngle(mmlVector<3> &p_axis, float &p_angle) const
 	{
@@ -71,13 +71,13 @@ public:
 	}
 	void FromEulerAngles(float p_head, float p_pitch, float p_roll)
 	{
-		const float SINH = sin(p_head);
-		const float SINP = sin(p_pitch);
-		const float SINR = sin(p_roll);
+		const float SINH = mmlSin(p_head);
+		const float SINP = mmlSin(p_pitch);
+		const float SINR = mmlSin(p_roll);
 
-		const float COSH = cos(p_head);
-		const float COSP = cos(p_pitch);
-		const float COSR = cos(p_roll);
+		const float COSH = mmlCos(p_head);
+		const float COSP = mmlCos(p_pitch);
+		const float COSR = mmlCos(p_roll);
 
 		x = SINR * COSP * COSH - COSR * SINP * SINH;
 		y = COSR * SINP * COSH + SINR * COSP * SINH;

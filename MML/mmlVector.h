@@ -274,7 +274,7 @@ inline type_t mmlDot(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 // mmlDist
 //
 template < int n, typename type_t >
-inline float mmlDist(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
+inline type_t mmlDist(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
 	return (u - v).Len();
 }
@@ -283,9 +283,9 @@ inline float mmlDist(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 // mmlAng
 //
 template < int n, typename type_t >
-inline double mmlAng(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
+inline type_t mmlAng(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
-	return acos(double(mmlDot(u,v) / (u.Len() * v.Len())));
+	return acos(mmlDot(u,v) / (u.Len() * v.Len()));
 }
 
 //
@@ -305,7 +305,7 @@ inline mmlVector<3,type_t> mmlCross(const mmlVector<3,type_t> &u, const mmlVecto
 // mmlCross
 //
 template < typename type_t >
-inline float mmlCross(const mmlVector<2,type_t> &v, const mmlVector<2,type_t> &w)
+inline type_t mmlCross(const mmlVector<2,type_t> &v, const mmlVector<2,type_t> &w)
 {
 	return v[0]*w[1] - v[1]*w[0];
 }
