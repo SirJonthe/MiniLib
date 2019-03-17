@@ -10,6 +10,14 @@
 #include <climits>
 #include "mmlInt.h"
 
+// NAMING CONVENTIONS
+// type_t -> any type
+//	num_t -> any number
+//		real_t -> any real number
+//			float_t -> any real number represented using floating point
+//			fixed_t -> any real number represented using fixed poing
+//		int_t -> any integer number
+
 template < typename int_t > inline bool mmlIsPow2(const int_t &x) { return (x != 0) && !(x & (x - 1)); }
 
 inline mml::sint32 mmlFloor(float x)  { return mml::sint32(floorf(x)); }
@@ -108,24 +116,24 @@ template < typename float_t >
 inline bool mmlIsInf(const float_t &x)
 {
 	volatile float_t tmp = x;
-	return (tmp == x) && ((tmp - x) != float_t(0)) && (x > float_t(0));
+	return (tmp == x) && ((tmp - x) != float_t(0.0f)) && (x > float_t(0.0f));
 }
 
 template < typename float_t >
 inline bool mmlIsNegInf(const float_t &x)
 {
 	volatile float_t tmp = x;
-	return (tmp == x) && ((tmp - x) != float_t(0)) && (x < float_t(0));
+	return (tmp == x) && ((tmp - x) != float_t(0.0f)) && (x < float_t(0.0f));
 }
 
 template < int n, typename real_t >
 inline real_t mmlPi( void )
 {
 	// Nilakantha series
-	real_t pi = real_t(3);
+	real_t pi = real_t(3.0f);
 	const int iter = n * 4;
 	for (int i = 0; i < iter; i += 4) {
-		pi = pi + (real_t(4) / real_t((i+2) * (i+3) * (i+4))) - (real_t(4) / real_t((i+4) * (i+5) * (i+6)));
+		pi = pi + (real_t(4.0f) / real_t((i+2) * (i+3) * (i+4))) - (real_t(4.0f) / real_t((i+4) * (i+5) * (i+6)));
 	}
 	return pi;
 }
@@ -170,10 +178,10 @@ inline real_t mmlSin(real_t x)
 	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
 	// based on: http://www.mclimatiano.com/faster-sine-approximation-using-quadratic-curve/
 	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
-	const real_t magic_val1 = real_t(4) / real_t(mmlPI);
+	const real_t magic_val1 = real_t(4.0f) / real_t(mmlPI);
 	const real_t magic_val2 = magic_val1 / real_t(mmlPI);
 	const real_t sin1 = magic_val1 * x + -mmlSign(x) * magic_val2 * x * x;
-	const real_t sin  = real_t(0.225) * (sin1 * mmlAbs(sin1) - sin1) + sin1;
+	const real_t sin  = real_t(0.225f) * (sin1 * mmlAbs(sin1) - sin1) + sin1;
 	return sin;
 }
 
@@ -192,7 +200,7 @@ inline real_t mmlSin(real_t x)
 template < typename real_t >
 inline real_t mmlCos(const real_t &x)
 {
-	return mmlSin(x + (mmlPI / real_t(2)));
+	return mmlSin(x + (mmlPI / real_t(2.0f)));
 }
 
 #endif

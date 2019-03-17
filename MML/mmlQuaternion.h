@@ -67,7 +67,7 @@ public:
 		p_axis[1] = y;
 		p_axis[2] = z;
 		p_axis.Normalize();
-		p_angle = acos(w) * 2.f;
+		p_angle = acos(w) * 2.0f;
 	}
 	void FromEulerAngles(float p_head, float p_pitch, float p_roll)
 	{
