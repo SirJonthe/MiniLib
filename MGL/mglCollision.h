@@ -25,6 +25,13 @@ namespace mglCollision
 	struct Tri    { mmlVector<3> a, b, c; };
 	struct Ray    { mmlVector<3> origin, direction; };
 
+	mglCollision::Plane PlaneFromTriangle(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c);
+	mglCollision::Plane PlaneFromNormalAndPoint(const mmlVector<3> &normal, const mmlVector<3> &point_on_plane);
+	mglCollision::AABB  AABBFromCenterAndHalfExtents(const mmlVector<3> &center, const mmlVector<3> &half_extents);
+	mmlVector<3>        CenterOfAABB(const mglCollision::AABB &box);
+	mmlVector<3>        HalfExtentsOfAABB(const mglCollision::AABB &box);
+
+
 	mmlVector<3> ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	bool PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c);
 

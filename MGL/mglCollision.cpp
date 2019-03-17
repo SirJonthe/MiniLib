@@ -1,5 +1,32 @@
 #include "mglCollision.h"
 
+mglCollision::Plane mglCollision::PlaneFromTriangle(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c)
+{
+	mmlVector<3> poly_normal = mmlSurfaceNormal(tri_a, tri_b, tri_c);
+	return mglCollision::Plane{ poly_normal, -mmlDot(tri_a, poly_normal) };
+}
+
+mglCollision::Plane mglCollision::PlaneFromNormalAndPoint(const mmlVector<3> &normal, const mmlVector<3> &point_on_plane)
+{
+	return mglCollision::Plane{ normal, -mmlDot(point_on_plane, normal) };
+}
+
+mglCollision::AABB mglCollision::AABBFromCenterAndHalfExtents(const mmlVector<3> &center, const mmlVector<3> &half_extents)
+{
+	mmlVector<3> abs = mmlAbs(half_extents);
+	return mglCollision::AABB{ center - abs, center + abs };
+}
+
+mmlVector<3> mglCollision::CenterOfAABB(const mglCollision::AABB &box)
+{
+	return mmlLerp(box.min, box.max, 0.5f);
+}
+
+mmlVector<3> mglCollision::HalfExtentsOfAABB(const mglCollision::AABB &box)
+{
+	return mmlAbs(box.max) - CenterOfAABB(box);
+}
+
 mmlVector<3> mglCollision::ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
 {
 	float dist = mmlDot(plane_normal, point) - plane_dist;
