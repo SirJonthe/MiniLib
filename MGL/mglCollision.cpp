@@ -159,11 +159,17 @@ bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3>
 
 bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, float plane_dist, mglRayCollisionPoint3D *out)
 {
-	float nd = mmlDot(ray_dir, plane_normal);
+	// ray eq: r = origin + direction * projection_distance
+	// plane eq: direction . point_on_plane + distance_to_origin = 0
+	// intersection
+	// plane_direction . (ray_origin + ray_direction * ray_projection_distance) + plane_distance_to_origin = 0
+	// ray_projection_distance = -(plane_normal . ray_origin + plane_distance_to_origin) / (plane_normal . ray_direction)
+
+	float nd = mmlDot(plane_normal, ray_dir);
 	if (nd >= 0.0f) { return false; }
 
-	float pd = mmlDot(ray_origin, plane_normal);
-	float t = (plane_dist - pd) / nd;
+	float pd = mmlDot(plane_normal, ray_origin);
+	float t = -(pd + plane_dist) / nd;
 	if (t <= 0.0f) { return false; }
 
 	if (out != NULL) {
@@ -171,7 +177,6 @@ bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> 
 		out->normal   = plane_normal;
 		out->distance = t;
 	}
-
 	return true;
 }
 
