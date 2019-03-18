@@ -503,8 +503,8 @@ inline mmlMatrix<3,3,type_t> mmlTextureSpaceMatrix(const mmlVector<5,type_t> &va
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlRotateX(const type_t &xrad)
 {
-	const VAT SIN = mmlSin(xrad);
-	const VAT COS = mmlCos(xrad);
+	const VAT SIN = sin(xrad);
+	const VAT COS = cos(xrad);
 	return mmlMatrix<3,3,type_t>(
 		VAT(1), VAT(0),  VAT(0),
 		VAT(0), COS,    -SIN,
@@ -518,8 +518,8 @@ inline mmlMatrix<3,3,type_t> mmlRotateX(const type_t &xrad)
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlRotateY(const type_t &yrad)
 {
-	const VAT SIN = mmlSin(yrad);
-	const VAT COS = mmlCos(yrad);
+	const VAT SIN = sin(yrad);
+	const VAT COS = cos(yrad);
 	return mmlMatrix<3,3,type_t>(
 		  COS,    VAT(0), SIN,
 		  VAT(0), VAT(1), VAT(0),
@@ -533,8 +533,8 @@ inline mmlMatrix<3,3,type_t> mmlRotateY(const type_t &yrad)
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlRotateZ(const type_t &zrad)
 {
-	const VAT SIN = mmlSin(zrad);
-	const VAT COS = mmlCos(zrad);
+	const VAT SIN = sin(zrad);
+	const VAT COS = cos(zrad);
 	return mmlMatrix<3,3,type_t>(
 		COS,    -SIN,   VAT(0),
 		SIN,     COS,   VAT(0),
@@ -548,8 +548,8 @@ inline mmlMatrix<3,3,type_t> mmlRotateZ(const type_t &zrad)
 template < typename type_t >
 inline mmlMatrix<2,2,type_t> mmlRotate(const type_t &rad)
 {
-	const VAT SIN = mmlSin(rad);
-	const VAT COS = mmlCos(rad);
+	const VAT SIN = sin(rad);
+	const VAT COS = cos(rad);
 	return mmlMatrix<2,2,type_t>(
 		COS, -SIN,
 		SIN,  COS
@@ -563,12 +563,12 @@ template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlEuler(const type_t &head, const type_t &pitch, const type_t &roll)
 {
 	const VAT
-		SINH = mmlSin(head),
-		SINP = mmlSin(pitch),
-		SINR = mmlSin(roll),
-		COSH = mmlCos(head),
-		COSP = mmlCos(pitch),
-		COSR = mmlCos(roll);
+		SINH = sin(head),
+		SINP = sin(pitch),
+		SINR = sin(roll),
+		COSH = cos(head),
+		COSP = cos(pitch),
+		COSR = cos(roll);
 	return mmlMatrix<3,3,type_t>(
 		(COSR*COSH) -(SINR*SINP*SINH), -SINR*COSP, (COSR*SINH) +(SINR*SINP*COSH),
 		(SINR*COSH) +(COSR*SINP*SINH),  COSR*COSP, (SINR*SINH) -(COSR*SINP*COSH),
@@ -609,8 +609,8 @@ inline mmlMatrix<4,4,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, con
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
 {
-	const VAT SIN    = mmlSin(p_rot);
-	const VAT COS    = mmlCos(p_rot);
+	const VAT SIN    = sin(p_rot);
+	const VAT COS    = cos(p_rot);
 	const VAT ICOS   = VAT(1) - COS;
 	const VAT uxSIN  = p_axis[0]*SIN;
 	const VAT uySIN  = p_axis[1]*SIN;
