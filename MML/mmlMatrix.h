@@ -240,6 +240,15 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 	mmlMatrix<rows,rows,type_t> inv = mat;
 	//if (rows <= 0) { return; }  // sanity check
 	//if (rows == 1) { return; }  // must be of dimension >= 2
+
+	if (inv[0][0] == type_t(0)) {
+		for (int row = 1; row < rows; ++row) {
+			if (inv[row][0] != type_t(0)) {
+				mmlSwap(inv[0], inv[row]);
+				break;
+			}
+		}
+	}
 	for (int p_row = 1; p_row < rows; ++p_row) { inv[0][p_row] /= inv[0][0]; } // normalize row 0
 	for (int p_row = 1; p_row < rows; ++p_row) { 
 		for (int p_column = p_row; p_column < rows; ++p_column) { // do a column of L
