@@ -238,9 +238,6 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 {
 	// Hasn't checked the determinant. If det=0 then there is no inverse.
 	mmlMatrix<rows,rows,type_t> inv = mat;
-	//if (rows <= 0) { return; }  // sanity check
-	//if (rows == 1) { return; }  // must be of dimension >= 2
-
 	if (inv[0][0] == type_t(0)) {
 		for (int row = 1; row < rows; ++row) {
 			if (inv[row][0] != type_t(0)) {
@@ -259,7 +256,7 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 			inv[p_column][p_row] -= sum;
 		}
 		if (p_row == rows-1) { continue; }
-		for (int p_column = p_row+1; p_column < rows; ++p_column) {  // do a row of U
+		for (int p_column = p_row+1; p_column < rows; ++p_column) { // do a row of U
 			type_t sum = type_t(0);
 			for (int k = 0; k < p_row; ++k) {
 				sum += inv[p_row][k] * inv[k][p_column];
@@ -279,7 +276,7 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 			inv[p_column][p_row] = x / inv[p_column][p_column];
 		}
 	}
-	for (int p_row = 0; p_row < rows; ++p_row) {  // invert U
+	for (int p_row = 0; p_row < rows; ++p_row) { // invert U
 		for (int p_column = p_row; p_column < rows; ++p_column) {
 			if (p_row == p_column) { continue; }
 			type_t sum = type_t(0);
@@ -289,7 +286,7 @@ mmlMatrix<rows,rows,type_t> mmlInv(const mmlMatrix<rows,rows,type_t> &mat)
 			inv[p_row][p_column] = -sum;
 		}
 	}
-	for (int p_row = 0; p_row < rows; ++p_row) {   // final inversion
+	for (int p_row = 0; p_row < rows; ++p_row) { // final inversion
 		for (int p_column = 0; p_column < rows; ++p_column) {
 			type_t sum = type_t(0);
 			for (int k = ((p_row > p_column) ? p_row : p_column); k < rows; ++k) {
@@ -584,36 +581,6 @@ inline mmlMatrix<3,3,type_t> mmlEuler(const type_t &head, const type_t &pitch, c
 		-COSP*SINH,                     SINP,      COSP*COSH
 	);
 }
-
-// http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/the-theory-of-stencil-shadow-volumes-r1873
-// Should apparently be used for stencil shadows using z-fail method
-/*template < typename type_t >
-inline mmlMatrix<4,4,type_t> mmlInfPerspectiveMatrix(type_t fovh, type_t fovv, type_t near, type_t far)
-{
-	return mmlMatrix<4,4,type_t>(
-		type_t(1.0)/tan(fovh/2.f), type_t(0.0), type_t(0.0), type_t(0.0),
-		type_t(0.0), type_t(1.0)/tan(fovv/2.f), type_t(0.0), type_t(0.0),
-		type_t(0.0), type_t(0.0), far/(far-near), type_t(1.0),
-		type_t(0.0), type_t(0.0), (-far*near)/(far-near), type_t(0.0)
-		);
-}*/
-
-/*template < typename type_t >
-inline mmlMatrix<4,4,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
-{
-	const VAT x = p_axis[0];
-	const VAT y = p_axis[1];
-	const VAT z = p_axis[2];
-	const VAT c = cos(p_rot);
-	const VAT s = sin(p_rot);
-
-	return mmlMatrix<4,4,type_t>(
-		(x * x) * (VAT(1) - c) + c,       (x * y) * (VAT(1) - c) + (z * s), (x * z) * (VAT(1) - c) - (y * s), VAT(0),
-		(y * x) * (VAT(1) - c) - (z * s), (y * y) * (VAT(1) - c) + c,       (y * z) * (VAT(1) - c) + (x * s), VAT(0),
-		(z * x) * (VAT(1) - c) + (y * s), (z * y) * (VAT(1) - c) - (x * s), (z * z) * (VAT(1) - c) + c,       VAT(0),
-		VAT(0),                           VAT(0),                           VAT(0),                           VAT(1)
-	);
-}*/
 
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
