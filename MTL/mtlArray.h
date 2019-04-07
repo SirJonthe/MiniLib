@@ -126,9 +126,7 @@ m_arr(NULL), m_size(0), m_pool(0), poolMemory(true)
 template < typename type_t >
 mtlArray<type_t> &mtlArray<type_t>::operator=(const mtlArray<type_t> &p_arr)
 {
-	if (this != &p_arr) {
-		Copy(p_arr);
-	}
+	Copy(p_arr);
 	return *this;
 }
 

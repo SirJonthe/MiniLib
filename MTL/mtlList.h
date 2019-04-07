@@ -207,9 +207,7 @@ m_first(NULL), m_last(NULL), m_size(0)
 template < typename type_t >
 mtlList<type_t> &mtlList<type_t>::operator=(const mtlList<type_t> &p_list)
 {
-	if (this != &p_list) {
-		Copy(p_list);
-	}
+	Copy(p_list);
 	return *this;
 }
 
