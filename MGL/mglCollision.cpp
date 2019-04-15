@@ -27,9 +27,14 @@ mmlVector<3> mglCollision::HalfExtentsOfAABB(const mglCollision::AABB &box)
 	return mmlAbs(box.max) - CenterOfAABB(box);
 }
 
+float mglCollision::SignedDistanceToPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
+{
+	return mmlDot(plane_normal, point) - plane_dist;
+}
+
 mmlVector<3> mglCollision::ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist)
 {
-	float dist = mmlDot(plane_normal, point) - plane_dist;
+	float dist = mglCollision::SignedDistanceToPlane(point, plane_normal, plane_dist);
 	// if plane_normal is not normalized
 	// dist = dist / mmlDot(plane_normal, plane_normal);
 	return point - plane_normal * dist;
@@ -70,9 +75,17 @@ bool mglCollision::AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &
 {
 	mmlVector<3> center = mmlLerp(aabb_min, aabb_max, 0.5f);
 	mmlVector<3> extents = aabb_max - center;
-	float projection_interval_radius = mmlDot(extents, mmlAbs(plane_normal)); // extents[0]*mmlAbs(plane_normal[0]) + extents[1]*mmlAbs(plane_normal[1]) + extents[2]*mmlAbs(plane_normal[2])
+	float projection_interval_radius = mmlDot(extents, mmlAbs(plane_normal));
 	float aabb_center_plane_dist     = mmlDot(plane_normal, center) - plane_dist;
 	return mmlAbs(aabb_center_plane_dist) <= projection_interval_radius;
+}
+
+mglClip mglCollision::Classify_AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist)
+{
+	mmlVector<3> center = mmlLerp(aabb_min, aabb_max, 0.5f);
+	mmlVector<3> extents = aabb_max - center;
+	float projection_interval_radius = mmlDot(extents, mmlAbs(plane_normal));
+	return mglCollision::Classify_Sphere_Plane(center, projection_interval_radius, plane_normal, plane_dist);
 }
 
 bool mglCollision::Sphere_Point(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point)
@@ -89,6 +102,14 @@ bool mglCollision::Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, c
 {
 	mmlVector<3> closest = mglCollision::ClosestPointOnPlane(cir_pos, plane_normal, plane_dist);
 	return mmlDist(closest, cir_pos) <= cir_radius;
+}
+
+mglClip mglCollision::Classify_Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist)
+{
+	float dist = mglCollision::SignedDistanceToPlane(cir_pos, plane_normal, plane_dist);
+	if (dist >  cir_radius) { return mglInFront; }
+	if (dist < -cir_radius) { return mglBehind; }
+	return mglClipping;
 }
 
 bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, mglRayCollision3D *out)
@@ -283,7 +304,7 @@ void mglRayMarcher2D::SetInitialState(const mmlVector<2> &p_ray_origin, const mm
 		// Reference:
 			// double deltaDistX = sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
 			// double deltaDistY = sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
-		m_delta[i] = sqrt(1.0f + (m_direction[(i + 1) & 1] * m_direction[(i + 1) & 1]) / (m_direction[i] * m_direction[i]));
+		m_delta[i] = float(sqrt(double(1.0f + (m_direction[(i + 1) & 1] * m_direction[(i + 1) & 1]) / (m_direction[i] * m_direction[i]))));
 		if (m_direction[i] < 0.0f) {
 			m_step[i] = -1;
 			m_lengths[i] = (p_ray_origin[i] - m_xyz[i]) * m_delta[i];
@@ -311,5 +332,5 @@ float mglRayMarcher2D::GetImpactU( void ) const
 {
 	mmlVector<2> impact = GetImpactPosition();
 	float u = impact[(m_side + 1) % 2];
-	return u - floor(u);
+	return u - float(floor(double(u)));
 }

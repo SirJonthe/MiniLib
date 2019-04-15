@@ -5,6 +5,7 @@
 #include "../MTL/mtlBits.h"
 #include "../MML/mmlVector.h"
 #include "mglTransform.h"
+#include "mglPlane.h"
 
 struct mglRayCollisionPoint3D
 {
@@ -31,17 +32,19 @@ namespace mglCollision
 	mmlVector<3>        CenterOfAABB(const mglCollision::AABB &box);
 	mmlVector<3>        HalfExtentsOfAABB(const mglCollision::AABB &box);
 
-
+	float        SignedDistanceToPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	mmlVector<3> ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	bool PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c);
 
 	bool AABB_Point(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point);
 	bool AABB_AABB(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max);
 	bool AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist);
+	mglClip Classify_AABB_Plane(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &plane_normal, float plane_dist);
 
 	bool Sphere_Point(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &point);
 	bool Sphere_Sphere(const mmlVector<3> &a_pos, float a_radius, const mmlVector<3> &b_pos, float b_radius);
 	bool Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist);
+	mglClip Classify_Sphere_Plane(const mmlVector<3> &cir_pos, float cir_radius, const mmlVector<3> &plane_normal, float plane_dist);
 
 //	bool Tri_AABB(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max);
 //	bool Tri_Sphere(const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, const mmlVector<3> &cir_pos, float cir_radius);
@@ -83,7 +86,7 @@ public:
 	int                 GetIndex(int axis) const { return m_xyz[axis]; }
 
 	int                 GetImpactAxis( void ) const { return m_side; }
-	float               GetImpactDistance( void ) const { return fabs((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]); }
+	float               GetImpactDistance( void ) const { return float(fabs(double((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]))); }
 	mmlVector<3>        GetImpactPosition( void ) const { return m_origin + m_direction * GetImpactDistance(); }
 	mmlVector<2>        GetImpactUV( void ) const;
 
@@ -114,7 +117,7 @@ public:
 	int                 GetIndex(int axis) const { return m_xyz[axis]; }
 
 	int                 GetImpactAxis( void )     const { return m_side; }
-	float               GetImpactDistance( void ) const { return fabs((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]); }
+	float               GetImpactDistance( void ) const { return float(fabs(double((m_xyz[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]))); }
 	mmlVector<2>        GetImpactPosition( void ) const { return m_origin + m_direction * GetImpactDistance(); }
 	float               GetImpactU( void )        const;
 
