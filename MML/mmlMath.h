@@ -67,6 +67,7 @@ template < typename TA, typename TB > inline TA mmlTriquerp(const TA i[4][4][4],
 template < typename real_t > inline real_t mmlSqrt(const real_t &x)                  { return real_t(sqrt(double(x))); }
 template < typename real_t > inline real_t mmlFmod(const real_t &a, const real_t &b) { return (a - b * mmlFloor(a / b)); }
 template < typename num_t >  inline num_t  mmlSign(const num_t &x)                   { return num_t((x >= num_t(0)) - (x < num_t(0))); }
+template < typename num_t >  inline num_t  mmlSign3(const num_t &x)                  { return num_t(x > num_t(0)) - num_t(x < num_t(0)); }
 //template < typename num_t >  inline num_t  mmlPow(const num_t &x, const num_t &y)    { return mmlExp(y * mmlLog(x)); }
 
 //inline float mmlFastInvSqrt(float pX)
@@ -201,6 +202,30 @@ template < typename real_t >
 inline real_t mmlCos(const real_t &x)
 {
 	return mmlSin(x + (mmlPI / real_t(2.0f)));
+}
+
+template < typename real_t >
+inline real_t mmlTan(const real_t &x)
+{
+	return mmlSin(x) / mmlCos(x);
+}
+
+template < typename real_t >
+inline real_t mmlCot(const real_t &x)
+{
+	return mmlCos(x) / mmlSin(x);
+}
+
+template < typename real_t >
+inline real_t mmlSec(const real_t &x)
+{
+	return real_t(1.0f) / mmlCos(x);
+}
+
+template < typename real_t >
+inline real_t mmlCsc(const real_t &x)
+{
+	return real_t(1.0f) / mmlSin(x);
 }
 
 #endif
