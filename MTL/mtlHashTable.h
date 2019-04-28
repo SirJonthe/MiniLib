@@ -9,7 +9,7 @@ class mtlHashInterface
 {
 public:
 	virtual mtlHash ToHash( void ) = 0;
-	virtual ~mtlHashable( void ) {}
+	virtual ~mtlHashInterface( void ) {}
 };
 
 template < typename type_t >
@@ -18,13 +18,13 @@ class mtlHashTable
 private:
 	struct Entry
 	{
-		type_t	data;
-		mtlHash	hash;
+		type_t  data;
+		mtlHash hash;
 	};
 
 private:
-	mtlArray< mtlList<typename Entry> >	m_table;
-	int									m_num_entries;
+	mtlArray< mtlList<Entry> > m_table;
+	int                        m_num_entries;
 
 private:
 	int GetIndex(mtlHash hash, int size) const;
@@ -39,13 +39,13 @@ public:
 };
 
 template < typename type_t >
-int mtlHashTable::GetIndex(mtlHash hash, int size) const
+int mtlHashTable<type_t>::GetIndex(mtlHash hash, int size) const
 {
 	return hash.value & (size - 1);
 }
 
 template < typename type_t >
-void mtlHashTable::ResizeTable(int size)
+void mtlHashTable<type_t>::ResizeTable(int size)
 {
 	mtlArray< mtlList<type_t> > new_table(size);
 	for (int i = 0; i < m_table.GetSize(); ++i) {
@@ -58,13 +58,13 @@ void mtlHashTable::ResizeTable(int size)
 }
 
 template < typename type_t >
-mtlHashTable::mtlHashTable( void ) : m_table(128), m_num_entries(0)
+mtlHashTable<type_t>::mtlHashTable( void ) : m_table(128), m_num_entries(0)
 {}
 
 template < typename type_t >
-const type_t *mtlHashTable::Find(mtlHash hash) const
+const type_t *mtlHashTable<type_t>::Find(mtlHash hash) const
 {
-	const mtlItem<typename Entry> *i = &m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
+	const mtlItem<Entry> *i = &m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {
 		i = i->GetNext();
 	}
@@ -72,9 +72,9 @@ const type_t *mtlHashTable::Find(mtlHash hash) const
 }
 
 template < typename type_t >
-type_t *mtlHashTable::Find(mtlHash hash)
+type_t *mtlHashTable<type_t>::Find(mtlHash hash)
 {
-	mtlItem<typename Entry> *i = m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
+	mtlItem<Entry> *i = m_table[GetIndex(hash, m_table.GetSize())].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {
 		i = i->GetNext();
 	}
@@ -82,12 +82,12 @@ type_t *mtlHashTable::Find(mtlHash hash)
 }
 
 template < typename type_t >
-void mtlHashTable::Insert(const type_t &item)
+void mtlHashTable<type_t>::Insert(const type_t &item)
 {
 	mtlHash hash = item.ToHash();
 	int index = GetIndex(hash, m_table.GetSize());
 
-	mtlItem<typename Entry> *i = m_table[index].GetFirst();
+	mtlItem<Entry> *i = m_table[index].GetFirst();
 	while (i != NULL && i->GetItem().hash != hash) {
 		i = i->GetNext();
 	}

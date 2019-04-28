@@ -141,7 +141,9 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array)
 {
 	if (this != &p_array) {
 		Create(p_array.m_size);
-		mtlCopy(m_arr, p_array.m_arr, m_size);
+		for (int i = 0; i < m_size; ++i) {
+			m_arr[i] = p_array.m_arr[i];
+		}
 	}
 }
 
@@ -150,14 +152,20 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array, int p_begin, int p_
 {
 	if (p_end < 0) { p_end = p_array.GetSize(); }
 	Create(p_end - p_begin);
-	mtlCopy(m_arr, p_array.m_arr+p_begin, m_size);
+	for (int i = 0; i < m_size; ++i) {
+		m_arr[i] = p_array.m_arr[p_begin + i];
+	}
 }
 
 template < typename type_t >
 void mtlArray<type_t>::Copy(const type_t *p_array, int p_size)
 {
-	Create(p_size);
-	mtlCopy(m_arr, p_array, p_size);
+	if (m_arr != p_array) {
+		Create(p_size);
+		for (int i = 0; i < m_size; ++i) {
+			m_arr[i] = p_array[i];
+		}
+	}
 }
 
 template < typename type_t >
@@ -185,7 +193,9 @@ void mtlArray<type_t>::Resize(int p_size)
 			const unsigned int minSize = (p_size < m_size) ? p_size : m_size;
 			type_t *data = m_arr;
 			m_arr = new type_t[static_cast<unsigned int>(p_size)];
-			mtlCopy(m_arr, data, minSize);
+			for (int i = 0; i < minSize; ++i) {
+				m_arr[i] = data[i];
+			}
 			delete [] data;
 		} else if (!poolMemory) {
 			delete [] m_arr;
