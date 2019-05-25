@@ -150,21 +150,34 @@ void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array)
 template < typename type_t >
 void mtlArray<type_t>::Copy(const mtlArray<type_t> &p_array, int p_begin, int p_end)
 {
-	if (p_end < 0) { p_end = p_array.GetSize(); }
-	Create(p_end - p_begin);
-	for (int i = 0; i < m_size; ++i) {
-		m_arr[i] = p_array.m_arr[p_begin + i];
+	if (this != &p_array) {
+		if (p_end < 0) { p_end = p_array.GetSize(); }
+		Create(p_end - p_begin);
+		for (int i = 0; i < m_size; ++i) {
+			m_arr[i] = p_array.m_arr[p_begin + i];
+		}
+	} else { // In case you are trying to copy a part of the array itself...
+		mtlArray<type_t> c(p_array, p_begin, p_end);
+		Copy(c);
 	}
 }
 
 template < typename type_t >
 void mtlArray<type_t>::Copy(const type_t *p_array, int p_size)
 {
-	if (m_arr != p_array) {
+	// if at least ONE end point is inside the OTHER interval, then we have memory overlap
+	const bool mem_overlap =
+	        (m_arr >= p_array && m_arr <= p_array + p_size) ||
+	        (m_arr + m_pool >= p_array && m_arr + m_pool <= p_array + p_size) ||
+	        (p_array >= m_arr && p_array <= m_arr + m_pool); // We don't need to check overlap of p_array + p_size as overlap will logically not occur if the above 3 tests are false
+	if (mem_overlap == false) {
 		Create(p_size);
 		for (int i = 0; i < m_size; ++i) {
 			m_arr[i] = p_array[i];
 		}
+	} else { // In case you are trying to copy a part of the array itself...
+		mtlArray<type_t> c(p_array, p_size);
+		Copy(c);
 	}
 }
 
