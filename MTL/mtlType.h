@@ -1,6 +1,8 @@
 #ifndef MTL_TYPE_H_INCLUDED
 #define MTL_TYPE_H_INCLUDED
 
+#include <cstddef>
+
 // http://stackoverflow.com/questions/18731075/c-fast-dynamic-type-subtype-check
 
 typedef unsigned long long mtlTypeID;
@@ -10,6 +12,11 @@ class mtlBase
 private:
 	void * const m_objectPointer;
 
+private:
+	mtlBase( void ) : m_objectPointer(NULL) {}
+	mtlBase(const mtlBase&) : m_objectPointer(NULL) {}
+	mtlBase &operator=(const mtlBase&) { return *this; }
+
 protected:
 	static mtlTypeID GetNextTypeID( void ) { static mtlTypeID id = 0; return ++id; }
 	static bool IsType(mtlTypeID id) { return (GetClassType() == id); }
@@ -17,7 +24,7 @@ protected:
 	virtual void *GetVirtualObjectPointer(mtlTypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
 
 public:
-	virtual ~mtlBase( void ) {}
+	virtual ~mtlBase( void );
 	mtlBase(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
 
 	static mtlTypeID GetClassType( void ) { return 0; }
@@ -38,6 +45,9 @@ public:
 	template < typename cast_t >
 	const cast_t *Cast( void ) const { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
 };
+
+template < typename cast_t > cast_t *mtlCast(mtlBase *type) { return type->Cast<cast_t>(); }
+template < typename cast_t > const cast_t *mtlCast(const mtlBase *type) { return type->Cast<cast_t>(); }
 
 //
 // Use the second template parameter to be able to make a
@@ -67,6 +77,11 @@ private:
 	//static type_t *m_typeAddress;
 
 	void * const m_objectPointer;
+
+private:
+	mtlInherit( void ) : m_objectPointer(NULL) {}
+	mtlInherit(const mtlInherit&) : m_objectPointer(NULL) {}
+	mtlInherit &operator=(const mtlInherit&) { return *this; }
 
 protected:
 	static bool IsType(mtlTypeID id) { return (GetClassType() != id) ? base_t::IsType(id) : true; }
