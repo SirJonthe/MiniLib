@@ -46,8 +46,8 @@ public:
 	const cast_t *Cast( void ) const { return reinterpret_cast<cast_t*>(GetVirtualObjectPointer(cast_t::GetClassType())); }
 };
 
-template < typename cast_t > cast_t *mtlCast(mtlBase *type) { return type->Cast<cast_t>(); }
-template < typename cast_t > const cast_t *mtlCast(const mtlBase *type) { return type->Cast<cast_t>(); }
+template < typename cast_t > cast_t *mtlCast(mtlBase *type) { return type != NULL ? type->Cast<cast_t>() : NULL; }
+template < typename cast_t > const cast_t *mtlCast(const mtlBase *type) { return type != NULL ? type->Cast<cast_t>() : NULL; }
 
 //
 // Use the second template parameter to be able to make a
