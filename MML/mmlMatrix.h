@@ -101,6 +101,15 @@ public:
 			}
 		}
 	}
+	//
+	// assignment operators
+	//
+	mmlMatrix<rows,columns,type_t> &operator=(const mmlMatrix<rows,columns,type_t> &m) {
+		for (int p_row = 0; p_row < rows; ++p_row) {
+			e[p_row] = m[p_row];
+		}
+		return *this;
+	}
 
 public:
 	static mmlMatrix<rows,columns,type_t> &Cast(void *ptr)
