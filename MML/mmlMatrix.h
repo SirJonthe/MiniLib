@@ -97,7 +97,7 @@ public:
 	mmlMatrix(const type_t * const mat) {
 		for (int p_row = 0; p_row < rows; ++p_row) {
 			for (int p_column = 0; p_column < columns; ++p_column) {
-				e[p_row][p_column] = mat[p_row*rows + p_column];
+				e[p_row][p_column] = mat[p_row*columns + p_column];
 			}
 		}
 	}
