@@ -24,6 +24,14 @@ public:
 	}
 	mmlQuaternion(float p_x, float p_y, float p_z, float p_w) : x(p_x), y(p_y), z(p_z), w(p_w) {}
 	mmlQuaternion(const mmlQuaternion &p_quat) : x(p_quat.x), y(p_quat.y), z(p_quat.z), w(p_quat.w) {}
+	mmlQuaternion &operator=(const mmlQuaternion &p_quat)
+	{
+		x = p_quat.x;
+		y = p_quat.y;
+		z = p_quat.z;
+		w = p_quat.w;
+		return *this;
+	}
 	mmlQuaternion(const mmlVector<3> &p_axis, float p_angle)
 	{
 		FromAxisAngle(p_axis, p_angle);
@@ -67,7 +75,7 @@ public:
 		p_axis[1] = y;
 		p_axis[2] = z;
 		p_axis.Normalize();
-		p_angle = acos(w) * 2.0f;
+		p_angle = acosf(w) * 2.0f;
 	}
 	void FromEulerAngles(float p_head, float p_pitch, float p_roll)
 	{
@@ -96,26 +104,26 @@ public:
 		const float trace = mmlTrace(p_matrix) + 1.0f;
 		
 		if (trace > 0.0f) {
-			const float scale = sqrt(trace) * 2.0f;
+			const float scale = mmlSqrt(trace) * 2.0f;
 			x = (p_matrix[1][2] - p_matrix[2][1]) / scale;
 			y = (p_matrix[2][0] - p_matrix[0][2]) / scale;
 			z = (p_matrix[0][1] - p_matrix[1][0]) / scale;
 			w = 0.25f * scale;
 		} else {
 			if (p_matrix[0][0] > p_matrix[1][1] && p_matrix[0][0] > p_matrix[2][2]) {
-				const float scale = sqrt(1.0f + p_matrix[0][0] - p_matrix[1][1] - p_matrix[2][2]) * 2.0f;
+				const float scale = mmlSqrt(1.0f + p_matrix[0][0] - p_matrix[1][1] - p_matrix[2][2]) * 2.0f;
 				x = 0.25f * scale;
 				y = (p_matrix[1][0] + p_matrix[0][1]) / scale;
 				z = (p_matrix[0][2] + p_matrix[2][0]) / scale;
 				w = (p_matrix[1][2] - p_matrix[2][1]) / scale;
 			} else if (p_matrix[1][1] > p_matrix[2][2]) {
-				const float scale = sqrt(1.0f + p_matrix[1][1] - p_matrix[0][0] - p_matrix[2][2]) * 2.0f;
+				const float scale = mmlSqrt(1.0f + p_matrix[1][1] - p_matrix[0][0] - p_matrix[2][2]) * 2.0f;
 				x = (p_matrix[1][0] + p_matrix[0][1]) / scale;
 				y = 0.25f * scale;
 				z = (p_matrix[2][1] + p_matrix[1][2]) / scale;
 				w = (p_matrix[2][0] - p_matrix[0][2]) / scale;
 			} else {
-				const float scale = sqrt(1.0f + p_matrix[2][2] - p_matrix[0][0] - p_matrix[1][1]) * 2.0f;
+				const float scale = mmlSqrt(1.0f + p_matrix[2][2] - p_matrix[0][0] - p_matrix[1][1]) * 2.0f;
 				x = (p_matrix[2][0] + p_matrix[0][2]) / scale;
 				y = (p_matrix[2][1] + p_matrix[1][2]) / scale;
 				z = 0.25f * scale;
@@ -165,19 +173,19 @@ public:
 		const float wz = w * z;
 		
 		return mmlMatrix<3,3>(
-			1.f - 2.f * (y2 + z2), 2.f * (xy - wz),       2.f * (xz + wy),
-			2.f * (xy + wz),       1.f - 2.f * (x2 + z2), 2.f * (yz - wx),
-			2.f * (xz - wy),       2.f * (yz + wx),       1.f - 2.f * (x2 + y2)
+			double(1.f - 2.f * (y2 + z2)), double(2.f * (xy - wz)),       double(2.f * (xz + wy)),
+			double(2.f * (xy + wz)),       double(1.f - 2.f * (x2 + z2)), double(2.f * (yz - wx)),
+			double(2.f * (xz - wy)),       double(2.f * (yz + wx)),       double(1.f - 2.f * (x2 + y2))
 		);
 	}
 public:
 	static mmlQuaternion &Cast(void *ptr)
 	{
-		return *(mmlQuaternion*)ptr;
+		return *reinterpret_cast<mmlQuaternion*>(ptr);
 	}
 	static const mmlQuaternion &Cast(const void *ptr)
 	{
-		return *(mmlQuaternion*)ptr;
+		return *reinterpret_cast<const mmlQuaternion*>(ptr);
 	}
 	void Normalize( void )
 	{
@@ -200,7 +208,7 @@ public:
 	}
 	float Scale( void ) const
 	{
-		return sqrt(x*x + y*y + z*z + w*w);
+		return mmlSqrt(x*x + y*y + z*z + w*w);
 	}
 	void RotateByAxisAngle(const mmlVector<3> &p_axis, float p_angle)
 	{
@@ -218,7 +226,7 @@ public:
 	mmlVector<3> operator*(const mmlVector<3> &p_rhs) const
 	{
 		mmlVector<3> uv, uuv;
-		mmlVector<3> qvec(x, y, z);
+		mmlVector<3> qvec = mmlVector<3>(double(x), double(y), double(z));
 		uv = mmlCross(qvec, p_rhs);
 		uuv = mmlCross(qvec, uv);
 		uv *= (2.0f * w);
@@ -233,7 +241,7 @@ public:
 			y * y +
 			z * z +
 			w * w -
-			1.f;
+			1.0f;
 		return (unit <= p_tolerance && unit >= -p_tolerance);
 	}
 	void SetIdentity( void )

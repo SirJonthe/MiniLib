@@ -76,7 +76,7 @@ public:
 	// index and conversion
 	//
 	operator type_t*( void ) { return e; }
-	operator const type_t* const ( void ) const { return e; }
+	operator const type_t*( void ) const { return e; }
 public:
 	//
 	// comparison

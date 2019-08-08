@@ -40,51 +40,52 @@ public:
 	inline static bool      IsNewline(char ch);
 
 public:
-	inline					mtlChars( void );
+	inline                  mtlChars( void );
 	inline                  mtlChars(const char &ch);
 	template < int t_size >
-	inline					mtlChars(const char (&p_str)[t_size], int p_size = -1);
-	inline					mtlChars(const mtlChars &p_str, int p_size = -1);
+	inline                  mtlChars(const char (&p_str)[t_size], int p_size = -1);
+	inline                  mtlChars(const mtlChars &p_str, int p_size = -1);
+	inline mtlChars         &operator=(const mtlChars &p_str);
 	template < int t_size >
-	inline					mtlChars(const char (&p_str)[t_size], int p_start, int p_end);
-	inline					mtlChars(const mtlChars &p_str, int p_start, int p_end);
+	inline                  mtlChars(const char (&p_str)[t_size], int p_start, int p_end);
+	inline                  mtlChars(const mtlChars &p_str, int p_start, int p_end);
 	virtual                ~mtlChars( void ) {}
 
-	mtlChars				GetTrimmed( void ) const;
-	bool					ToBool(bool &p_out) const;
-	bool					ToInt(int &p_out) const;
-	bool					ToFloat(float &p_out) const;
-	bool					IsBool( void ) const;
-	bool					IsInt( void ) const;
-	bool					IsFloat( void ) const;
+	mtlChars                GetTrimmed( void ) const;
+	bool                    ToBool(bool &p_out) const;
+	bool                    ToInt(int &p_out) const;
+	bool                    ToFloat(float &p_out) const;
+	bool                    IsBool( void ) const;
+	bool                    IsInt( void ) const;
+	bool                    IsFloat( void ) const;
 
-	void					SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true) const;
-	void					SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace = true) const;
-	void					SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
+	void                    SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true) const;
+	void                    SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace = true) const;
+	void                    SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
 
-	int						FindFirstChar(const mtlChars &p_chars) const;
-	int						FindFirstChar(char p_ch) const;
-	int						FindLastChar(const mtlChars &p_chars) const;
-	int						FindLastChar(char p_ch) const;
-	int						FindFirstString(const mtlChars &p_str) const;
-	int						FindLastString(const mtlChars &p_str) const;
+	int                     FindFirstChar(const mtlChars &p_chars) const;
+	int                     FindFirstChar(char p_ch) const;
+	int                     FindLastChar(const mtlChars &p_chars) const;
+	int                     FindLastChar(char p_ch) const;
+	int                     FindFirstString(const mtlChars &p_str) const;
+	int                     FindLastString(const mtlChars &p_str) const;
 
-	int						CountChars(char ch, bool p_caseSensitive = false) const;
+	int                     CountChars(char ch, bool p_caseSensitive = false) const;
 
-	inline const char		*GetChars( void ) const;
-	inline char				operator[](int i) const;
-	inline int				GetSize( void ) const;
+	inline const char      *GetChars( void ) const;
+	inline char             operator[](int i) const;
+	inline int              GetSize( void ) const;
 
-	inline bool				IsNullTerminated( void ) const;
+	inline bool             IsNullTerminated( void ) const;
 	bool                    IsBlank( void ) const;
 
-	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
-	bool					Compare(char ch, bool p_caseSensitive = false) const;
-	inline bool				SameAsAny(char ch, bool caseSensitive = false) const;
-	inline int				SameAsWhich(char ch, bool caseSensitive = false) const;
-	inline bool				SameAsNone(char ch, bool caseSensitive = false) const;
-	inline bool				operator==(const mtlChars &str) const;
-	inline bool				operator!=(const mtlChars &str) const;
+	bool                    Compare(const mtlChars &p_str, bool p_caseSensitive = false) const;
+	bool                    Compare(char ch, bool p_caseSensitive = false) const;
+	inline bool             SameAsAny(char ch, bool caseSensitive = false) const;
+	inline int              SameAsWhich(char ch, bool caseSensitive = false) const;
+	inline bool             SameAsNone(char ch, bool caseSensitive = false) const;
+	inline bool             operator==(const mtlChars &str) const;
+	inline bool             operator!=(const mtlChars &str) const;
 };
 
 class mtlString : public mtlChars
@@ -158,6 +159,7 @@ public:
 	mtlHash(const mtlHash &hash) : value(hash.value) {}
 	mtlHash(const mtlString &p_str);
 	mtlHash(const mtlChars &p_str); // THIS MIGHT PREVENT TEMPLATE CONSTRUCTOR FROM EVER GETTING CALLED
+	mtlHash &operator=(const mtlHash &hash) { value = hash.value; return *this; }
 	template < int N >
 	mtlHash(const char (&p_str)[N]) : value(mtlFNVConstHasher<N,N>::Hash(p_str)) {} // generates hash at compile time
 	bool operator==(mtlHash h) const { return value == h.value; }
@@ -256,6 +258,13 @@ mtlChars::mtlChars(const char (&p_str)[t_size], int p_size) :
 mtlChars::mtlChars(const mtlChars &p_str, int p_size) :
 	m_str(p_str.m_str), m_size(GetSizeActual(p_str.m_size, p_size))
 {}
+
+mtlChars &mtlChars::operator=(const mtlChars &p_str)
+{
+	m_str = p_str.m_str;
+	m_size = p_str.m_size;
+	return *this;
+}
 
 template < int t_size >
 mtlChars::mtlChars(const char (&p_str)[t_size], int p_start, int p_end) :

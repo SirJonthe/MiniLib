@@ -34,7 +34,7 @@ public:
 	// conversion operators
 	//
 	operator type_t * ( void ) { return e[0]; }
-	operator const type_t * const ( void ) const { return e[0]; }
+	operator const type_t *( void ) const { return e[0]; }
 
 public:
 	//

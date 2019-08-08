@@ -26,7 +26,7 @@ private:
 
 public:
 	unit_range( void ) : x() {}
-	unit_range(double a) : x((base_t)(a * MML_MAXOF(base_t))) {}
+	unit_range(double a) : x(base_t(a * MML_MAXOF(base_t))) {}
 	unit_range(base_t a) : x(a) {}
 
 	base_t base( void ) const { return x; }
@@ -81,11 +81,11 @@ private:
 public:
 	fixed( void ) : x() {}
 	template < typename type_t >
-	fixed(type_t a) : x((base_t)(a * (1 << prec))) {}
+	fixed(type_t a) : x(base_t(a * (1 << prec))) {}
 	template < typename t, mml::uint32 p >
-	fixed(const fixed<t, p> &r) : x(prec < p ? (base_t)mmlSignedRShift(r.x, (p - prec)) : (base_t)(r.x * (1 << (prec - p)))) {}
+	fixed(const fixed<t, p> &r) : x(prec < p ? base_t(mmlSignedRShift(r.x, (p - prec))) : base_t(r.x * (1 << (prec - p)))) {}
 	template < typename t >
-	fixed(const fixed<t,prec> &r) : x((base_t)r.x) {}
+	fixed(const fixed<t,prec> &r) : x(base_t(r.x)) {}
 
 	typedef fixed<lng_int(base_t),prec>   long_t;
 	typedef fixed<srt_int(base_t),prec>   short_t;
@@ -97,9 +97,9 @@ public:
 	template < typename type_t >
 	fixed &operator=(type_t r) { x = r * (1 << prec); return *this; }
 	template < typename t, mml::uint32 p >
-	fixed &operator=(fixed<t,p> r) { x = prec < p ? (base_t)mmlSignedRShift(r.x, (p - prec)) : (base_t)(r.x * (1 << (prec - p))); return *this; }
+	fixed &operator=(fixed<t,p> r) { x = prec < p ? base_t(mmlSignedRShift(r.x, (p - prec))) : base_t(r.x * (1 << (prec - p))); return *this; }
 	template < typename t >
-	fixed &operator=(fixed<t,prec> r) { x = (base_t)r.x; return *this; }
+	fixed &operator=(fixed<t,prec> r) { x = base_t(r.x); return *this; }
 	fixed &operator+=(fixed r) { x += r.x; return *this; }
 	fixed &operator-=(fixed r) { x -= r.x; return *this; }
 	fixed &operator*=(fixed r) { x = mmlSignedRShift(x * r.x, prec); return *this; }
