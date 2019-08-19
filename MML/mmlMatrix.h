@@ -395,6 +395,7 @@ inline mmlVector<3,type_t> operator*(const mmlVector<3,type_t> &v, const mmlMatr
 		mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3]
 	);
 }
+
 template < typename type_t >
 inline mmlVector<3,type_t> &operator*=(mmlVector<3,type_t> &v, const mmlMatrix<4,4,type_t> &m)
 {
@@ -402,6 +403,9 @@ inline mmlVector<3,type_t> &operator*=(mmlVector<3,type_t> &v, const mmlMatrix<4
 	return v;
 }
 
+//
+// mmlTransform
+//
 template < typename type_t >
 inline mmlMatrix<4,4,type_t> mmlTransform(const mmlMatrix<3,3,type_t> &rot, const mmlVector<3,type_t> &pos)
 {
@@ -413,14 +417,30 @@ inline mmlMatrix<4,4,type_t> mmlTransform(const mmlMatrix<3,3,type_t> &rot, cons
 	);
 }
 
+//
+// mmlBasis
+//
 template < typename type_t >
-inline mmlMatrix<3,3,type_t> mmlRotation(const mmlMatrix<4,4,type_t> &transform)
+inline mmlMatrix<3,3,type_t> mmlBasis(const mmlMatrix<4,4,type_t> &transform)
 {
 	return mmlMatrix<3,3,type_t>(
 		VAT(transform[0][0]), VAT(transform[0][1]), VAT(transform[0][2]),
 		VAT(transform[1][0]), VAT(transform[1][1]), VAT(transform[1][2]),
 		VAT(transform[2][0]), VAT(transform[2][1]), VAT(transform[2][2])
 	);
+}
+
+//
+// mmlRotation
+//
+template < typename type_t >
+inline mmlMatrix<3,3,type_t> mmlRotation(const mmlMatrix<4,4,type_t> &transform)
+{
+	mmlMatrix<3,3> basis = mmlBasis(transform);
+	basis[0] = mmlNormalize(basis[0]);
+	basis[1] = mmlNormalize(basis[1]);
+	basis[2] = mmlNormalize(basis[2]);
+	return basis;
 }
 
 //
@@ -465,6 +485,19 @@ inline mmlMatrix<3,3,type_t> mmlScale(const type_t &x, const type_t &y, const ty
 		VAT(x), VAT(0), VAT(0),
 		VAT(0), VAT(y), VAT(0),
 		VAT(0), VAT(0), VAT(z)
+	);
+}
+
+//
+// mmlScale
+//
+template < typename type_t >
+inline mmlVector<3,type_t> mmlScale(const mmlMatrix<3,3,type_t> &transform)
+{
+	return mmlVector<3>(
+		VAT(transform[0].Len()),
+		VAT(transform[1].Len()),
+		VAT(transform[2].Len())
 	);
 }
 
