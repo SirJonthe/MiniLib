@@ -407,13 +407,13 @@ inline mmlVector<3,type_t> &operator*=(mmlVector<3,type_t> &v, const mmlMatrix<4
 // mmlTransform
 //
 template < typename type_t >
-inline mmlMatrix<4,4,type_t> mmlTransform(const mmlMatrix<3,3,type_t> &rot, const mmlVector<3,type_t> &pos)
+inline mmlMatrix<4,4,type_t> mmlTransform(const mmlMatrix<3,3,type_t> &basis, const mmlVector<3,type_t> &pos)
 {
 	return mmlMatrix<4,4,type_t>(
-		VAT(rot[0][0]), VAT(rot[0][1]), VAT(rot[0][2]), VAT(pos[0]),
-		VAT(rot[1][0]), VAT(rot[1][1]), VAT(rot[1][2]), VAT(pos[1]),
-		VAT(rot[2][0]), VAT(rot[2][1]), VAT(rot[2][2]), VAT(pos[2]),
-		VAT(0),         VAT(0),         VAT(0),         VAT(1)
+		VAT(basis[0][0]), VAT(basis[0][1]), VAT(basis[0][2]), VAT(pos[0]),
+		VAT(basis[1][0]), VAT(basis[1][1]), VAT(basis[1][2]), VAT(pos[1]),
+		VAT(basis[2][0]), VAT(basis[2][1]), VAT(basis[2][2]), VAT(pos[2]),
+		VAT(0),           VAT(0),           VAT(0),           VAT(1)
 	);
 }
 
