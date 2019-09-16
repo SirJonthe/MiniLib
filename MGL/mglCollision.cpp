@@ -228,6 +228,12 @@ bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> 
 	return true;
 }
 
+bool mglCollision::Ray_Plane(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &plane_normal, const mmlVector<3> &plane_point, mglRayCollisionPoint3D *out)
+{
+	const float plane_dist = -mmlDot(plane_point, plane_normal);
+	return mglCollision::Ray_Plane(ray_origin, ray_dir, plane_normal, plane_dist, out);
+}
+
 bool mglCollision::Ray_Tri(const mmlVector<3> &ray_origin, const mmlVector<3> &ray_dir, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c, mglRayCollisionPoint3D *out)
 {
 	mmlVector<3> poly_normal = mmlSurfaceNormal(tri_a, tri_b, tri_c);
