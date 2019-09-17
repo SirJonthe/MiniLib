@@ -189,11 +189,15 @@ public:
 			e[i] = type_t(0.0f);
 		}
 	}
-	type_t Len( void ) const
+	type_t Len2( void ) const
 	{
 		type_t l = type_t(0.0f);
 		for (int j = 0; j < n; ++j) { l += e[j] * e[j]; }
-		return mmlSqrt(l);
+		return l;
+	}
+	type_t Len( void ) const
+	{
+		return mmlSqrt(Len2());
 	}
 	void Normalize( void )
 	{

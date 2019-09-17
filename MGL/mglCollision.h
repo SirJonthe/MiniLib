@@ -18,6 +18,11 @@ struct mglRayCollision3D
 	mglRayCollisionPoint3D entry, exit;
 };
 
+struct mglPlaneCollisionLine3D
+{
+	mmlVector<3> point, normal;
+};
+
 namespace mglCollision
 {
 	struct AABB   { mmlVector<3> min, max; };
@@ -35,6 +40,8 @@ namespace mglCollision
 	float        SignedDistanceToPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	mmlVector<3> ClosestPointOnPlane(const mmlVector<3> &point, const mmlVector<3> &plane_normal, float plane_dist);
 	bool PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri_a, const mmlVector<3> &tri_b, const mmlVector<3> &tri_c);
+
+	bool Plane_Plane(const mmlVector<3> &plane1_normal, float plane1_dist, const mmlVector<3> &plane2_normal, float plane2_dist, mglPlaneCollisionLine3D *out = NULL);
 
 	bool AABB_Point(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point);
 	bool AABB_AABB(const mmlVector<3> &a_min, const mmlVector<3> &a_max, const mmlVector<3> &b_min, const mmlVector<3> &b_max);

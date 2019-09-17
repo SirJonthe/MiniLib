@@ -51,6 +51,22 @@ bool mglCollision::PointInTri(const mmlVector<3> &point, const mmlVector<3> &tri
 	return mmlDot(u, v) >= 0.0f && mmlDot(u, w) >= 0.0f;
 }
 
+bool mglCollision::Plane_Plane(const mmlVector<3> &plane1_normal, float plane1_dist, const mmlVector<3> &plane2_normal, float plane2_dist, mglPlaneCollisionLine3D *out)
+{
+	const mmlVector<3> p3_normal = mmlCross(plane1_normal, plane2_normal);
+	const float        det       = p3_normal.Len2();
+
+	// If determinant == 0, planes are parallel => no intersection
+	if (mmlIsApproxEqual(det, 0.0f) == false) {
+		if (out != NULL) {
+			out->point = ((mmlCross(p3_normal, plane2_normal) * plane1_dist) + (mmlCross(plane1_normal, p3_normal) * plane2_dist)) / det;
+			out->normal = p3_normal;
+		}
+		return true;
+	}
+	return false;
+}
+
 bool mglCollision::AABB_Point(const mmlVector<3> &aabb_min, const mmlVector<3> &aabb_max, const mmlVector<3> &point)
 {
 	return
