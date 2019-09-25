@@ -25,6 +25,7 @@ public:
 	typedef mml::sint8  prev_t;
 	typedef mml::sint16 next_t;
 	typedef mml::sint8  sign_t;
+	typedef mml::uint8  usign_t;
 };
 
 template <>
@@ -34,6 +35,7 @@ public:
 	typedef mml::sint8  prev_t;
 	typedef mml::sint32 next_t;
 	typedef mml::sint16 sign_t;
+	typedef mml::uint16 usign_t;
 };
 
 template <>
@@ -43,6 +45,7 @@ public:
 	typedef mml::sint16 prev_t;
 	typedef mml::sint64 next_t;
 	typedef mml::sint32 sign_t;
+	typedef mml::uint32 usign_t;
 };
 
 template <>
@@ -52,6 +55,7 @@ public:
 	typedef mml::sint32 prev_t;
 	typedef mml::sint64 next_t;
 	typedef mml::sint64 sign_t;
+	typedef mml::uint64 usign_t;
 };
 
 template <>
@@ -61,6 +65,7 @@ public:
 	typedef mml::uint8  prev_t;
 	typedef mml::uint16 next_t;
 	typedef mml::sint8  sign_t;
+	typedef mml::uint8  usign_t;
 };
 
 template <>
@@ -70,6 +75,7 @@ public:
 	typedef mml::uint8  prev_t;
 	typedef mml::uint32 next_t;
 	typedef mml::sint16 sign_t;
+	typedef mml::uint16 usign_t;
 };
 
 template <>
@@ -79,6 +85,7 @@ public:
 	typedef mml::uint16 prev_t;
 	typedef mml::uint64 next_t;
 	typedef mml::sint32 sign_t;
+	typedef mml::uint32 usign_t;
 };
 
 template <>
@@ -88,6 +95,7 @@ public:
 	typedef mml::uint32 prev_t;
 	typedef mml::uint64 next_t;
 	typedef mml::sint64 sign_t;
+	typedef mml::uint64 usign_t;
 };
 
 template < typename base_t > class va_cast              { public: typedef base_t      va_t; };
