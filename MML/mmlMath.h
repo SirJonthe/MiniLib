@@ -56,7 +56,7 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 template < typename float_t >
 inline bool mmlIsApproxZero(float_t a, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
 {
-	return a >= -EPSILON && a <= EPSILON;
+	return mmlAbs(a) < EPSILON;
 }
 
 template < typename float_t >

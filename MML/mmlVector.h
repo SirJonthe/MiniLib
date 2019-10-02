@@ -219,7 +219,8 @@ public:
 	void FixDenormals( void )
 	{
 		for (int i = 0; i < n; ++i) {
-			if (mmlAbs(e[i]) < type_t(1e-30f)) { e[i] = type_t(0.0f); }
+//			if (mmlAbs(e[i]) < type_t(1e-30f)) { e[i] = type_t(0.0f); }
+			if (mmlIsApproxZero(e[i]) == true) { e[i] = type_t(0); }
 		}
 	}
 	void Swap(int i, int j)
