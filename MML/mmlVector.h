@@ -212,7 +212,8 @@ public:
 	}
 	void NormalizeIf( void )
 	{
-		if (IsNormalized() == false) {
+		const type_t l2 = Len2();
+		if (mmlIsApproxZero(l2) == false && mmlIsApproxEqual(l2, type_t(1)) == false) {
 			Normalize();
 		}
 	}
