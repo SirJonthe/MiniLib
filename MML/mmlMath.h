@@ -50,6 +50,9 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 #define mmlAtMost  mmlMin
 #define mmlRepeat  mmlWrap
 
+// About floating-point comparisons...
+// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+
 template < typename float_t >
 inline bool mmlIsApproxZero(float_t a, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
 {
