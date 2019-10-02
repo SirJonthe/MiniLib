@@ -51,8 +51,16 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 #define mmlRepeat  mmlWrap
 
 template < typename float_t >
-inline bool mmlIsApproxEqual(float_t a, float_t b)
+inline bool mmlIsApproxZero(float_t a, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
 {
+	return a >= -EPSILON && a <= EPSILON;
+}
+
+template < typename float_t >
+inline bool mmlIsApproxEqual(float_t a, float_t b, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
+{
+	if (a == float_t(0)) { return mmlIsApproxZero(b, EPSILON); }
+	if (b == float_t(0)) { return mmlIsApproxZero(a, EPSILON); }
 	const float_t scale = mmlMax(mmlAbs(a), mmlAbs(b));
 	return mmlAbs(a - b) <= (scale * (float_t(2.0) * std::numeric_limits<float_t>::epsilon()));
 }
