@@ -97,10 +97,10 @@ public:
 		}
 		return true;
 	}
-	static bool Compare(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v, const type_t &p_tolerance)
+	static bool Compare(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 	{
 		for (int i = 0; i < n; ++i) {
-			if (u[i] < v[i] - p_tolerance || u[i] > v[i] + p_tolerance) {
+			if (mmlIsApproxEqual(u[i], v[i]) == false) {
 				return false;
 			}
 		}
@@ -199,6 +199,10 @@ public:
 	{
 		return mmlSqrt(Len2());
 	}
+	bool IsNormalized( void ) const
+	{
+		return mmlIsApproxEqual(Len2(), type_t(1));
+	}
 	void Normalize( void )
 	{
 		const type_t invlen = type_t(1.0f) / Len();
@@ -206,14 +210,11 @@ public:
 			e[j] *= invlen;
 		}
 	}
-	bool IsNormalized(const type_t &p_tolerance = type_t(0.0f)) const
+	void NormalizeIf( void )
 	{
-		type_t unit = type_t(0.0f);
-		for (int i = 0; i < n; ++i) {
-			unit += e[i] * e[i];
+		if (IsNormalized() == false) {
+			Normalize();
 		}
-		unit -= type_t(1.0f);
-		return (unit <= p_tolerance && unit >= -p_tolerance);
 	}
 	void FixDenormals( void )
 	{
@@ -365,6 +366,16 @@ template < int n, typename type_t  >
 inline mmlVector<n,type_t> mmlNormalize(mmlVector<n,type_t> v)
 {
 	v.Normalize();
+	return v;
+}
+
+//
+// mmlNormalizeIf
+//
+template < int n, typename type_t  >
+inline mmlVector<n,type_t> mmlNormalizeIf(mmlVector<n,type_t> v)
+{
+	v.NormalizeIf();
 	return v;
 }
 
