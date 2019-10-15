@@ -292,7 +292,7 @@ inline type_t mmlDist(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v
 template < int n, typename type_t >
 inline type_t mmlAng(const mmlVector<n,type_t> &u, const mmlVector<n,type_t> &v)
 {
-	return acos(mmlWrap(type_t(-1), mmlDot(u,v) / (u.Len() * v.Len()), type_t(1)));
+	return acos(mmlDot(u,v) / (u.Len() * v.Len()));
 }
 
 //

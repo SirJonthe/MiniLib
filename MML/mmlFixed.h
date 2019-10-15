@@ -59,7 +59,7 @@ template <> class unit_range<mml::sint16> {};
 template <> class unit_range<mml::sint32> {};
 template <> class unit_range<mml::sint64> {};
 
-template < typename base_t, typename int_t > int_t  operator*(unit_range<base_t> x, int_t y)
+template < typename base_t, typename int_t > int_t operator*(unit_range<base_t> x, int_t y)
 {
 	lng_int(base_t) a = x.x;
 	lng_int(int_t)  b = y;
@@ -80,10 +80,12 @@ private:
 
 public:
 	fixed( void ) : x() {}
-	template < typename type_t >
-	fixed(type_t a) : x(base_t(a * (1 << prec))) {}
+	fixed(float a) : x(base_t(a * (1 << prec))) {}
+	fixed(double a) : x(base_t(a * (1 << prec))) {}
+	template < typename int_t >
+	fixed(int_t a) : x(base_t(a) << prec) {}
 	template < typename t, mml::uint32 p >
-	fixed(const fixed<t, p> &r) : x(prec < p ? base_t(mmlSignedRShift(r.x, (p - prec))) : base_t(r.x * (1 << (prec - p)))) {}
+	fixed(const fixed<t, p> &r) : x(prec < p ? base_t(mmlSignedRShift(r.x, (p - prec))) : (base_t(r.x) * (1 << (prec - p)))) {}
 	template < typename t >
 	fixed(const fixed<t,prec> &r) : x(base_t(r.x)) {}
 
@@ -104,6 +106,22 @@ public:
 	fixed &operator-=(fixed r) { x -= r.x; return *this; }
 	fixed &operator*=(fixed r) { x = mmlSignedRShift(x * r.x, prec); return *this; }
 	fixed &operator/=(fixed r) { x = base_t((lng_int(base_t)(x) * (1 << prec)) / r.x); return *this; }
+	fixed &operator+=(float r) { x += r; return *this; }
+	fixed &operator-=(float r) { x -= r; return *this; }
+	fixed &operator*=(float r) { x *= r; return *this; }
+	fixed &operator/=(float r) { x /= r; return *this; }
+	fixed &operator+=(double r) { x += r; return *this; }
+	fixed &operator-=(double r) { x -= r; return *this; }
+	fixed &operator*=(double r) { x *= r; return *this; }
+	fixed &operator/=(double r) { x /= r; return *this; }
+	template < typename int_t >
+	fixed &operator+=(int_t r) { x += r; return *this; }
+	template < typename int_t >
+	fixed &operator-=(int_t r) { x -= r; return *this; }
+	template < typename int_t >
+	fixed &operator*=(int_t r) { x *= r; return *this; }
+	template < typename int_t >
+	fixed &operator/=(int_t r) { x /= r; return *this; }
 
 	fixed operator-( void ) const { fixed o; o.x = -x; return o; }
 
@@ -123,6 +141,56 @@ template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator*(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l *= r; }
 template < typename base_t, mml::uint32 prec >
 fixed<base_t, prec> operator/(fixed<base_t, prec> l, fixed<base_t, prec> r) { return l /= r; }
+
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator+(fixed<base_t, prec> l, float r) { return l += r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator-(fixed<base_t, prec> l, float r) { return l -= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator*(fixed<base_t, prec> l, float r) { return l *= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator/(fixed<base_t, prec> l, float r) { return l /= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator+(fixed<base_t, prec> l, double r) { return l += r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator-(fixed<base_t, prec> l, double r) { return l -= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator*(fixed<base_t, prec> l, double r) { return l *= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator/(fixed<base_t, prec> l, double r) { return l /= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator+(fixed<base_t, prec> l, int_t r) { return l += r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator-(fixed<base_t, prec> l, int_t r) { return l -= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator*(fixed<base_t, prec> l, int_t r) { return l *= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator/(fixed<base_t, prec> l, int_t r) { return l /= r; }
+
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator+(float l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) += r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator-(float l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) -= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator*(float l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) *= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator/(float l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) /= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator+(double l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) += r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator-(double l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) -= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator*(double l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) *= r; }
+template < typename base_t, mml::uint32 prec >
+fixed<base_t, prec> operator/(double l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) /= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator+(int_t l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) += r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator-(int_t l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) -= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator*(int_t l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) *= r; }
+template < typename base_t, mml::uint32 prec, typename int_t >
+fixed<base_t, prec> operator/(int_t l, fixed<base_t, prec> r) { return fixed<base_t,prec>(l) /= r; }
 
 template < typename unit_t, typename fixed_t, mml::uint32 n >
 fixed<fixed_t, n> operator*(unit_range<unit_t> x, fixed<fixed_t, n> y)
