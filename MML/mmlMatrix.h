@@ -624,6 +624,9 @@ inline mmlMatrix<3,3,type_t> mmlEuler(const type_t &head, const type_t &pitch, c
 	);
 }
 
+//
+// mmlAxisAngle
+//
 template < typename type_t >
 inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, const type_t &p_rot)
 {
