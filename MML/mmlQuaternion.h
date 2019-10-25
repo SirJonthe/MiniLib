@@ -251,6 +251,10 @@ public:
 		z = 0.0f;
 		w = 1.0f;
 	}
+	static mmlQuaternion Identity( void )
+	{
+		return mmlQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+	}
 
 	/*void LookAt(const mmlVector<3> &p_point, mmlVector<3> &p_up)
 	{
