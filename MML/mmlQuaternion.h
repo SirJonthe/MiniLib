@@ -15,8 +15,9 @@
 
 class mmlQuaternion
 {
-private:
+public:
 	float x, y, z, w;
+
 public:
 	mmlQuaternion( void )
 	{
@@ -71,11 +72,21 @@ public:
 	}
 	void GetAxisAngle(mmlVector<3> &p_axis, float &p_angle) const
 	{
-		p_axis[0] = x;
-		p_axis[1] = y;
-		p_axis[2] = z;
-		p_axis.Normalize();
-		p_angle = acosf(w) * 2.0f;
+		mmlQuaternion q = *this;
+		if (q.w > 1.0f) { q.Normalize(); }
+		p_angle = 2.0f * acosf(q.w);
+
+		const float d = sqrtf(1.0f - q.w * q.w);
+
+		if (mmlIsApproxZero(d) == true) {
+			p_axis[0] = 1.0f;
+			p_axis[1] = 0.0f;
+			p_axis[2] = 0.0f;
+		} else {
+			p_axis[0] = q.x / d;
+			p_axis[1] = q.y / d;
+			p_axis[2] = q.z / d;
+		}
 	}
 	void FromEulerAngles(float p_head, float p_pitch, float p_roll)
 	{
