@@ -111,9 +111,9 @@ public:
 		//  4  5  6  7
 		//  8  9 10 11
 		// 12 13 14 15
-		
+
 		const float trace = mmlTrace(p_matrix) + 1.0f;
-		
+
 		if (trace > 0.0f) {
 			const float scale = mmlSqrt(trace) * 2.0f;
 			x = (p_matrix[1][2] - p_matrix[2][1]) / scale;
@@ -153,7 +153,7 @@ public:
 		mmlMatrix<4,4> matrix = mmlMatrix<4,4>(GetEulerMatrix3());
 		matrix[3][3] = 1.0f;
 		return matrix;
-		
+
 		/*const float x2 = x * x;
 		const float y2 = y * y;
 		const float z2 = z * z;
