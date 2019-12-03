@@ -148,30 +148,13 @@ public:
 	{
 		FromEulerMatrix(mmlMatrix<3,3>(p_matrix));
 	}
-	mmlMatrix<4,4> GetEulerMatrix4( void ) const
+	mmlMatrix<4,4> GetMatrix4( void ) const
 	{
-		mmlMatrix<4,4> matrix = mmlMatrix<4,4>(GetEulerMatrix3());
+		mmlMatrix<4,4> matrix = mmlMatrix<4,4>(GetMatrix3());
 		matrix[3][3] = 1.0f;
 		return matrix;
-
-		/*const float x2 = x * x;
-		const float y2 = y * y;
-		const float z2 = z * z;
-		const float xy = x * y;
-		const float xz = x * z;
-		const float yz = y * z;
-		const float wx = w * x;
-		const float wy = w * y;
-		const float wz = w * z;
-
-		return mmlMatrix<4,4>(
-			1.f - 2.f * (y2 + z2), 2.f * (xy - wz),       2.f * (xz + wy),       0.f,
-			2.f * (xy + wz),       1.f - 2.f * (x2 + z2), 2.f * (yz - wx),       0.f,
-			2.f * (xz - wy),       2.f * (yz + wx),       1.f - 2.f * (x2 + y2), 0.f,
-			0.f,                   0.f,                   0.f,                   1.f
-		);*/
 	}
-	mmlMatrix<3,3> GetEulerMatrix3( void ) const
+	mmlMatrix<3,3> GetMatrix3( void ) const
 	{
 		const float x2 = x * x;
 		const float y2 = y * y;

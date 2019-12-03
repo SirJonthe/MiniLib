@@ -121,7 +121,7 @@ mmlQuaternion mglTransform::GetWorldRotation( void ) const
 
 mmlMatrix<4,4> mglTransform::GetLocalTransformMatrix( void ) const
 {
-	mmlMatrix<4,4> m = rotation.GetEulerMatrix4();
+	mmlMatrix<4,4> m = rotation.GetMatrix4();
 	m[0][3] = position[0];
 	m[1][3] = position[1];
 	m[2][3] = position[2];
@@ -131,7 +131,7 @@ mmlMatrix<4,4> mglTransform::GetLocalTransformMatrix( void ) const
 mmlMatrix<4,4> mglTransform::GetWorldTransformMatrix( void ) const
 {
 	mglTransform fullTransform = GetWorldTransform();
-	mmlMatrix<4,4> m = fullTransform.rotation.GetEulerMatrix4();
+	mmlMatrix<4,4> m = fullTransform.rotation.GetMatrix4();
 	m[0][3] = fullTransform.position[0];
 	m[1][3] = fullTransform.position[1];
 	m[2][3] = fullTransform.position[2];
@@ -140,7 +140,7 @@ mmlMatrix<4,4> mglTransform::GetWorldTransformMatrix( void ) const
 
 mmlMatrix<3,3> mglTransform::GetLocalRotationMatrix3( void ) const
 {
-	return rotation.GetEulerMatrix3();
+	return rotation.GetMatrix3();
 }
 
 mmlMatrix<3,3> mglTransform::GetWorldRotationMatrix3( void ) const
@@ -153,7 +153,7 @@ mmlMatrix<3,3> mglTransform::GetWorldRotationMatrix3( void ) const
 
 mmlMatrix<4,4> mglTransform::GetLocalRotationMatrix4( void ) const
 {
-	return rotation.GetEulerMatrix4();
+	return rotation.GetMatrix4();
 }
 
 mmlMatrix<4,4> mglTransform::GetWorldRotationMatrix4( void ) const
