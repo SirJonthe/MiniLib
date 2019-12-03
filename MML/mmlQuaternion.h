@@ -62,21 +62,21 @@ public:
 public:
 	void FromAxisAngle(mmlVector<3> p_axis, float p_angle)
 	{
-		p_axis.Normalize();
+		p_axis.NormalizeIf();
 		p_angle *= 0.5f;
-		const float sinAngle = mmlSin(p_angle);
+		const float sinAngle = sinf(p_angle);
 		x = (p_axis[0] * sinAngle);
 		y = (p_axis[1] * sinAngle);
 		z = (p_axis[2] * sinAngle);
-		w = mmlCos(p_angle);
+		w = cosf(p_angle);
 	}
 	void GetAxisAngle(mmlVector<3> &p_axis, float &p_angle) const
 	{
 		mmlQuaternion q = *this;
-		if (q.w > 1.0f) { q.Normalize(); }
-		p_angle = -2.0f * acosf(q.w);
+		if (q.w > 1.0f || q.w < 1.0f) { q.Normalize(); }
 
-		const float d = -sqrtf(1.0f - q.w * q.w);
+		p_angle = 2.0f * acosf(q.w);
+		float d = sqrtf(1.0f - q.w * q.w);
 
 		if (mmlIsApproxZero(d) == true) {
 			p_axis[0] = 1.0f;
@@ -90,13 +90,13 @@ public:
 	}
 	void FromEulerAngles(float p_head, float p_pitch, float p_roll)
 	{
-		const float SINH = mmlSin(p_head);
-		const float SINP = mmlSin(p_pitch);
-		const float SINR = mmlSin(p_roll);
+		const float SINH = sinf(p_head);
+		const float SINP = sinf(p_pitch);
+		const float SINR = sinf(p_roll);
 
-		const float COSH = mmlCos(p_head);
-		const float COSP = mmlCos(p_pitch);
-		const float COSR = mmlCos(p_roll);
+		const float COSH = cosf(p_head);
+		const float COSP = cosf(p_pitch);
+		const float COSR = cosf(p_roll);
 
 		x = SINR * COSP * COSH - COSR * SINP * SINH;
 		y = COSR * SINP * COSH + SINR * COSP * SINH;
