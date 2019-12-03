@@ -74,9 +74,9 @@ public:
 	{
 		mmlQuaternion q = *this;
 		if (q.w > 1.0f) { q.Normalize(); }
-		p_angle = 2.0f * acosf(q.w);
+		p_angle = -2.0f * acosf(q.w);
 
-		const float d = sqrtf(1.0f - q.w * q.w);
+		const float d = -sqrtf(1.0f - q.w * q.w);
 
 		if (mmlIsApproxZero(d) == true) {
 			p_axis[0] = 1.0f;
