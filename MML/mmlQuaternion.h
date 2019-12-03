@@ -210,12 +210,23 @@ public:
 	}
 	mmlQuaternion operator*(const mmlQuaternion &p_rhs) const
 	{
+//		return mmlQuaternion(
+//			(p_rhs.w * x) + (p_rhs.x * w) + (p_rhs.y * z) - (p_rhs.z * y),
+//			(p_rhs.w * y) + (p_rhs.y * w) + (p_rhs.z * x) - (p_rhs.x * z),
+//			(p_rhs.w * z) + (p_rhs.z * w) + (p_rhs.x * y) - (p_rhs.y * x),
+//			(p_rhs.w * w) - (p_rhs.x * x) - (p_rhs.y * y) - (p_rhs.z * z)
+//			);
 		return mmlQuaternion(
-			(p_rhs.w * x) + (p_rhs.x * w) + (p_rhs.y * z) - (p_rhs.z * y),
-			(p_rhs.w * y) + (p_rhs.y * w) + (p_rhs.z * x) - (p_rhs.x * z),
-			(p_rhs.w * z) + (p_rhs.z * w) + (p_rhs.x * y) - (p_rhs.y * x),
-			(p_rhs.w * w) - (p_rhs.x * x) - (p_rhs.y * y) - (p_rhs.z * z)
+			(w * p_rhs.x) + (x * p_rhs.w) + (y * p_rhs.z) - (z * p_rhs.y),
+			(w * p_rhs.y) + (y * p_rhs.w) + (z * p_rhs.x) - (x * p_rhs.z),
+			(w * p_rhs.z) + (z * p_rhs.w) + (x * p_rhs.y) - (y * p_rhs.x),
+			(w * p_rhs.w) - (x * p_rhs.x) - (y * p_rhs.y) - (z * p_rhs.z)
 			);
+	}
+	mmlQuaternion &operator*=(const mmlQuaternion &p_rhs)
+	{
+		*this = *this * p_rhs;
+		return *this;
 	}
 	mmlVector<3> operator*(const mmlVector<3> &p_rhs) const
 	{
