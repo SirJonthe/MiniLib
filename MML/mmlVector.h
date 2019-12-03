@@ -213,12 +213,7 @@ public:
 	void NormalizeIf( void )
 	{
 		const type_t l2 = Len2();
-		if (mmlIsApproxZero(l2) == true) {
-			e[0] = type_t(1);
-			for (int i = 1; i < n; ++i) {
-				e[i] = type_t(0);
-			}
-		} else if (mmlIsApproxEqual(l2, type_t(1)) == false) {
+		if (mmlIsApproxZero(l2) == false && mmlIsApproxEqual(l2, type_t(1)) == false) {
 			Normalize();
 		}
 	}
