@@ -11,7 +11,8 @@
 #include "mmlVector.h"
 
 // REFERENCE!
-// https://svn.code.sf.net/p/irrlicht/code/trunk/include/quaternion.h
+// https://github.com/DanielChappuis/reactphysics3d/blob/master/src/mathematics/Quaternion.h
+// https://github.com/DanielChappuis/reactphysics3d/blob/master/src/mathematics/Quaternion.cpp
 
 class mmlQuaternion
 {
@@ -56,9 +57,9 @@ public:
 		z = p_vec[2];
 		w = p_vec[3];
 	}
-//public:
-//	operator float * const( void ) { return e; }
-//	operator const float * const( void ) const { return e; }
+public:
+	operator float * const( void ) { return &x; }
+	operator const float * const( void ) const { return &x; }
 public:
 	void FromAxisAngle(mmlVector<3> p_axis, float p_angle)
 	{
@@ -107,11 +108,6 @@ public:
 	}
 	void FromEulerMatrix(const mmlMatrix<3,3> &p_matrix)
 	{
-		//  0  1  2  3
-		//  4  5  6  7
-		//  8  9 10 11
-		// 12 13 14 15
-
 		const float trace = mmlTrace(p_matrix) + 1.0f;
 
 		if (trace > 0.0f) {
@@ -167,10 +163,38 @@ public:
 		const float wz = w * z;
 		
 		return mmlMatrix<3,3>(
-			double(1.f - 2.f * (y2 + z2)), double(2.f * (xy - wz)),       double(2.f * (xz + wy)),
-			double(2.f * (xy + wz)),       double(1.f - 2.f * (x2 + z2)), double(2.f * (yz - wx)),
-			double(2.f * (xz - wy)),       double(2.f * (yz + wx)),       double(1.f - 2.f * (x2 + y2))
+			double(1.0f - 2.0f * (y2 + z2)), double(2.0f * (xy - wz)),        double(2.0f * (xz + wy)),
+			double(2.0f * (xy + wz)),        double(1.0f - 2.0f * (x2 + z2)), double(2.0f * (yz - wx)),
+			double(2.0f * (xz - wy)),        double(2.0f * (yz + wx)),        double(1.0f - 2.0f * (x2 + y2))
 		);
+
+		// Alternative method:
+		/*float nQ = Scale();
+		float s = 0.0f;
+
+		if (nQ > 0.0f) {
+			s = 2.0f / nQ;
+		}
+
+		float xs  = x * s;
+		float ys  = y * s;
+		float zs  = z * s;
+		float wxs = w * xs;
+		float wys = w * ys;
+		float wzs = w * zs;
+		float xxs = x * xs;
+		float xys = x * ys;
+		float xzs = x * zs;
+		float yys = y * ys;
+		float yzs = y * zs;
+		float zzs = z * zs;
+
+		// Create the matrix corresponding to the quaternion
+		return mmlMatrix<3,3>(
+			double(1.0f - yys - zzs), double(xys - wzs),        double(xzs + wys),
+			double(xys + wzs),        double(1.0f - xxs - zzs), double(yzs - wxs),
+			double(xzs - wys),        double(yzs + wxs),        double(1.0f - xxs - yys)
+		);*/
 	}
 public:
 	static mmlQuaternion &Cast(void *ptr)
@@ -208,14 +232,24 @@ public:
 	{
 		*this = mmlQuaternion(p_axis, p_angle) * (*this);
 	}
+	mmlQuaternion &operator+=(const mmlQuaternion &p_rhs)
+	{
+		x += p_rhs.x;
+		y += p_rhs.y;
+		z += p_rhs.z;
+		w += p_rhs.w;
+		return *this;
+	}
+	mmlQuaternion &operator-=(const mmlQuaternion &p_rhs)
+	{
+		x -= p_rhs.x;
+		y -= p_rhs.y;
+		z -= p_rhs.z;
+		w -= p_rhs.w;
+		return *this;
+	}
 	mmlQuaternion operator*(const mmlQuaternion &p_rhs) const
 	{
-//		return mmlQuaternion(
-//			(p_rhs.w * x) + (p_rhs.x * w) + (p_rhs.y * z) - (p_rhs.z * y),
-//			(p_rhs.w * y) + (p_rhs.y * w) + (p_rhs.z * x) - (p_rhs.x * z),
-//			(p_rhs.w * z) + (p_rhs.z * w) + (p_rhs.x * y) - (p_rhs.y * x),
-//			(p_rhs.w * w) - (p_rhs.x * x) - (p_rhs.y * y) - (p_rhs.z * z)
-//			);
 		return mmlQuaternion(
 			(w * p_rhs.x) + (x * p_rhs.w) + (y * p_rhs.z) - (z * p_rhs.y),
 			(w * p_rhs.y) + (y * p_rhs.w) + (z * p_rhs.x) - (x * p_rhs.z),
@@ -228,16 +262,13 @@ public:
 		*this = *this * p_rhs;
 		return *this;
 	}
-	mmlVector<3> operator*(const mmlVector<3> &p_rhs) const
+	mmlQuaternion &operator*=(float r)
 	{
-		mmlVector<3> uv, uuv;
-		mmlVector<3> qvec = mmlVector<3>(double(x), double(y), double(z));
-		uv = mmlCross(qvec, p_rhs);
-		uuv = mmlCross(qvec, uv);
-		uv *= (2.0f * w);
-		uuv *= 2.0f;
-		
-		return p_rhs + uv + uuv;
+		x *= r;
+		y *= r;
+		z *= r;
+		w *= r;
+		return *this;
 	}
 	bool IsNormalized(const float p_tolerance = 0.f) const
 	{
@@ -260,22 +291,25 @@ public:
 	{
 		return mmlQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
 	}
-
-	/*void LookAt(const mmlVector<3> &p_point, mmlVector<3> &p_up)
-	{
-		mmlVector<3> forward = Normalize(p_point);
-		Vector::OrthoNormalize(&up, &forward); // Keeps up the same, make forward orthogonal to up
-		mmlVector<3> right = Cross(up, forward);
-
-		Quaternion ret;
-		w = sqrtf(1.0f + right[0] + up[1] + forward[2]) * 0.5f;
-		float w4_recip = 1.0f / (4.0f * ret.w);
-		x = (forward[1] - up[2]) * w4_recip;
-		y = (right[2] - forward[0]) * w4_recip;
-		z = (up[0] - right[1]) * w4_recip;
-
-		return ret;
-	}*/
 };
+
+inline mmlQuaternion operator+(mmlQuaternion l, const mmlQuaternion &r) { return l+=r; }
+inline mmlQuaternion operator-(mmlQuaternion l, const mmlQuaternion &r) { return l-=r; }
+inline mmlVector<3>  operator*(const mmlQuaternion &l, const mmlVector<3> &r) {
+	mmlVector<3> uv, uuv;
+	mmlVector<3> qvec = mmlVector<3>(double(l.x), double(l.y), double(l.z));
+	uv = mmlCross(qvec, r);
+	uuv = mmlCross(qvec, uv);
+	uv *= (2.0f * l.w);
+	uuv *= 2.0f;
+
+	return r + uv + uuv;
+}
+inline mmlVector<3>  operator*(const mmlVector<3> &l, const mmlQuaternion &r) { return r * l; }
+inline mmlQuaternion operator*(mmlQuaternion l, float r)                      { return l *= r; }
+inline mmlQuaternion mmlConj(mmlQuaternion q)							      { q.Conj(); return q; }
+inline mmlQuaternion mmlInv(mmlQuaternion q)                                  { q.Inv(); return q; }
+inline mmlQuaternion mmlNormalize(mmlQuaternion q)                            { q.Normalize(); return q; }
+inline float         mmlLen(const mmlQuaternion &q)                           { return q.Scale(); }
 
 #endif
