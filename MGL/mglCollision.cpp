@@ -167,10 +167,13 @@ bool mglCollision::Ray_AABB(const mmlVector<3> &ray_origin, const mmlVector<3> &
 	if (out != NULL) {
 		if (tmin < 0.0f) {
 			// ray inside box, only one intersection point
-			out->exit.point   = out->entry.point = ray_origin + ray_dir * tmax;
-			out->exit.normal  = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
-			out->entry.normal = -out->exit.normal;
-			out->exit.distance = out->entry.distance = tmax;
+			out->entry.point    = ray_origin;
+			out->entry.normal   = ray_dir;
+			out->entry.distance = 0.0f;
+
+			out->exit.point    = ray_origin + ray_dir * tmax;
+			out->exit.normal   = Normals[tmax_normal_index % 3] * (tmax_normal_index < 3 ? -1.0f : 1.0f);
+			out->exit.distance = tmax;
 		} else {
 			// two intersection points
 			out->entry.point    = ray_origin + ray_dir * tmin;
@@ -204,15 +207,20 @@ bool mglCollision::Ray_Sphere(const mmlVector<3> &ray_origin, const mmlVector<3>
 		if (t[1] < 0.0f) {
 			return false;
 		} else if (out != NULL) {
-			out->exit.point   = out->entry.point = ray_origin + ray_dir * t[1];
-			out->exit.normal  = mmlNormalize(out->exit.normal - cir_pos);
-			out->entry.normal = -out->exit.normal;
-			out->exit.distance = out->entry.distance = t[1];
+			// ray inside sphere
+			out->entry.point    = ray_origin;
+			out->entry.normal   = ray_dir;
+			out->entry.distance = 0.0f;
+
+			out->exit.point    = ray_origin + ray_dir * t[1];
+			out->exit.normal   = mmlNormalize(out->exit.normal - cir_pos);
+			out->exit.distance = t[1];
 		}
 	} else if (out != NULL) {
 		out->entry.point    = ray_origin + ray_dir * t[0];
 		out->entry.normal   = mmlNormalize(out->entry.point - cir_pos);
 		out->entry.distance = t[0];
+
 		out->exit.point     = ray_origin + ray_dir * t[1];
 		out->exit.normal    = mmlNormalize(out->exit.point - cir_pos);
 		out->exit.distance  = t[1];
