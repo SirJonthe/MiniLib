@@ -466,6 +466,17 @@ inline mmlVector<n,type_t> mmlAbs(mmlVector<n,type_t> v)
 	return v;
 }
 
+//
+// mmlAnyTangent
+//
+template < typename type_t >
+inline mmlVector<3,type_t> mmlAnyTangent(const mmlVector<3,type_t> &normal)
+{
+	const mmlVector<3,type_t> t1 = mmlCross(normal, mmlVector<3,type_t>(VAT(0), VAT(0), VAT(1)));
+	const mmlVector<3,type_t> t2 = mmlCross(normal, mmlVector<3,type_t>(VAT(0), VAT(1), VAT(0)));
+	return t1.Len2() > t2.Len2() ? t1 : t2;
+}
+
 #undef VAT
 
 #endif
