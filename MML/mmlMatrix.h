@@ -648,6 +648,29 @@ inline mmlMatrix<3,3,type_t> mmlAxisAngle(const mmlVector<3,type_t> &p_axis, con
 	);
 }
 
+//
+// mmlAnyTransform
+//
+template < typename type_t >
+inline mmlMatrix<3,3,type_t> mmlAnyTransform(const mmlVector<3,type_t> &normal)
+{
+	// Related to the TBN (mmlTextureSpaceMatrix), I guess?
+	const mmlVector<3,type_t> T = mmlAnyTangent(normal); // X axis
+	const mmlVector<3,type_t> B = mmlCross(T, normal); // Y axis
+	mmlMatrix<3,3,type_t> o;
+	o[0][0] = T[0];
+	o[1][0] = T[1];
+	o[2][0] = T[2];
+	o[0][1] = B[0];
+	o[1][1] = B[1];
+	o[2][1] = B[2];
+	o[0][2] = normal[0];
+	o[1][2] = normal[1];
+	o[2][2] = normal[2];
+	return o;
+}
+
+
 #undef VAT
 
 #endif

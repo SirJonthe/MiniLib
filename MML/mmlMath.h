@@ -150,7 +150,14 @@ inline real_t mmlPi( void )
 	return pi;
 }
 
+template < int n, typename real_t >
+inline real_t mmlTau( void )
+{
+	return real_t(2) * mmlPi<n,real_t>();
+};
+
 #define mmlPI 3.14159265f
+#define mmlTAU (mmlPI*2.0f)
 
 #define mmlDEG_MIN 0.0f
 #define mmlDEG_MAX 360.0f
