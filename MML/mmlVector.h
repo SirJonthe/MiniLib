@@ -411,6 +411,32 @@ inline mmlVector<n,type_t> mmlMax(const mmlVector<n,type_t> &x, mmlVector<n,type
 }
 
 //
+// mmlMin
+//
+template < int n, typename type_t >
+inline type_t mmlMin(const mmlVector<n,type_t> &v)
+{
+	type_t x = v[0];
+	for (int i = 1; i < n; ++i) {
+		x = mmlMin(x, v[i]);
+	}
+	return x;
+}
+
+//
+// mmlMax
+//
+template < int n, typename type_t >
+inline type_t mmlMax(const mmlVector<n,type_t> &v)
+{
+	type_t x = v[0];
+	for (int i = 1; i < n; ++i) {
+		x = mmlMax(x, v[i]);
+	}
+	return x;
+}
+
+//
 // mmlReflect
 //
 template < int n, typename type_t  >
