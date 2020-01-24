@@ -79,7 +79,7 @@ public:
 		p_angle = 2.0f * acosf(q.w);
 		float d = sqrtf(1.0f - q.w * q.w);
 
-		if (mmlIsApproxZero(d) == true) {
+		if (mmlIsApproxEqual(d, 0.0f) == true) {
 			p_axis[0] = 1.0f;
 			p_axis[1] = 0.0f;
 			p_axis[2] = 0.0f;

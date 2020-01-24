@@ -389,11 +389,22 @@ mmlVector<rows,type_t> &operator*=(mmlVector<rows,type_t> &vec, const mmlMatrix<
 template < typename type_t >
 inline mmlVector<3,type_t> operator*(const mmlVector<3,type_t> &v, const mmlMatrix<4,4,type_t> &m)
 {
-	return mmlVector<3,type_t>(
-		mmlDot(v, mmlVector<3,type_t>::Cast(&m[0])) + m[0][3],
-		mmlDot(v, mmlVector<3,type_t>::Cast(&m[1])) + m[1][3],
-		mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3]
-	);
+//	return mmlVector<3,type_t>(
+//		mmlDot(v, mmlVector<3,type_t>::Cast(&m[0])) + m[0][3],
+//		mmlDot(v, mmlVector<3,type_t>::Cast(&m[1])) + m[1][3],
+//		mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3]
+//	);
+
+	// NOTE: Updated to convert homogeneous coordinates to Cartesian.
+	mmlVector<3> o;
+	o[0] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[0])) + m[0][3];
+	o[1] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[1])) + m[1][3];
+	o[2] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3];
+	const type_t w = mmlDot(v, mmlVector<3,type_t>::Cast(&m[3])) + m[3][3];
+	if (mmlIsApproxEqual(w, 1.0f) == false) {
+		o /= w;
+	}
+	return o;
 }
 
 template < typename type_t >

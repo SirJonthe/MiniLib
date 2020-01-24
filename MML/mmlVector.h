@@ -213,7 +213,7 @@ public:
 	void NormalizeIf( void )
 	{
 		const type_t l2 = Len2();
-		if (mmlIsApproxZero(l2) == false && mmlIsApproxEqual(l2, type_t(1)) == false) {
+		if (mmlIsApproxEqual(l2, type_t(0)) == false && mmlIsApproxEqual(l2, type_t(1)) == false) {
 			Normalize();
 		}
 	}
@@ -221,7 +221,7 @@ public:
 	{
 		for (int i = 0; i < n; ++i) {
 //			if (mmlAbs(e[i]) < type_t(1e-30f)) { e[i] = type_t(0.0f); }
-			if (mmlIsApproxZero(e[i]) == true) { e[i] = type_t(0); }
+			if (mmlIsApproxEqual(e[i], type_t(0)) == true) { e[i] = type_t(0); }
 		}
 	}
 	void Swap(int i, int j)

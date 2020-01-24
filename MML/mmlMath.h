@@ -53,19 +53,21 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 // About floating-point comparisons...
 // https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
 
-template < typename float_t >
-inline bool mmlIsApproxZero(float_t a, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
-{
-	return mmlAbs(a) < EPSILON;
-}
+// NOTE: Do not think I need the below function anymore...
+//template < typename float_t >
+//inline bool mmlIsApproxZero(float_t a, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
+//{
+//	return mmlAbs(a) < EPSILON;
+//}
 
 template < typename float_t >
 inline bool mmlIsApproxEqual(float_t a, float_t b, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
 {
-	if (a == float_t(0)) { return mmlIsApproxZero(b, EPSILON); }
-	if (b == float_t(0)) { return mmlIsApproxZero(a, EPSILON); }
-	const float_t scale = mmlMax(mmlAbs(a), mmlAbs(b));
-	return mmlAbs(a - b) <= (scale * (float_t(2.0) * std::numeric_limits<float_t>::epsilon()));
+	// NOTE: Commented out code likely not needed anymore.
+//	if (a == float_t(0)) { return mmlIsApproxZero(b, EPSILON); }
+//	if (b == float_t(0)) { return mmlIsApproxZero(a, EPSILON); }
+	const float_t scale = mmlMax(float_t(1), mmlAbs(a), mmlAbs(b)); // NOTE: Smallest scale must be 1, since numeric_limits::epsilon is the smallest incremental value to 1.0. Makes algorithm work somewhat okay for comparisons against <1 values or even 0.
+	return mmlAbs(a - b) <= (scale * (float_t(2) * EPSILON));
 }
 
 template < typename TA, typename TB > inline TA mmlLerp(const TA &a, const TA &b, const TB &x) { return a + (b - a) * x; }
