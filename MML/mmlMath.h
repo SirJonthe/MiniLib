@@ -61,7 +61,17 @@ template < typename num_t >  inline void   mmlSwap(num_t &pA, num_t &pB)        
 //}
 
 template < typename float_t >
-inline bool mmlIsApproxEqual(float_t a, float_t b, float_t EPSILON = std::numeric_limits<float_t>::epsilon())
+inline bool mmlIsApproxEqual(float_t a, float_t b)
+{
+	// NOTE: Commented out code likely not needed anymore.
+//	if (a == float_t(0)) { return mmlIsApproxZero(b, EPSILON); }
+//	if (b == float_t(0)) { return mmlIsApproxZero(a, EPSILON); }
+	const float_t scale = mmlMax(float_t(1), mmlAbs(a), mmlAbs(b)); // NOTE: Smallest scale must be 1, since numeric_limits::epsilon is the smallest incremental value to 1.0. Makes algorithm work somewhat okay for comparisons against <1 values or even 0.
+	return mmlAbs(a - b) <= (scale * (float_t(2) * std::numeric_limits<float_t>::epsilon()));
+}
+
+template < typename float_t >
+inline bool mmlIsApproxEqual(float_t a, float_t b, float_t EPSILON)
 {
 	// NOTE: Commented out code likely not needed anymore.
 //	if (a == float_t(0)) { return mmlIsApproxZero(b, EPSILON); }
