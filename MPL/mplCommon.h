@@ -12,6 +12,15 @@
 #define MPL_SIMD_NEON    4
 #define MPL_SIMD_ALTIVEC 5
 
+static const char *MPL_SIMD_STRING[] = {
+	static_cast<const char*>("None"),
+	static_cast<const char*>("SSE2+"),
+	static_cast<const char*>("AVX256"),
+	static_cast<const char*>("AVX512"),
+	static_cast<const char*>("NEON"),
+	static_cast<const char*>("AltiVec")
+};
+
 // add support for AVX-256 and AVX-512 (#include <immintrin.h> on gcc and msvc)
 // low priority: add support for PowerPC Altivec (#include <altivec.h> on gcc)
 	// need a computer to test it on

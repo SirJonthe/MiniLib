@@ -967,9 +967,9 @@ namespace mpl {
 		wide_int operator-(const wide_int &r)  const { return i - r.i; }
 		wide_int operator*(const wide_int &r)  const { return i * r.i; }
 		wide_int operator|(const wide_int &r)  const { return i | r.i; }
-		wide_int operator|(const wide_bool &r) const { return i | r.u; }
+		wide_int operator|(const wide_bool &r) const { return int(i | r.u); }
 		wide_int operator&(const wide_int &r)  const { return i & r.i; }
-		wide_int operator&(const wide_bool &r) const { return i & r.u; }
+		wide_int operator&(const wide_bool &r) const { return int(i & r.u); }
 		wide_int operator<<(int r) const { return i << r; }
 		wide_int operator>>(int r) const { return i >> r; }
 //		wide_int &operator/(const wide_int &r) { wide_int o = *this; return o /= r; }
