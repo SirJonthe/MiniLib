@@ -15,8 +15,8 @@ template < int n > inline mpl::wide_fixed<n> mmlMin(const mpl::wide_fixed<n> &a,
 //template < int n > inline mpl::wide_fixed<n> mmlWrap(mpl::wide_fixed<n> value, const mpl::wide_fixed<n> &max) { return *(mpl::wide_fixed<n>*)&(mmlWrap(*(mpl::wide_int*)&value, *(const mpl::wide_int*)&max)); }
 
 inline mpl::wide_int mmlRound(const mpl::wide_float &x) { return mpl::wide_int(x + 0.5f); }
-inline mpl::wide_int mmlFloor(const mpl::wide_float &x) { return mpl::wide_int(x + (1<<15)) - (1<<15); }
-inline mpl::wide_int mmlCeil(const mpl::wide_float &x)  { return mpl::wide_int(1<<15) - mpl::wide_int(mpl::wide_float(1<<15) - x); }
+inline mpl::wide_int mmlFloor(const mpl::wide_float &x) { return mpl::wide_int(x + float(1<<15)) - (1<<15); }
+inline mpl::wide_int mmlCeil(const mpl::wide_float &x)  { return mpl::wide_int(1<<15) - mpl::wide_int(mpl::wide_float(float(1<<15)) - x); }
 
 inline mpl::wide_bool mmlIsPow2(const mpl::wide_int &x) { return (x != 0) && ( (x & (x - 1)) == 0 ); }
 

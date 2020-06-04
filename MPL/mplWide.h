@@ -33,7 +33,8 @@ namespace mpl {
 		wide_bool(const __m128 &r) : f(r) {}
 
 	public:
-		typedef bool serial_t;
+		typedef bool scalar_t;
+		typedef bool vector_t[MPL_WIDTH];
 
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
@@ -72,12 +73,13 @@ namespace mpl {
 		wide_float(const __m128 &r) : f(r) {}
 
 	public:
-		typedef float serial_t;
+		typedef float scalar_t;
+		typedef float vector_t[MPL_WIDTH];
 
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
 		wide_float(float val) : f(_mm_set1_ps(val)) {}
-		wide_float(bool val) : f(_mm_set1_ps(val ? 1.0f : -1.0f)) {}
+		wide_float(bool val) : f(_mm_set1_ps(val ? 1.0f : 0.0f)) {}
 		explicit wide_float(const float *in) : f(_mm_loadu_ps(in)) {}
 		inline explicit wide_float(const wide_int &r);
 		inline explicit wide_float(const wide_bool &r);
@@ -111,19 +113,19 @@ namespace mpl {
 
 		void to_scalar(float *out) const { _mm_storeu_ps(out, f); }
 
-		static wide_float mov_if_true(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
+		static wide_float cmov(const wide_bool &cond_mask, const wide_float &l, const wide_float &r)
 		{
 #if MPL_SIMD_VER < 2
 			wide_bool l_mask;
 			l_mask.u = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128 rc, lc;
-			lc = _mm_and_ps(l.f, l_mask.f);
-			rc = _mm_and_ps(r.f, cond_mask.f);
+			lc = _mm_and_ps(r.f, l_mask.f);
+			rc = _mm_and_ps(l.f, cond_mask.f);
 			rc = _mm_or_ps(rc, lc);
 			return rc;
 #else
-			__m128 ret = l.f;
-			_mm_maskmoveu_si128(*reinterpret_cast<const __m128i*>(&r), cond_mask.u, reinterpret_cast<char*>(&ret));
+			__m128 ret = r.f;
+			_mm_maskmoveu_si128(*reinterpret_cast<const __m128i*>(&l), cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
@@ -152,9 +154,11 @@ namespace mpl {
 
 	public:
 #ifdef MML_FIXED_H_INCLUDED__
-		typedef mml::fixed<int, n> serial_t;
+		typedef mml::fixed<int, n> scalar_t;
+		typedef mml::fixed<int, n> vector_t[MPL_WIDTH];
 #else
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 #endif
 
 		wide_fixed( void ) {}
@@ -201,26 +205,26 @@ namespace mpl {
 
 		void to_scalar(int *out) const { _mm_storeu_si128(reinterpret_cast<__m128i*>(out), _mm_srai_epi32(i, n)); }
 
-		static wide_fixed<n> mov_if_true(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
+		static wide_fixed<n> cmov(const wide_bool &cond_mask, const wide_fixed<n> &l, const wide_fixed<n> &r)
 		{
 #if MPL_SIMD_VER < 2
 			__m128i l_mask;
 			l_mask = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128i rc, lc;
-			lc = _mm_and_si128(l.i, l_mask);
-			rc = _mm_and_si128(r.i, cond_mask.u);
+			lc = _mm_and_si128(r.i, l_mask);
+			rc = _mm_and_si128(l.i, cond_mask.u);
 			rc = _mm_or_si128(rc, lc);
 			return rc;
 #else
-			__m128i ret = l.i;
-			_mm_maskmoveu_si128(r.i, cond_mask.u, reinterpret_cast<char*>(&ret));
+			__m128i ret = r.i;
+			_mm_maskmoveu_si128(l.i, cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
 		static wide_fixed<n> max(const wide_fixed<n> &a, const wide_fixed<n> &b)
 		{
 #if MPL_SIMD_VER < 4
-			return wide_fixed<n>::mov_if_true(a, b, (a < b));
+			return wide_fixed<n>::cmov((a > b), a, b);
 #else
 			return _mm_max_epi32(a.i, b.i);
 #endif
@@ -228,7 +232,7 @@ namespace mpl {
 		static wide_fixed<n> min(const wide_fixed<n> &a, const wide_fixed<n> &b)
 		{
 #if MPL_SIMD_VER < 4
-			return wide_fixed<n>::mov_if_true(a, b, (a > b));
+			return wide_fixed<n>::cmov((a < b), a, b);
 #else
 			return _mm_min_epi32(a.i, b.i);
 #endif
@@ -255,7 +259,8 @@ namespace mpl {
 		wide_int(const __m128i &r) : i(r) {}
 
 	public:
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
@@ -307,19 +312,19 @@ namespace mpl {
 
 		void to_scalar(int *out) const { _mm_storeu_si128(reinterpret_cast<__m128i*>(out), i); }
 
-		static wide_int mov_if_true(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
+		static wide_int cmov(const wide_bool &cond_mask, const wide_int &l, const wide_int &r)
 		{
 #if MPL_SIMD_VER < 2
 			__m128i l_mask;
 			l_mask = _mm_andnot_si128(cond_mask.u, _mm_set1_epi32(MPL_UNS_MAX));
 			__m128i rc, lc;
-			lc = _mm_and_si128(l.i, l_mask);
-			rc = _mm_and_si128(r.i, cond_mask.u);
+			lc = _mm_and_si128(r.i, l_mask);
+			rc = _mm_and_si128(l.i, cond_mask.u);
 			rc = _mm_or_si128(rc, lc);
 			return rc;
 #else
-			__m128i ret = l.i;
-			_mm_maskmoveu_si128(r.i, cond_mask.u, reinterpret_cast<char*>(&ret));
+			__m128i ret = r.i;
+			_mm_maskmoveu_si128(l.i, cond_mask.u, reinterpret_cast<char*>(&ret));
 			return ret;
 #endif
 		}
@@ -327,7 +332,7 @@ namespace mpl {
 		{
 #if MPL_SIMD_VER < 4
 
-			return wide_int::mov_if_true(a, b, (a < b));
+			return wide_int::cmov((a > b), a, b);
 #else
 			return _mm_max_epi32(a.i, b.i);
 #endif
@@ -335,7 +340,7 @@ namespace mpl {
 		static wide_int min(const wide_int &a, const wide_int &b)
 		{
 #if MPL_SIMD_VER < 4
-			return wide_int::mov_if_true(a, b, (a > b));
+			return wide_int::cmov((a < b), a, b);
 #else
 			return _mm_min_epi32(a.i, b.i);
 #endif
@@ -347,19 +352,19 @@ namespace mpl {
 	;
 
 	wide_float::wide_float(const wide_int &r) : f(_mm_cvtepi32_ps(r.i)) {}
-	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::cmov(r, wide_float(1.0f), wide_float(0.0f))) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(_mm_slli_epi32(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i(_mm_cvttps_epi32(_mm_mul_ps(r.f, _mm_set1_ps(1 << n)))) {}
 	template < int n >
-	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::cmov(r, wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)))) {}
 
 	wide_int::wide_int(const wide_float &r)   : i(_mm_cvttps_epi32(r.f)) {}
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(_mm_srai_epi32(r.i, n)) {}
-	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::cmov(r, wide_int(1), wide_int(0))) {}
 
 #elif MPL_SIMD == MPL_SIMD_AVX256
 
@@ -387,7 +392,8 @@ namespace mpl {
 		wide_bool(const float32x4_t &r) : f(r) {}
 
 	public:
-		typedef bool serial_t;
+		typedef bool scalar_t;
+		typedef bool vector_t[MPL_WIDTH];
 
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
@@ -441,7 +447,8 @@ namespace mpl {
 		wide_float(const float32x4_t &r) : f(r) {}
 
 	public:
-		typedef float serial_t;
+		typedef float scalar_t;
+		typedef float vector_t[MPL_WIDTH];
 
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
@@ -500,7 +507,7 @@ namespace mpl {
 
 		void to_scalar(float *out) const { vst1q_f32(out, f); }
 
-		static wide_float mov_if_true(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
+		static wide_float cmov(const wide_bool &cond_mask, const wide_float &l, const wide_float &r)
 		{
 			// NOTE: Watch out for compiler optimizations!!!
 			union wide_bits
@@ -511,8 +518,8 @@ namespace mpl {
 			wide_bits l_mask;
 			l_mask.u = vmvnq_u32(cond_mask.u);
 			wide_bits rc, lc;
-			lc.u = vandq_u32(*(uint32x4_t*)(&l.f), l_mask.u);
-			rc.u = vandq_u32(*(uint32x4_t*)(&r.f), cond_mask.u);
+			lc.u = vandq_u32(*(uint32x4_t*)(&r.f), l_mask.u);
+			rc.u = vandq_u32(*(uint32x4_t*)(&l.f), cond_mask.u);
 			rc.u = vorrq_u32(rc.u, lc.u);
 			return rc.f;
 		}
@@ -532,9 +539,11 @@ namespace mpl {
 
 	public:
 #ifdef MML_FIXED_H_INCLUDED__
-		typedef mml::fixed<int, n> serial_t;
+		typedef mml::fixed<int, n> scalar_t;
+		typedef mml::fixed<int, n> vector_t[MPL_WIDTH];
 #else
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 #endif
 
 		wide_fixed( void ) {}
@@ -574,13 +583,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { vst1q_s32(out, i); }
 
-		static wide_fixed<n> mov_if_true(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
+		static wide_fixed<n> cmov(const wide_bool &cond_mask, const wide_fixed<n> &l, const wide_fixed<n> &r)
 		{
 			wide_bool l_mask;
 			l_mask.u = vmvnq_u32(cond_mask.u);
 			int32x4_t rc, lc;
-			lc = vandq_s32(l.i, *(const int32x4_t*)(&l_mask.u));
-			rc = vandq_s32(r.i, *(const int32x4_t*)(&cond_mask.u));
+			lc = vandq_s32(r.i, *(const int32x4_t*)(&l_mask.u));
+			rc = vandq_s32(l.i, *(const int32x4_t*)(&cond_mask.u));
 			rc = vorrq_s32(rc, lc);
 			return rc;
 		}
@@ -600,7 +609,8 @@ namespace mpl {
 		wide_int(const int32x4_t &r) : i(r) {}
 
 	public:
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
@@ -650,13 +660,13 @@ namespace mpl {
 
 		void to_scalar(int *out) const { vst1q_s32(out, i); }
 
-		static wide_int mov_if_true(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
+		static wide_int cmov(const wide_bool &cond_mask, const wide_int &l, const wide_int &r)
 		{
 			wide_bool l_mask;
 			l_mask.u = vmvnq_u32(cond_mask.u);
 			int32x4_t rc, lc;
-			lc = vandq_s32(l.i, *(int32x4_t*)(&l_mask.u));
-			rc = vandq_s32(r.i, *(int32x4_t*)(&cond_mask.u));
+			lc = vandq_s32(r.i, *(int32x4_t*)(&l_mask.u));
+			rc = vandq_s32(l.i, *(int32x4_t*)(&cond_mask.u));
 			rc = vorrq_s32(rc, lc);
 			return rc;
 		}
@@ -664,19 +674,19 @@ namespace mpl {
 	} __attribute__((aligned(MPL_BYTE_ALIGN)));
 
 	wide_float::wide_float(const wide_int &r) : f(vcvtq_f32_s32(r.i)) {}
-	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::cmov(r, wide_float(1.0f), wide_float(0.0f))) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(vshlq_n_s32(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i(vcvtq_s32_f32(vmulq_n_f32(r.f, 1 << n))) {}
 	template < int n >
-	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::cmov(r, wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)))) {}
 
 	wide_int::wide_int(const wide_float &r) : i(vcvtq_s32_f32(r.f)) {}
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(vshrq_n_s32(r.i, n)) {}
-	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::cmov(r, wide_int(1), wide_int(0))) {}
 
 #elif MPL_SIMD == MPL_SIMD_ALTIVEC
 
@@ -703,7 +713,8 @@ namespace mpl {
 		wide_bool(const __vector unsigned int &r) : u(r) {}
 
 	public:
-		typedef bool serial_t;
+		typedef bool scalar_t;
+		typedef bool vector_t[MPL_WIDTH];
 
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : f(b.f) {}
@@ -737,7 +748,8 @@ namespace mpl {
 		float        f;
 
 	public:
-		typedef bool serial_t;
+		typedef bool scalar_t;
+		typedef bool vector_t[MPL_WIDTH];
 
 		wide_bool( void ) {}
 		wide_bool(const wide_bool &b) : u(b.u) {}
@@ -766,7 +778,8 @@ namespace mpl {
 		float f;
 
 	public:
-		typedef float serial_t;
+		typedef float scalar_t;
+		typedef float vector_t[MPL_WIDTH];
 
 		wide_float( void ) {}
 		wide_float(const wide_float &r) : f(r.f) {}
@@ -809,7 +822,7 @@ namespace mpl {
 
 		void to_scalar(float *out) const { *out = f; }
 
-		static wide_float mov_if_true(const wide_float &l, const wide_float &r, const wide_bool &cond_mask)
+		static wide_float cmov(const wide_bool &cond_mask, const wide_float &l, const wide_float &r)
 		{
 			// This function needs to be way more complicated than it should be.
 			// The compiler optimizes casting between float* and int* to shit.
@@ -822,7 +835,7 @@ namespace mpl {
 			bits a = { l.f };
 			bits b = { r.f };
 			bits o;
-			o.u = (a.u & ~cond_mask.u) | (b.u & cond_mask.u);
+			o.u = (b.u & ~cond_mask.u) | (a.u & cond_mask.u);
 			return wide_float(o.f);
 		}
 	};
@@ -859,9 +872,11 @@ namespace mpl {
 
 	public:
 #ifdef MML_FIXED_H_INCLUDED__
-		typedef mml::fixed<int, n> serial_t;
+		typedef mml::fixed<int, n> scalar_t;
+		typedef mml::fixed<int, n> vector_t[MPL_WIDTH];
 #else
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 #endif
 
 		wide_fixed( void ) {}
@@ -902,9 +917,9 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = signed_rshift(i, n); }
 
-		static wide_fixed<n> mov_if_true(const wide_fixed<n> &l, const wide_fixed<n> &r, const wide_bool &cond_mask)
+		static wide_fixed<n> cmov(const wide_bool &cond_mask, const wide_fixed<n> &l, const wide_fixed<n> &r)
 		{
-			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
+			unsigned int o = (*(unsigned int*)(&r.i) & ~cond_mask.u) | (*(unsigned int*)(&l.i) & cond_mask.u);
 			wide_fixed<n> out;
 			out.i = *(int*)&o;
 			return out;
@@ -921,7 +936,8 @@ namespace mpl {
 		int i;
 
 	public:
-		typedef int serial_t;
+		typedef int scalar_t;
+		typedef int vector_t[MPL_WIDTH];
 
 		wide_int( void ) {}
 		wide_int(const wide_int &r) : i(r.i) {}
@@ -968,29 +984,35 @@ namespace mpl {
 
 		void to_scalar(int *out) const { *out = i; }
 
-		static wide_int mov_if_true(const wide_int &l, const wide_int &r, const wide_bool &cond_mask)
+		static wide_int cmov(const wide_bool &cond_mask, const wide_int &l, const wide_int &r)
 		{
-			unsigned int o = (*(unsigned int*)(&l.i) & ~cond_mask.u) | (*(unsigned int*)(&r.i) & cond_mask.u);
+			unsigned int o = (*(unsigned int*)(&r.i) & ~cond_mask.u) | (*(unsigned int*)(&l.i) & cond_mask.u);
 			return wide_int(*(int*)(&o));
 		}
 	};
 
 	wide_float::wide_float(const wide_int &r) : f((float)r.i) {}
-	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::mov_if_true(wide_float(1.0f), wide_float(0.0f), r)) {}
+	wide_float::wide_float(const wide_bool &r) : wide_float(wide_float::cmov(r, wide_float(1.0f), wide_float(0.0f))) {}
 
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_int &r) : i(wide_fixed<n>::signed_lshift(r.i, n)) {}
 	template < int n >
 	wide_fixed<n>::wide_fixed(const wide_float &r) : i((int)(r.f * (1<<n))) {}
 	template < int n >
-	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::mov_if_true(wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)), r)) {}
+	wide_fixed<n>::wide_fixed(const wide_bool &r) : wide_fixed(wide_fixed<n>::cmov(r, wide_fixed<n>(wide_int(1)), wide_fixed<n>(wide_int(0)))) {}
 
 	template < int n >
 	wide_int::wide_int(const wide_fixed<n> &r) : i(wide_fixed<n>::signed_rshift(r.i, n)) {}
 	wide_int::wide_int(const wide_float &r) : i((int)r.f) {}
-	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::mov_if_true(wide_int(1), wide_int(0), r)) {}
+	wide_int::wide_int(const wide_bool &r) : wide_int(wide_int::cmov(r, wide_int(1), wide_int(0))) {}
 
 #endif
+
+	template < typename wide_t >
+	wide_t cmov(const wide_bool &cond_mask, const wide_t &l, const wide_t &r)
+	{
+		return wide_t::cmov(cond_mask, l, r);
+	}
 
 }
 
