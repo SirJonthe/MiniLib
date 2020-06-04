@@ -51,6 +51,8 @@ namespace mpl {
 
 		bool all_fail( void ) const { return _mm_movemask_epi8(u) == 0x0000; }
 		bool all_pass( void ) const { return _mm_movemask_epi8(u) == 0xffff; }
+
+		operator bool( void ) const { return !all_fail(); }
 	}
 	#if MPL_COMPILER == MPL_COMPILER_GCC
 		__attribute__((aligned(MPL_BYTE_ALIGN)))
@@ -432,6 +434,8 @@ namespace mpl {
 			return (vget_lane_u32(v1, 0) & vget_lane_u32(v1, 1)) == MPL_TRUE_BITS;
 		}
 
+		operator bool( void ) const { return !all_fail(); }
+
 	} __attribute__((aligned(MPL_BYTE_ALIGN)));
 
 	class wide_float
@@ -728,6 +732,8 @@ namespace mpl {
 
 		bool all_fail( void ) const;
 		bool all_pass( void ) const;
+
+		operator bool( void ) const { return !all_fail(); }
 	};
 
 #elif MPL_SIMD == MPL_SIMD_NONE
@@ -766,6 +772,8 @@ namespace mpl {
 
 		bool all_fail( void ) const { return u == MPL_FALSE_BITS; }
 		bool all_pass( void ) const { return u == MPL_TRUE_BITS; }
+
+		operator bool( void ) const { return !all_fail(); }
 	};
 
 	class wide_float
