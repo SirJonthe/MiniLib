@@ -208,6 +208,7 @@ inline real_t mmlSin(real_t x)
 
 	// based on: http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/
 	// based on: http://www.mclimatiano.com/faster-sine-approximation-using-quadratic-curve/
+		// note: mclimatiano.com uses constant 0.255 instead of 0.225 as used in polygonal.de which leads to consistently worse results. Typo?
 	x = mmlWrap(real_t(-mmlPI), x, real_t(mmlPI));
 	const real_t magic_val1 = real_t(4.0f) / real_t(mmlPI);
 	const real_t magic_val2 = magic_val1 / real_t(mmlPI);
