@@ -96,7 +96,7 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 	entry.name.Copy(name);
 	entry.entry.template New<derived_t>(); // Jesus...
     b->GetItem().entries->AddLast(entry);
-    return b->GetItem().entries->GetLast()->GetItem().entry.GetShared(); // puke worthy
+	return b->GetItem().entries->GetLast()->GetItem().entry.GetShared(); // puke worthy (why not entry.entry.GetShared()??)
 }
 
 template < typename type_t >

@@ -16,6 +16,62 @@ typedef unsigned short     uint16;
 typedef unsigned int       uint32;
 typedef unsigned long long uint64;
 
+struct uint128 { mml::uint64 hi, lo; };
+
+inline mml::uint128 mul128(mml::uint64 l, mml::uint64 r)
+{
+	/* First calculate all of the cross products. */
+	mml::uint64 lo_lo = (l & 0xffffffff) * (r & 0xffffffff);
+	mml::uint64 hi_lo = (l >> 32)        * (r & 0xffffffff);
+	mml::uint64 lo_hi = (l & 0xffffffff) * (r >> 32);
+	mml::uint64 hi_hi = (l >> 32)        * (r >> 32);
+
+	/* Now add the products together. These will never overflow. */
+	mml::uint64 cross = (lo_lo >> 32) + (hi_lo & 0xffffffff) + lo_hi;
+	mml::uint64 high  = (hi_lo >> 32) + (cross >> 32)        + hi_hi;
+	mml::uint64 low   = (cross << 32) | (lo_lo & 0xffffffff);
+
+	return mml::uint128 { high, low };
+}
+
+inline mml::uint64 div128(mml::uint128 l, mml::uint64 r)
+{
+	mml::uint64 q = l.lo << 1; // quotient
+	mml::uint64 rem = l.hi; // remainder
+
+	mml::uint64 carry = l.lo >> 63;
+	mml::uint64 temp_carry = 0;
+
+	for (mml::uint64 i = 0; i < 64; ++i) {
+		temp_carry = rem >> 63;
+		rem <<= 1;
+		rem |= carry;
+		carry = temp_carry;
+
+		if(carry == 0) {
+			if(rem >= r) {
+				carry = 1;
+			} else {
+				temp_carry = q >> 63;
+				q <<= 1;
+				q |= carry;
+				carry = temp_carry;
+				continue;
+			}
+		}
+
+		rem -= r;
+		rem -= (1 - carry);
+		carry = 1;
+		temp_carry = q >> 63;
+		q <<= 1;
+		q |= carry;
+		carry = temp_carry;
+	}
+
+	return q;
+}
+
 template < typename base_t > class int_cast {};
 
 template <>
