@@ -39,7 +39,7 @@ public:
 	{
 		// we can't rely on m_obj having same address despite pointing to same data (not same types)
 		// instead, compare m_count address
-		if (&m_count != &shared.m_count) {
+		if (m_count != shared.m_count) {
 			Delete();
 			m_obj = shared.m_obj; // we rely on the compiler to tell us if this is a mismatch
 			m_count = shared.m_count;
