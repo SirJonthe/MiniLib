@@ -15,9 +15,9 @@ class mtlShared
 	friend class mtlShared;
 
 private:
-	type_t	*m_obj; // delete if count==0
-	int		*m_count; // increment on create, decrement on destroy, only delete if watchers==0
-	int		*m_watchers; // only delete this is watchers==0
+	type_t *m_obj; // delete if count==0
+	int    *m_count; // increment on create, decrement on destroy, only delete if watchers==0
+	int    *m_watchers; // only delete this is watchers==0
 
 public:
 	mtlShared( void );
@@ -39,7 +39,7 @@ public:
 	{
 		// we can't rely on m_obj having same address despite pointing to same data (not same types)
 		// instead, compare m_count address
-		if (m_count != shared.m_count) {
+		if (&m_count != &shared.m_count) {
 			Delete();
 			m_obj = shared.m_obj; // we rely on the compiler to tell us if this is a mismatch
 			m_count = shared.m_count;
