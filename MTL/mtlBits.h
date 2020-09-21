@@ -94,6 +94,28 @@ inline unsigned int mtlDecodeMorton3Z(unsigned long long code)
 	return static_cast<unsigned int>(code);
 }
 
+// Used to scale integer fractions from one precision to another.
+// For instance 5 bit 0-31 range value to 8 bit 0-255 (or vice versa).
+// in_bits = the number of bits used for the value in value.
+// out_bits = the number of bits 'value' is supposed to be scaled to.
+// intermediate_precision = the number of bits used in intermediate calculations.
+template < unsigned int in_bits, unsigned int out_bits, unsigned int intermediate_precision = 8 >
+inline unsigned int mtlScaleBitRange(unsigned int value)
+{
+	return (value * (((1 << out_bits) << intermediate_precision) / ((1 << in_bits) - 1))) >> intermediate_precision;
+}
+
+// Used to scale integer fractions from one precision to another.
+// For instance 5 bit 0-31 range value to 8 bit 0-255 (or vice versa).
+// in_bits = the number of bits used for the value in value.
+// out_bits = the number of bits 'value' is supposed to be scaled to.
+// intermediate_precision = the number of bits used in intermediate calculations.
+template < unsigned int intermediate_precision = 8 >
+inline unsigned int mtlScaleBitRange(unsigned int value, unsigned int in_bits, unsigned int out_bits)
+{
+	return (value * (((1 << out_bits) << intermediate_precision) / ((1 << in_bits) - 1))) >> intermediate_precision;
+}
+
 template < typename type_t >
 inline type_t mtl1BitMask(unsigned int i) { return type_t((type_t(1)) << i); }
 
