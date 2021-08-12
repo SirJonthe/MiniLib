@@ -396,7 +396,7 @@ inline mmlVector<3,type_t> operator*(const mmlVector<3,type_t> &v, const mmlMatr
 //	);
 
 	// NOTE: Updated to convert homogeneous coordinates to Cartesian.
-	mmlVector<3> o;
+	mmlVector<3,type_t> o;
 	o[0] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[0])) + m[0][3];
 	o[1] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[1])) + m[1][3];
 	o[2] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3];
