@@ -250,7 +250,7 @@ public:
 		return v;
 	}
 	static mmlVector<n,type_t> Fill(const type_t &val) {
-		mmlVector<n> v;
+		mmlVector<n,type_t> v;
 		for (int i = 0; i < n; ++i) { v[i] = val; }
 		return v;
 	}
