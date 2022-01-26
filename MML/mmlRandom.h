@@ -4,6 +4,8 @@
 // Based on minimal PCG32 algorithm implementation by M.E. O'Neill (pcg-random.org)
 // Licenced under Apache Licence 2.0
 
+#include "mmlVector.h"
+
 class mmlRandom
 {
 private:
@@ -24,6 +26,35 @@ public:
 
 	float        GetFloat( void );
 	float        GetFloat(float min, float max);
+
+	template < int n, typename real_t >
+	mmlVector<n,real_t> GetNormal( void );
 };
+
+template < int n, typename real_t >
+mmlVector<n,real_t> mmlRandom::GetNormal( void )
+{
+	static constexpr real_t TAU = mmlTau<20,real_t>();
+	mmlVector<n,real_t> v;
+	real_t sum = real_t(0);
+	do {
+		sum = real_t(0);
+		for (int i = 0; i < n - 1; ++i) {
+			const real_t A = real_t(GetFloat());
+			const real_t B = real_t(GetFloat());
+			const real_t radius = mmlSqrt(real_t(-2) * log(A));
+			const real_t angle = TAU * B;
+			v[i] = radius * ( (i & 1) == 0 ? mmlCos(angle) : mmlSin(angle) );
+			sum += v[i] * v[i];
+		}
+	} while (sum == real_t(0)); // Avoid 0!
+
+	const real_t inv_len = real_t(1) / mmlSqrt(sum);
+	for (int i = 0; i < n; ++i) {
+		v[i] *= inv_len;
+	}
+
+	return v;
+}
 
 #endif

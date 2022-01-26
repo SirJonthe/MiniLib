@@ -168,4 +168,80 @@ public:
 	char Debug_ReadChar( void ) { return (char)ReadChar(); }
 };
 
+template < typename type_t >
+type_t mtlParseValue(const mtlChars &value)
+{
+	return value;
+}
+
+template <> char mtlParseValue(const mtlChars &value);
+template <> short mtlParseValue(const mtlChars &value);
+template <> int mtlParseValue(const mtlChars &value);
+template <> long mtlParseValue(const mtlChars &value);
+template <> long long mtlParseValue(const mtlChars &value);
+template <> unsigned char mtlParseValue(const mtlChars &value);
+template <> unsigned short mtlParseValue(const mtlChars &value);
+template <> unsigned int mtlParseValue(const mtlChars &value);
+template <> unsigned long mtlParseValue(const mtlChars &value);
+template <> unsigned long long mtlParseValue(const mtlChars &value);
+template <> float mtlParseValue(const mtlChars &value);
+template <> double mtlParseValue(const mtlChars &value);
+template <> long double mtlParseValue(const mtlChars &value);
+
+class mtlJSON
+{
+public:
+	enum Type
+	{
+		Null,
+		Number,
+		String,
+		Boolean,
+		Array,
+		Object
+	};
+
+	struct DataType
+	{
+		mtlChars  key;
+		mtlChars  value;
+		DataType *next;
+		DataType *members;
+		Type      type;
+
+		DataType( void );
+		~DataType( void );
+
+		int GetSize( void ) const;
+
+		template < typename type_t >
+		type_t Value( void ) const { return mtlParseValue<type_t>(value); }
+	};
+
+private:
+	mtlString  m_buffer;
+	mtlChars   m_json;
+	DataType  *m_values;
+
+private:
+	void Parse( void );
+	void ParseValue(const mtlChars &json, DataType *&v);
+	void ParseObject(const mtlChars &json, DataType *&v);
+	void ParseArray(const mtlChars &json, DataType *&v);
+	void StoreNumber(const mtlChars &json, DataType *&v);
+	void StoreString(const mtlChars &json, DataType *&v);
+	void StoreBool(const mtlChars &json, DataType *&v);
+	void StoreNull(DataType *&v);
+
+public:
+	mtlJSON( void );
+	~mtlJSON( void );
+
+	void SetBuffer(const mtlChars &buffer);
+	void CopyBuffer(const mtlChars &buffer);
+
+	DataType       *GetValues( void );
+	const DataType *GetValues( void ) const;
+};
+
 #endif

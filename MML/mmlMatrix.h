@@ -56,7 +56,7 @@ public:
 	//
 	// conversion
 	//
-	template < int m2, int n2>
+	template < int m2, int n2, typename type2_t >
 	explicit mmlMatrix(const mmlMatrix<m2,n2,type_t> &mat) {
 		const int minm = rows < m2 ? rows : m2;
 		const int minn = columns < n2 ? columns : n2;
@@ -64,7 +64,7 @@ public:
 		for (; p_row < minm; ++p_row) {
 			int p_column = 0;
 			for (; p_column < minn; ++p_column) {
-				e[p_row][p_column] = mat[p_row][p_column];
+				e[p_row][p_column] = type_t(mat[p_row][p_column]);
 			}
 			for (; p_column < columns; ++p_column) {
 				e[p_row][p_column] = type_t(0);
@@ -396,7 +396,7 @@ inline mmlVector<3,type_t> operator*(const mmlVector<3,type_t> &v, const mmlMatr
 //	);
 
 	// NOTE: Updated to convert homogeneous coordinates to Cartesian.
-	mmlVector<3> o;
+	mmlVector<3,type_t> o;
 	o[0] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[0])) + m[0][3];
 	o[1] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[1])) + m[1][3];
 	o[2] = mmlDot(v, mmlVector<3,type_t>::Cast(&m[2])) + m[2][3];

@@ -154,10 +154,10 @@ template < int n, typename real_t >
 inline real_t mmlPi( void )
 {
 	// Nilakantha series
-	real_t pi = real_t(3.0f);
+	real_t pi = real_t(3);
 	const int iter = n * 4;
 	for (int i = 0; i < iter; i += 4) {
-		pi = pi + (real_t(4.0f) / real_t((i+2) * (i+3) * (i+4))) - (real_t(4.0f) / real_t((i+4) * (i+5) * (i+6)));
+		pi = pi + (real_t(4) / real_t((i+2) * (i+3) * (i+4))) - (real_t(4) / real_t((i+4) * (i+5) * (i+6)));
 	}
 	return pi;
 }
@@ -166,7 +166,7 @@ template < int n, typename real_t >
 inline real_t mmlTau( void )
 {
 	return real_t(2) * mmlPi<n,real_t>();
-};
+}
 
 #define mmlPI 3.14159265f
 #define mmlTAU (mmlPI*2.0f)

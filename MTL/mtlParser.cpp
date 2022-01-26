@@ -829,3 +829,268 @@ int mtlSyntaxParser::Match(const mtlChars &expr, mtlChars *seq)
 	mtlArray<mtlChars> m;
 	return Match(expr, m, seq);
 }
+
+template <>
+char mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return char(o);
+}
+
+template <>
+short mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return short(o);
+}
+
+template <>
+int mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return o;
+}
+
+template <>
+long mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return long(o);
+}
+
+template <>
+long long mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<long long>(o);
+}
+
+template <>
+unsigned char mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<unsigned char>(o);
+}
+
+template <>
+unsigned short mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<unsigned short>(o);
+}
+
+template <>
+unsigned int mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<unsigned int>(o);
+}
+
+template <>
+unsigned long mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<unsigned long>(o);
+}
+
+template <>
+unsigned long long mtlParseValue(const mtlChars &value)
+{
+	int o = 0;
+	value.ToInt(o);
+	return static_cast<unsigned long long>(o);
+}
+
+template <>
+float mtlParseValue(const mtlChars &value)
+{
+	float o = 0.0f;
+	value.ToFloat(o);
+	return o;
+}
+
+template <>
+double mtlParseValue(const mtlChars &value)
+{
+	float o = 0.0f;
+	value.ToFloat(o);
+	return double(o);
+}
+
+template <>
+long double mtlParseValue(const mtlChars &value)
+{
+	float o = 0.0f;
+	value.ToFloat(o);
+	return static_cast<long double>(o);
+}
+
+mtlJSON::DataType::DataType( void ) :
+	key(""), value("0"), next(nullptr), members(nullptr), type(Null)
+{}
+
+mtlJSON::DataType::~DataType( void )
+{
+	delete next;
+	delete members;
+}
+
+int mtlJSON::DataType::GetSize( void ) const
+{
+	return (next != nullptr ? next->GetSize() : 0) + (members != nullptr ? members->GetSize() : 0) + 1;
+}
+
+void mtlJSON::Parse( void )
+{
+	delete m_values;
+	m_values = nullptr;
+	mtlSyntaxParser p;
+	p.SetBuffer(m_json);
+	mtlArray<mtlChars> m;
+	if (!p.IsEnd() && p.Match("{%s}%0", m) >= 0) {
+		ParseObject(m[0], m_values);
+	}
+}
+
+void mtlJSON::ParseValue(const mtlChars &json, DataType *&v)
+{
+	mtlSyntaxParser p;
+	p.SetBuffer(json);
+	p.EnableCaseSensitivity();
+	mtlArray<mtlChars> m;
+	if (!p.IsEnd()) {
+		switch (p.Match("{%s}%0 %| [%s]%0 %| \"%s\"%0 %| %r%0 %| true%0 %| false%0 %| null%0", m)) {
+		case 0:
+			ParseObject(m[0], v);
+			break;
+		case 1:
+			ParseArray(m[0], v);
+			break;
+		case 2:
+			StoreString(m[0], v);
+			break;
+		case 3:
+			StoreNumber(m[0], v);
+			break;
+		case 4:
+			StoreBool("1", v);
+			break;
+		case 5:
+			StoreBool("0", v);
+			break;
+		case 6:
+			StoreNull(v);
+			break;
+		default: break;
+		}
+	}
+}
+
+void mtlJSON::ParseObject(const mtlChars &json, DataType *&v)
+{
+	v = new DataType;
+	v->type = Object;
+	v->value = json;
+
+	mtlSyntaxParser p;
+	p.SetBuffer(json);
+	mtlArray<mtlChars> m;
+	DataType **mbr = &v->members;
+	while (!p.IsEnd()) {
+		if (p.Match("\"%S\":%S, %| \"%S\":%S%0", m) >= 0) {
+			ParseValue(m[1], *mbr);
+			if (*mbr != nullptr) {
+				(*mbr)->key = m[0];
+			}
+			mbr = &((*mbr)->next);
+		} else {
+			return;
+		}
+	}
+}
+
+void mtlJSON::ParseArray(const mtlChars &json, DataType *&v)
+{
+	v = new DataType;
+	v->type = Array;
+	v->value = json;
+
+	DataType **n = &v;
+
+	mtlSyntaxParser p;
+	p.SetBuffer(json);
+	mtlArray<mtlChars> m;
+	while (!p.IsEnd() && p.Match("%S, %| %S%0", m) >= 0) {
+		ParseValue(m[0], *n);
+		n = &((*n)->next);
+	}
+}
+
+void mtlJSON::StoreNumber(const mtlChars &json, DataType *&v)
+{
+	v = new DataType;
+	v->value = json;
+	v->type = Number;
+}
+
+void mtlJSON::StoreString(const mtlChars &json, DataType *&v)
+{
+	v = new DataType;
+	v->value = json;
+	v->type = String;
+}
+
+void mtlJSON::StoreBool(const mtlChars &json, DataType *&v)
+{
+	v = new DataType;
+	v->value = json;
+	v->type = Boolean;
+}
+
+void mtlJSON::StoreNull(DataType *&v)
+{
+	v = new DataType;
+	v->value = "0";
+	v->type = Null;
+}
+
+mtlJSON::mtlJSON( void ) : m_buffer(), m_json(), m_values(nullptr)
+{}
+
+mtlJSON::~mtlJSON( void )
+{
+	delete m_values;
+}
+
+void mtlJSON::SetBuffer(const mtlChars &buffer)
+{
+	m_buffer.Free();
+	m_json = buffer;
+	Parse();
+}
+
+void mtlJSON::CopyBuffer(const mtlChars &buffer)
+{
+	m_buffer.Copy(buffer);
+	m_json = m_buffer;
+	Parse();
+}
+
+mtlJSON::DataType *mtlJSON::GetValues( void )
+{
+	return m_values;
+}
+
+const mtlJSON::DataType *mtlJSON::GetValues( void ) const
+{
+	return m_values;
+}
