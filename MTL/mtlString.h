@@ -3,9 +3,12 @@
 
 #include <cstddef>
 #include "mtlList.h"
+#include "mtlArray.h"
 
 #define mtlCharToStr(ch) { ch, 0 }
 
+// mtlChars
+// Represents a view into a string of characters. Does not own its own memory. This class allows for string manipulation that does not result in a modification of the underlying string.
 class mtlChars
 {
 protected:
@@ -13,15 +16,33 @@ protected:
 	int         m_size;
 
 private:
-	static int              GetSizeActual(int stringSize, int targetSize = -1) { return (targetSize < 0 || targetSize > stringSize) ? stringSize : targetSize; }
-	static int              GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
+	static int GetSizeActual(int stringSize, int targetSize = -1) { return (targetSize < 0 || targetSize > stringSize) ? stringSize : targetSize; }
+	static int GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
 
 public:
-	static bool             SameAsAny(char a, const char *b, int num = -1, bool caseSensitive = false);
-	static int              SameAsWhich(char a, const char *b, int num = -1, bool caseSensitive = false);
-	static bool             SameAsNone(char a, const char *b, int num = -1, bool caseSensitive = false);
-	static bool             SameAsAll(const char *a, const char *b, int num, bool caseSensitive = false);
-	static int              GetDynamicSize(const char *str);
+	
+	// SameAsAny
+	// Checks if sequence of characters 'b' (defined by length 'num') contains the character 'a'. 'caseSensitive' allows/disallows the use of case conversion before comparison.
+	static bool SameAsAny(char a, const char *b, int num = -1, bool caseSensitive = false);
+	
+	// SameAsWhich
+	// Same as SameAsAny, but returns the index into 'b' that is the first occurrence of 'a'.
+	static int SameAsWhich(char a, const char *b, int num = -1, bool caseSensitive = false);
+	
+	// SameAsNone
+	// 
+	static bool SameAsNone(char a, const char *b, int num = -1, bool caseSensitive = false);
+	
+	// SameAsAll
+	//
+	static bool SameAsAll(const char *a, const char *b, int num, bool caseSensitive = false);
+	
+	// GetDynamicSize
+	// Counts characters in 'str' until a 0 byte is reached.
+	static int GetDynamicSize(const char *str);
+	
+	//
+	//
 	template < int t_size >
 	static int              GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
 	static void             ToLower(char *str, int num = -1);
@@ -61,6 +82,8 @@ public:
 
 	void                    SplitByChar(mtlList<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true) const;
 	void                    SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace = true) const;
+	void                    SplitByChar(mtlArray<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace = true) const;
+	void                    SplitByChar(mtlArray<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace = true) const;
 	void                    SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
 
 	int                     FindFirstChar(const mtlChars &p_chars) const;
@@ -88,6 +111,8 @@ public:
 	inline bool             operator!=(const mtlChars &str) const;
 };
 
+// mtlString
+// Represents a string of characters. Owns its own memory. Allows memory to be manipulated, but may invalidate mtlChar classes that refer to the same memory.
 class mtlString : public mtlChars
 {
 protected:
