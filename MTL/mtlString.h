@@ -29,20 +29,14 @@ public:
 	// Same as SameAsAny, but returns the index into 'b' that is the first occurrence of 'a'.
 	static int SameAsWhich(char a, const char *b, int num = -1, bool caseSensitive = false);
 	
-	// SameAsNone
-	// 
 	static bool SameAsNone(char a, const char *b, int num = -1, bool caseSensitive = false);
 	
-	// SameAsAll
-	//
 	static bool SameAsAll(const char *a, const char *b, int num, bool caseSensitive = false);
 	
 	// GetDynamicSize
 	// Counts characters in 'str' until a 0 byte is reached.
 	static int GetDynamicSize(const char *str);
 	
-	//
-	//
 	template < int t_size >
 	static int              GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
 	static void             ToLower(char *str, int num = -1);
