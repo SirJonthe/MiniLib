@@ -7,6 +7,12 @@
 
 typedef unsigned long long mtlTypeID;
 
+mtlTypeID mtlNewTypeID( void )
+{
+	static mtlTypeID id = 0;
+	return ++id;
+}
+
 class mtlBase
 {
 private:
@@ -18,7 +24,6 @@ private:
 	mtlBase &operator=(const mtlBase&) { return *this; }
 
 protected:
-	static mtlTypeID GetNextTypeID( void ) { static mtlTypeID id = 0; return ++id; }
 	static bool IsType(mtlTypeID id) { return (GetClassType() == id); }
 	void *GetObjectPointer(mtlTypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
 	virtual void *GetVirtualObjectPointer(mtlTypeID id) const { return (GetClassType() != id) ? NULL : m_objectPointer; }
@@ -91,7 +96,7 @@ protected:
 public:
 	explicit mtlInherit(void *p_objectPointer) : m_objectPointer(p_objectPointer) {}
 
-	static mtlTypeID GetClassType( void ) { static const mtlTypeID id = mtlBase::GetNextTypeID(); return id; }
+	static mtlTypeID GetClassType( void ) { static const mtlTypeID id = mtlNewTypeID(); return id; }
 	virtual mtlTypeID GetInstanceType( void ) const { return GetClassType(); }
 
 	virtual bool IsInstanceType(mtlTypeID id) const { return IsType(id); }
