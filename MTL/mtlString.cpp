@@ -245,6 +245,28 @@ void mtlChars::SplitByChar(mtlList<mtlChars> &p_out, char p_ch, bool p_ignoreWhi
 	SplitByChar(p_out, chars, p_ignoreWhitespace);
 }
 
+void SplitByCharRecursive(const mtlChars &input, mtlArray<mtlChars> &p_out, const mtlChars &p_chars, int index, bool p_ignoreWhitespace)
+{
+	int next = input.FindFirstChar(p_chars);
+	if (next >= 0) {
+		SplitByCharRecursive(mtlChars(input, next + 1, input.GetSize()), p_out, p_chars, index + 1, p_ignoreWhitespace);
+	} else {
+		p_out.Create(index + 1);
+	}
+	p_out[index] = p_ignoreWhitespace ? mtlChars(input, 0, next).GetTrimmed() : mtlChars(input, 0, next);
+}
+
+void mtlChars::SplitByChar(mtlArray<mtlChars> &p_out, const mtlChars &p_chars, bool p_ignoreWhitespace) const
+{
+	SplitByCharRecursive(*this, p_out, p_chars, 0, p_ignoreWhitespace);
+}
+
+void mtlChars::SplitByChar(mtlArray<mtlChars> &p_out, char p_ch, bool p_ignoreWhitespace) const
+{
+	char chars[] = mtlCharToStr(p_ch);
+	SplitByChar(p_out, chars, p_ignoreWhitespace);
+}
+
 void mtlChars::SplitByString(mtlList<mtlChars> &p_out, const mtlChars &p_str, bool p_ignoreWhitespace) const
 {
 	p_out.RemoveAll();
