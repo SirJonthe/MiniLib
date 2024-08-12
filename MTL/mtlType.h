@@ -7,11 +7,7 @@
 
 typedef unsigned long long mtlTypeID;
 
-mtlTypeID mtlNewTypeID( void )
-{
-	static mtlTypeID id = 0;
-	return ++id;
-}
+mtlTypeID mtlNewTypeID( void );
 
 class mtlBase
 {
